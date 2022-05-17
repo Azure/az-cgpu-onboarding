@@ -1,8 +1,3 @@
-
-The following four steps are required to deploy your first Confidential GPU VM and to run a sample workload. The First two steps helps set up the confidential GPU environment. Third steps do an attestation and verify the CGPU mode has been turned on successfully. Last steps helps run a sample workload to verify and complete the setup. This only required the first time. Depending on your network performance and past experience with Azure, it may take a few hours to complete this. So make sure to set up enough available time.
-
-Please make sure to follow all steps exactly as detailed. if you running into issues. please reach out to us as described at the bottom of this document. We are confident that things will be smooth once you get the hang of it!
-
 ## Steps
 
 - [Create-CGPU-VM](#Create-CGPU-VM)
@@ -21,7 +16,7 @@ requirements:
   - CgpuOnboardingPakcage.tar.gz
   - Source code (zip) --> CGPUPrivatePreview-1.0.1.zip
 
-1. Preparing ssh key for creating VM
+1. Preparing ssh key for creating VM (If you don't have one)
 ```
 E:\cgpu\.ssh>ssh-keygen -t rsa -b 4096 -C example@gmail.com
 Generating public/private rsa key pair.
@@ -91,7 +86,7 @@ platform=Linux `
 linuxDistro=Ubuntu `
 enableAN=$false `
 installGpuDrivers=$false `
-enableTVM=$false `
+enableTVM=$true `
 ubuntuRelease=20
 
 ```

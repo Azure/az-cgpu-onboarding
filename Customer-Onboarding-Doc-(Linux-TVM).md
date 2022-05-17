@@ -1,27 +1,25 @@
-
-The following four steps are required to deploy your first Confidential GPU VM and to run a sample workload. The First two steps helps set up the confidential GPU environment. Third steps do an attestation and verify the CGPU mode has been turned on successfully. Last steps helps run a sample workload to verify and complete the setup. This only required the first time. Depending on your network performance and past experience with Azure, it may take a few hours to complete this. So make sure to set up enough available time.
-
-Please make sure to follow all steps exactly as detailed. if you running into issues. please reach out to us as described at the bottom of this document. We are confident that things will be smooth once you get the hang of it!
-
 ## Steps
 
 - [Create-CGPU-VM](#Create-CGPU-VM)
 - [Install-GPU-Driver](#Install-GPU-Driver) 
 - [Attestation ](#Attestation) 
 - [Workload-Running](#Workload-Running) 
------
 
+
+
+-----
 ### Create-CGPU-VM
+
 
 requirements:
 
-- Powershell: version 5.1.19041.1682 and above
+- Linux or Git Bash
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) 
 - Download Files from [CGPUPrivatePreview-1.0.1](https://github.com/soccerGB/CGPUPrivatePreview/releases/tag/v1.0.1 )
   - CgpuOnboardingPakcage.tar.gz
-  - Source code (zip) --> CGPUPrivatePreview-1.0.1.zip
+  - Source code (tar.gz) --> CGPUPrivatePreview-1.0.1.tar.gz
 
-1. Preparing ssh key for creating VM
+1. Preparing ssh key for creating VM (If you don't have one)
 ```
 E:\cgpu\.ssh>ssh-keygen -t rsa -b 4096 -C example@gmail.com
 Generating public/private rsa key pair.
@@ -49,22 +47,18 @@ The key's randomart image is:
 ```
 2. Executing VM Creation using Azure CLI
 ```
-# extract CGPUPrivatePreview-1.0.1.zip code go into the folder
+# extract CGPUPrivatePreview-1.0.1.tar.gz code go into the folder
+tar -zxvf CGPUPrivatePreview-1.0.1.tar.gz
 cd CGPUPrivatePreview-1.0.1
 
 # azure admin user name
-$adminusername="your user name"
+adminusername="your user name"
 
 # resource group name
-$rg="your resource group name"
+rg="your resource group name"
 
 # vm name 
-$vmname="your vm name"
-
-# ssh pub key generated from step1.
-$SshCreds="ssh-rsa AAAAB3NzaC..."
-
-
+vmname="your vm name"
 
 # login in with your azure account
 Az login
@@ -86,7 +80,7 @@ vmCount=1 `
 deploymentPrefix=$vmname `
 virtualMachineSize="NCC24ads_A100_v4" `
 adminUsername=$adminusername `
-adminPublicKey=$SshCreds `
+adminPublicKey="ssh-rsa AAAAB3NzaC1y.....(replace with your publickey)" `
 platform=Linux `
 linuxDistro=Ubuntu `
 enableAN=$false `
