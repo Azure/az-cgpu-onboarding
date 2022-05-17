@@ -10,10 +10,10 @@ Please make sure to follow all steps exactly as detailed. if you running into is
 ##Choose your configuration 
 
 
-- [Onboarding Docs (Windows)](Customer-Onboarding-Doc-(windows)
+- [Onboarding Docs (Windows)](Customer-Onboarding-Doc-(windows).md)
 
-- [Onboarding Docs (Linux)](Customer-Onboarding-Doc(Linux)
+- [Onboarding Docs (Linux)](Customer-Onboarding-Doc(Linux).md)
 
-- [Onboarding Docs (Windows-TVM)](Customer-Onboarding-Doc-(Windows-TVM)
+- [Onboarding Docs (Windows-TVM)](Customer-Onboarding-Doc-(Windows-TVM).md)
 
-- [Onboarding Docs (Linux-TVM)](Customer-Onboarding-Doc-(Linux-TVM))
+- [Onboarding Docs (Linux-TVM)](Customer-Onboarding-Doc-(Linux-TVM).md)
