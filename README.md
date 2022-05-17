@@ -7,10 +7,10 @@ Please make sure to follow all steps exactly as detailed. if you running into is
 - Attestation 
 - Workload Running
 
-##Choose your configuration 
+## Choose your configuration 
 
 
-- [Onboarding Docs (Windows)](Customer-Onboarding-Doc-(windows).md)
+- [Onboarding Docs (Windows)](Customer-Onboarding-Doc-(Windows).md)
 
 - [Onboarding Docs (Linux)](Customer-Onboarding-Doc(Linux).md)
 
