@@ -1,0 +1,645 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "cluster": {
+            "type": "string"
+        },
+        "tipSessionId": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "vmCount": {
+            "type": "int"
+        },
+        "deploymentPrefix": {
+            "type": "string"
+        },
+        "virtualMachineSize": {
+            "type": "string",
+            "allowedValues": [
+                  "A9",
+                  "HB60rs",
+                  "HB120rs_v2",
+                  "HC44rs",
+                  "H16mr",
+                  "H16r",
+                  "NC6",
+                  "NC12",
+                  "NC24",
+                  "NC24r",
+                  "ND40s_v2",
+                  "NC6s_v3",
+                  "NC24rs_v3",
+                  "NC24s_v3",
+                  "NC12s_v3",
+                  "NC24rs_v2",
+                  "NC24s_v2",
+                  "NC12s_v2",
+                  "NC6s_v2",
+                  "ND40rs_v2",
+                  "ND24s",
+                  "ND24rs",
+                  "ND12s",
+                  "ND6s",
+                  "NV24",
+                  "NV12s_v3",
+                  "NV24s_v3",
+                  "NV48s_v3",
+                  "NV12",
+                  "NV6",
+                  "ND96asr_v4",
+                  "NC96as_A100_v4",
+                  "NC64as_T4_v3",
+                  "NC96ads_A100_v4",
+                  "NC48ads_A100_v4",
+                  "NC24ads_A100_v4",
+                  "NCC96ads_A100_v4",
+                  "NCC48ads_A100_v4",
+                  "NCC24ads_A100_v4",
+                  "NV72ads_A10_v5"
+                ],
+                "metadata": {
+                  "description": "VM size"
+                }
+        },
+        "adminUsername": {
+            "type": "string"
+        },
+        "adminPassword": {
+            "type": "string",
+            "defaultValue": "test12345"
+        },
+        "adminPublicKey": {
+            "type": "string",
+            "defaultValue": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCu+QNv9dXzz2jOD5kejEor6DxwNQICg8gliSrsBfEIXcdFL7yEKVGX+1TzdNmJ6KGECjzOPqCRfu2Lu5zEEQANy+F1MWi+O6VA3h7cLdudSNS31G25TONEsrnAJy1f63YraSICGf2Fuoz6Bfr1ROx2smI08O/OG5xtkctP8+yzlNlmoyACZdQDo7b8KHBFQcP0U552KHtJkXeyJxJK27dT9LcgU94qGLsmREDOnBywgzpg1QGZ5rW00kiy8ZeAH/+y4CRwr1Bt4Vos93OrUT0RzfqqkfFmUQQwyUHyIKPBC/9Vvtz0eQDEWrQCyaQRlTS+n8gg5yhZshkSsqxNjUaT"
+        },
+        "user1PublicKey": {
+            "type": "string",
+            "defaultValue": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQChzLe8Bc/bX1cxNjHfWggKG91HPqsB+xAoLrFuBS5OkriR6rGWU72a80Vx0TITZsAXJm5x6JA8IwqP9Dl6mddbGQsPZU7skeJzLV8lAmORAFqy6Koo2vnRhXvwqwh2FCqW8UmlyvzDimi7HA0uwLB066pmjTIkq4Tboxjaeo/D1D7zzORrIxZQvnYI2qNvj5WpWfJzXwfb9T9gZLtzkYlTRj791SpKBSrueh5ppbMxemn2pIu+lI9/iplpzkflAzx6BVxl4iOQA+mi3dHtK2D8/Gtap1jeud49eIJfUvmWWp1RZZqA+jVzKlx8bOuqkpkobjbSNHxJo6RXWhl6CtVb"
+        },
+         "philyUser": {
+            "type": "string",
+            "defaultValue": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQChzLe8Bc/bX1cxNjHfWggKG91HPqsB+xAoLrFuBS5OkriR6rGWU72a80Vx0TITZsAXJm5x6JA8IwqP9Dl6mddbGQsPZU7skeJzLV8lAmORAFqy6Koo2vnRhXvwqwh2FCqW8UmlyvzDimi7HA0uwLB066pmjTIkq4Tboxjaeo/D1D7zzORrIxZQvnYI2qNvj5WpWfJzXwfb9T9gZLtzkYlTRj791SpKBSrueh5ppbMxemn2pIu+lI9/iplpzkflAzx6BVxl4iOQA+mi3dHtK2D8/Gtap1jeud49eIJfUvmWWp1RZZqA+jVzKlx8bOuqkpkobjbSNHxJo6RXWhl6CtVb"
+        },
+        "addressPrefix": {
+            "type": "string"
+        },
+        "subnetName": {
+            "type": "string"
+        },
+        "subnetPrefix": {
+            "type": "string"
+        },
+        "publicIpAddressType": {
+            "type": "string"
+        },
+        "platform": {
+            "type": "string",
+            "allowedValues": [
+                "Windows",
+                "Linux"
+            ],
+            "defaultValue": "Windows",
+            "metadata": {
+                "description": "Select the OS type to deploy."
+            }
+        },
+         "windowsRelease": {
+            "type": "string",
+            "allowedValues": [
+                "2019",
+                "2016",
+                "2012R2",
+                "Win10"
+            ],
+            "defaultValue": "2016",
+            "metadata": {
+                "description": "Select the Windows server release to deploy."
+            }
+        },
+        "linuxDistro": {
+            "type": "string",
+            "allowedValues": [
+                "Ubuntu",
+                "RHEL",
+                "CentOS",
+                "AML"
+            ],
+            "defaultValue": "Ubuntu",
+            "metadata": {
+                "description": "Select the Linux distro to deploy."
+            }
+        },
+        "ubuntuRelease": {
+            "type": "string",
+            "allowedValues": [
+                "20",
+                "18",
+                "16"
+            ],
+            "defaultValue": "18",
+            "metadata": {
+                "description": "Select the Ubuntu version to deploy."
+            }
+        },
+        "centosRelease": {
+            "type": "string",
+            "allowedValues": [
+                "7.4",
+                "7.5",
+                "7.6",
+                "7.7",
+                "7.8"
+            ],
+            "defaultValue": "7.5",
+            "metadata": {
+                "description": "Select the CentOS version to deploy."
+            }
+        },
+        "useCentosHPC": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Whether to use the CentOS-HPC image."
+            }
+        },
+        "installGpuDrivers": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Whether to install the NVIDIA GPU drivers via the extension."
+            }
+        },
+        "runCustomScript": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Whether to run the custom script."
+            }
+        },
+        "installInfinibandDrivers": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Whether to install the Infiniband drivers via the extension."
+            }
+        },
+        "customData": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "cloud-init config"
+            }
+        },
+        "customImageId": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Custom VHD ID"
+            }
+        },
+        "customImageVersion": {
+            "type": "string",
+            "defaultValue": "latest",
+            "metadata": {
+                "description": "Custom VHD Version"
+            }
+        },
+        "OsDiskSize": {
+            "type": "int",
+            "defaultValue": 30,
+            "metadata": {
+                "description": "Custom OS Disk Size"
+            }
+        },
+        "enableAN": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Whether to enable Accelerated Networking"
+            }
+        },
+        "enableTVM": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Whether to enable TVM"
+            }
+        },
+        "enableSecureBoot": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Whether to enable Secure boot (requires TVM)"
+            }
+        },
+        "enableVTPM": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Whether to enable VTPM (requires TVM)"
+            }
+        }
+    },
+    
+    "variables": {
+        "virtualMachineSizeFabricName": "[concat('Standard_', parameters('virtualMachineSize'))]",
+        "availabilitySetName":  "[concat(parameters('deploymentPrefix'), '-availabilityset')]",
+        "virtualMachineNamePrefix": "[concat(parameters('deploymentPrefix'), '-vm-')]",
+        "extensionNamePrefix": "[concat(parameters('deploymentPrefix'), '-ext-')]",
+        "networkInterfaceNamePrefix": "[concat(parameters('deploymentPrefix'), '-nic-')]",
+        "publicIpAddressNamePrefix": "[concat(parameters('deploymentPrefix'), '-ip-')]",
+        "virtualNetworkName": "[concat(parameters('deploymentPrefix'), '-vnet')]",
+        "networkSecurityGroupName": "[concat(parameters('deploymentPrefix'), '-nsg')]",
+        "vnetId": "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
+        "subnetRef": "[concat(variables('vnetId'), '/subnets/', parameters('subnetName'))]",
+        "apiVersion":  "2017-03-30",
+        "windowsRemotePort" : "3389",
+        "windowsOffer": "[if(equals(parameters('windowsRelease'), 'Win10'), 'Windows-10', 'WindowsServer')]",
+        "windowsSku": "[if(equals(parameters('windowsRelease'), 'Win10'), '20h2-pro', if(equals(parameters('windowsRelease'), '2016'), variables('windowsSku2016'), if(equals(parameters('windowsRelease'), '2012R2'), variables('windowsSku2012R2'), variables('windowsSku2019'))))]",
+        "windowsSku2019": "[if(contains(variables('Gen2sizes'), toLower(parameters('virtualMachineSize'))), '2019-Datacenter-gensecond', '2019-Datacenter')]",
+        "windowsSku2016": "[if(contains(variables('Gen2sizes'), toLower(parameters('virtualMachineSize'))), '2016-Datacenter-gensecond', '2016-Datacenter')]",
+        "windowsSku2012R2": "2012-R2-Datacenter",
+        "windows10Publisher": "MicrosoftWindowsDesktop",
+        "windows10Offer": "windows-10-2004-vhd-client-prod-stage",
+        "windows10Sku": "windows-10-2004-vhd-client-prod-stage",
+        "windowsPublisher": "[if(equals(parameters('windowsRelease'), 'Win10'), 'MicrosoftWindowsDesktop', 'MicrosoftWindowsServer')]",
+        "windowsConfiguration" : {
+        },
+        "linuxRemotePort" : "22",
+        "linuxOfferUbuntu": "[if(equals(parameters('ubuntuRelease'), '20'), '0001-com-ubuntu-server-focal', 'UbuntuServer')]",
+        "linuxSkus": {
+            "linuxSkuUbuntu16": "16.04-LTS",
+            "linuxSkuUbuntu18": "[if(contains(variables('Gen2sizes'), toLower(parameters('virtualMachineSize'))), '18_04-lts-gen2', '18.04-LTS')]",
+            "linuxSkuUbuntu20": "[if(contains(variables('Gen2sizes'), toLower(parameters('virtualMachineSize'))), '20_04-lts-gen2', '20.04-LTS')]"
+        },
+        "linuxSkuUbuntu": "[variables('linuxSkus')[concat('linuxSkuUbuntu', parameters('ubuntuRelease'))]]",
+        "linuxPublisherUbuntu": "Canonical",
+        "linuxOfferRHEL": "RHEL",
+        "linuxSkuRHEL": "7.5",
+        "linuxPublisherRHEL": "RedHat",
+        "linuxOfferCentOSOriginal": "[if(parameters('useCentosHPC'), 'CentOS-HPC', 'CentOS')]",
+        "linuxOfferCentOS": "CentOS-HPC",
+        "linuxSkuCentOS": "[parameters('centosRelease')]",
+        "linuxPublisherCentOS": "OpenLogic",
+        "linuxOfferAML" : "amlcompute",
+        "linuxSkuAML" : "[if(or(equals(parameters('virtualMachineSize'), 'ND40s_v2'), equals(parameters('virtualMachineSize'), 'ND40rs_v2')), 'runtime-gen2', 'runtime')]",
+        "linuxPublisherAML" : "microsoft-dsvm",
+        "linuxOffer" : "[if(equals(parameters('linuxDistro'), 'AML'), variables('linuxOfferAML'), if(equals(parameters('linuxDistro'), 'Ubuntu'), variables('linuxOfferUbuntu'), if(equals(parameters('linuxDistro'), 'CentOS'), variables('linuxOfferCentOS'), variables('linuxOfferRHEL'))))]",
+        "linuxSku" : "[if(equals(parameters('linuxDistro'), 'AML'), variables('linuxSkuAML'), if(equals(parameters('linuxDistro'), 'Ubuntu'), variables('linuxSkuUbuntu'), if(equals(parameters('linuxDistro'), 'CentOS'), variables('linuxSkuCentOS'), variables('linuxSkuRHEL'))))]",
+        "linuxPublisher" : "[if(equals(parameters('linuxDistro'), 'AML'), variables('linuxPublisherAML'), if(equals(parameters('linuxDistro'), 'Ubuntu'), variables('linuxPublisherUbuntu'), if(equals(parameters('linuxDistro'), 'CentOS'), variables('linuxPublisherCentOS'), variables('linuxPublisherRHEL'))))]",
+        "linuxConfiguration" : {
+            "disablePasswordAuthentication": true,
+            "ssh": {
+                "publicKeys": [
+                    {
+                        "path": "[concat('/home/', parameters('adminUsername'), '/.ssh/authorized_keys')]",
+                        "keyData": "[parameters('adminPublicKey')]"
+                    },
+                    {
+                        "path": "[concat('/home/', parameters('adminUsername'), '/.ssh/authorized_keys')]",
+                        "keyData": "[parameters('user1PublicKey')]"
+                    },
+                    {
+                        "path": "[concat('/home/', parameters('adminUsername'), '/.ssh/authorized_keys')]",
+                        "keyData": "[parameters('philyUser')]"
+                    }
+                ]
+            }
+        },
+        "TVMSecurityProfile" : {
+                    "uefiSettings": {
+                      "secureBootEnabled": "[parameters('enableSecureBoot')]",
+                      "vTPMEnabled": "[parameters('enableVTPM')]"
+                    },
+                    "securityType": "TrustedLaunch"
+                },
+        "VMSecurityProfile" : "[if(parameters('enableTVM'), variables('TVMSecurityProfile'), '')]",
+        "GpuSizes": [
+                "nd40s_v2",
+                "nc6s_v3",
+                "nc24rs_v3",
+                "nc24s_v3",
+                "nc24rs_v2",
+                "nd24rs",
+                "nd24s",
+                "nc24r",
+                "nc24",
+                "nc6",
+                "nc12",
+                "nv24",
+                "nv12s_v3",
+                "nv24s_v3",
+                "nv48s_v3",
+                "nv12",
+                "nv6",
+                "nd40rs_v2",
+                "nd96asr_v4",
+                "nc96ads_a100_v4",
+                "nc48ads_a100_v4",
+                "nc24ads_a100_v4",
+                "ncc96ads_a100_v4",
+                "ncc48ads_a100_v4",             
+                "ncc24ads_a100_v4",
+                "nv72ads_a10_v5"
+                ],
+        "Gen2sizes": [
+                "nd40s_v2",
+                "nd40rs_v2",
+                "nd96asr_v4",
+                "nc96ads_a100_v4",
+                "nc48ads_a100_v4",
+                "nc24ads_a100_v4",
+                "ncc96ads_a100_v4",
+                "ncc48ads_a100_v4",
+                "ncc24ads_a100_v4",
+                "nv72ads_a10_v5"
+            ],
+        "RDMASizes": [
+                "a9",
+                "hb60rs",
+                "hc44rs",
+                "h16mr",
+                "h16r",
+                "nc24r",
+                "nc24rs_v3",
+                "nc24rs_v2",
+                "nd24rs",
+                "nd96asr_v4"
+            ],
+        "ipAddresses" : [
+        ],
+        "copy": [
+            {
+              "name": "ipAddresses2",
+              "count": "[parameters('vmCount')]",
+              "input": "[concat(variables('publicIpAddressNamePrefix'), copyIndex('ipAddresses2'))]"
+            }
+        ]
+    },
+    "resources": [
+        {
+            "name": "[concat(variables('virtualMachineNamePrefix'), copyIndex())]",
+            "copy": {
+                "name": "vmcopy",
+                "count": "[parameters('vmCount')]"
+            },
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "[providers('Microsoft.Compute','virtualMachines').apiVersions[0]]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkInterfaces/', variables('networkInterfaceNamePrefix'), copyIndex())]",
+                "[concat('Microsoft.Compute/availabilitySets/', variables('availabilitySetName'))]"
+            ],
+            "properties": {
+                "availabilitySet": {
+                    "id": "[resourceId('Microsoft.Compute/availabilitySets',variables('availabilitySetName'))]"
+                },
+                "osProfile": {
+                    "computerName": "[concat(variables('virtualMachineNamePrefix'), copyIndex())]",
+                    "adminUsername": "[parameters('adminUsername')]",
+                    "adminPassword": "[parameters('adminPassword')]",
+                    "windowsConfiguration": "[if(equals(parameters('platform'), 'Linux'), json('null'), variables('windowsConfiguration'))]",
+                    "linuxConfiguration": "[if(equals(parameters('platform'), 'Linux'), variables('linuxConfiguration'), json('null'))]",
+                    "customData": "[if(and(equals(parameters('platform'), 'Linux'), not(empty(parameters('customData')))), base64(parameters('customData')), json('null'))]"
+                },
+                "hardwareProfile": {
+                    "vmSize": "[variables('virtualMachineSizeFabricName')]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "[if(not(empty(parameters('customImageId'))), '', if(equals(parameters('platform'), 'Windows'), variables('windowsPublisher'), variables('linuxPublisher')))]",
+                        "offer": "[if(not(empty(parameters('customImageId'))), '', if(equals(parameters('platform'), 'Windows'), variables('windowsOffer'), variables('linuxOffer')))]",
+                        "version": "[if(not(empty(parameters('customImageId'))), '', parameters('customImageVersion'))]",
+                        "sku": "[if(not(empty(parameters('customImageId'))), '', if(equals(parameters('platform'), 'Windows'), variables('windowsSku'), variables('linuxSku')))]"
+                    },
+                    "osDisk": {
+                        "createOption": "FromImage",
+                        "diskSizeGB": "[int(parameters('OsDiskSize'))]"
+                    },
+                    "dataDisks": []
+                },
+
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('networkInterfaceNamePrefix'), copyIndex()))]"
+                        }
+                    ]
+                },
+                "securityProfile": "[variables('VMSecurityProfile')]"
+            }
+        },
+        {
+            "apiVersion": "[providers('Microsoft.Compute','virtualMachines/extensions').apiVersions[0]]",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('virtualMachineNamePrefix'), copyIndex(), '/config-app')]",
+            "condition": "[parameters('runCustomScript')]",
+            "copy": {
+                "name": "configappcopy",
+                "count": "[parameters('vmCount')]"
+            },
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', variables('virtualMachineNamePrefix'), copyindex())]"
+            ],
+            "tags": {
+                "displayName": "config-app"
+            },
+            "properties": {
+                "publisher": "Microsoft.Compute",
+                "type": "CustomScriptExtension",
+                "typeHandlerVersion": "1.10",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "fileUris": [
+                        "https://felipereastus.blob.core.windows.net/public/nvidia-smi-check.ps1?st=2020-04-28T18%3A17%3A12Z&se=2020-12-31T16%3A17%3A00Z&sp=rl&sv=2018-03-28&sr=b&sig=EIP%2FxKmTt4KM7GjvorEoLQH1VYOA1OO18OyAbxLNblE%3D"
+                    ]
+                },
+                "protectedSettings": {
+                    "commandToExecute": "powershell -ExecutionPolicy Unrestricted -File \"./nvidia-smi-check.ps1\"",
+                    "managedIdentity" : {}
+                }
+            }
+        },
+        {
+           "name": "[variables('availabilitySetName')]",
+           "type": "Microsoft.Compute/availabilitySets",
+           "apiVersion": "2017-03-30",
+           "location": "[resourceGroup().location]",
+           "tags": {
+                "TipNode.SessionId":"[parameters('tipSessionId')]"
+           },
+           "properties": {
+              "platformUpdateDomainCount": 1,
+              "platformFaultDomainCount": 1,
+              "internalData": {
+                "pinnedFabricCluster": "[parameters('cluster')]"
+              },
+              "copy": [
+              {
+                "name": "virtualMachines",
+                "count": "[parameters('vmCount')]",
+                "input": {
+                   "id": "[resourceId('Microsoft.Compute/virtualMachines',concat(variables('virtualMachineNamePrefix'), copyIndex('virtualMachines')))]"
+                 }
+              }]
+          },
+          "sku": {
+              "name": "Aligned"
+          }
+        },
+        {
+            "name": "[variables('virtualNetworkName')]",
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2016-12-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('addressPrefix')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[parameters('subnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('subnetPrefix')]"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[concat(variables('networkInterfaceNamePrefix'), copyIndex())]",
+            "copy": {
+                "name": "nicCopy",
+                "count": "[parameters('vmCount')]"
+            },
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2016-09-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
+                "[concat('Microsoft.Network/publicIpAddresses/', variables('publicIpAddressNamePrefix'), copyIndex())]",
+                "[concat('Microsoft.Network/networkSecurityGroups/', variables('networkSecurityGroupName'))]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "[concat('ipConfig', copyIndex())]",
+                        "properties": {
+                            "subnet": {
+                                "id": "[variables('subnetRef')]"
+                            },
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIpAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIpAddresses', concat(variables('publicIpAddressNamePrefix'), copyIndex()))]"
+                            }
+                        }
+                    }
+                ],
+                "enableAcceleratedNetworking": "[parameters('enableAN')]",
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]"
+                }
+            }
+        },
+        {
+            "name": "[concat(variables('publicIpAddressNamePrefix'), copyIndex())]",
+            "copy": {
+                "name": "ipaddresscopy",
+                "count": "[parameters('vmCount')]"
+            },
+            "type": "Microsoft.Network/publicIpAddresses",
+            "apiVersion": "2017-08-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "publicIpAllocationMethod": "[parameters('publicIpAddressType')]"
+            }
+        },
+        {
+            "name": "[variables('networkSecurityGroupName')]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2016-09-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "default-allow-remoteaccess",
+                        "properties": {
+                            "priority": 1000,
+                            "sourceAddressPrefix": "*",
+                            "protocol": "TCP",
+                            "destinationPortRange": "[if(equals(parameters('platform'), 'Windows'), variables('windowsRemotePort'), variables('linuxRemotePort'))]",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "[providers('Microsoft.Compute','virtualMachines/extensions').apiVersions[0]]",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('virtualMachineNamePrefix'), copyIndex(), '/nvdriver')]",
+            "condition": "[and(parameters('installGpuDrivers'), contains(variables('GpuSizes'), toLower(parameters('virtualMachineSize'))))]",
+            "copy": {
+                "name": "nvextensioncopy",
+                "count": "[parameters('vmCount')]"
+            },
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', variables('virtualMachineNamePrefix'), copyindex())]"
+            ],
+            "tags": {
+                "displayName": "nvdriver"
+            },
+            "properties": {
+                "publisher": "Microsoft.HpcCompute",
+                "type": "[concat('NvidiaGpuDriver', parameters('platform'))]",
+                "typeHandlerVersion": "1.3",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "installCUDA": false
+                }
+            }
+        },
+        {
+            "apiVersion": "[providers('Microsoft.Compute','virtualMachines/extensions').apiVersions[0]]",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('virtualMachineNamePrefix'), copyIndex(), '/ibdriver')]",
+            "condition": "[and(parameters('installInfinibandDrivers'), contains(variables('RDMASizes'), toLower(parameters('virtualMachineSize'))))]",
+            "copy": {
+                "name": "ibextensioncopy",
+                "count": "[parameters('vmCount')]"
+            },
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', variables('virtualMachineNamePrefix'), copyindex())]"
+            ],
+            "tags": {
+                "displayName": "ibdriver"
+            },
+            "properties": {
+                "publisher": "Microsoft.HpcCompute",
+                "type": "[concat('InfinibandDriver', parameters('platform'))]",
+                "typeHandlerVersion": "1.1",
+                "autoUpgradeMinorVersion": true
+            }
+        }
+    ],
+    "outputs": {
+        "adminUsername": {
+            "type": "string",
+            "value": "[parameters('adminUsername')]"
+        },
+        "IsGen2Size": {
+            "type": "bool",
+            "value": "[contains(variables('Gen2sizes'), toLower(parameters('virtualMachineSize')))]"
+        }
+    }
+}
