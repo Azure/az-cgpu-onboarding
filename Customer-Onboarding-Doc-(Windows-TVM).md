@@ -12,9 +12,9 @@ requirements:
 
 - Powershell: version 5.1.19041.1682 and above
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) 
-- Download Files from [CGPUPrivatePreview-1.0.1](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V1.0.1)
+- Download Files from [Azure-Confidential-Computing-CGPUPrivatePreview-v1.0.1](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V1.0.1)
   - CgpuOnboardingPakcage.tar.gz
-  - Source code (zip) --> CGPUPrivatePreview-1.0.1.zip
+  - Source code (zip) --> PrivatePreview-1.0.1.zip
 
 1. Preparing ssh key for creating VM (If you don't have one)
 ```
