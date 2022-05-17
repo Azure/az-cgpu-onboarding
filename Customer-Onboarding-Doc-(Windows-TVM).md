@@ -44,8 +44,8 @@ The key's randomart image is:
 ```
 2. Executing VM Creation using Azure CLI
 ```
-# extract CGPUPrivatePreview-1.0.1.zip code go into the folder
-cd CGPUPrivatePreview-1.0.1
+# extract PrivatePreview-1.0.1.zip code go into the folder
+cd PrivatePreview-1.0.1
 
 # azure admin user name
 $adminusername="your user name"
@@ -74,7 +74,6 @@ az account set --subscription [your subscriptionId]
 az group create --name $rg --location eastus2
 
 
-
 # create VM with the provided template.json and parameter.json.(takes few minute to finish)
 az deployment group create -g $rg -f "template.json" -p "parameters.json" -p cluster="bnz10prdgpc05" `
 vmCount=1 `
@@ -87,7 +86,8 @@ linuxDistro=Ubuntu `
 enableAN=$false `
 installGpuDrivers=$false `
 enableTVM=$true `
-ubuntuRelease=20
+ubuntuRelease=20 `
+OsDiskSize=100
 
 ```
  3. Check your vm connection using your private key
@@ -109,13 +109,13 @@ cd CgpuOnboardingPackage
 
 ```
 In CgpuOnboardingPackage you should see below files.
-- APM_470.10.07_5.11.0-1028.31.tar
+- APM_470.10.08_5.11.0-1028.31.tar
 - step-1-install-kernel.sh
 - step-2-install-gpu-driver.sh
 - step-3-attestation.sh
 - step-4-install-gpu-tools.sh
 - unet_bosch_ms.py
-- verifier_apm_pid3.tar
+- verifier_apm_pid3_2.tar
 ```
 # In your VM, Install right version kernel in CgpuOnboardingPackage folder.
 # This step requires reboot. please wait about 2-5 min to reconnect to VM
