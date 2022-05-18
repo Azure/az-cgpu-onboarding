@@ -94,10 +94,8 @@ installGpuDrivers=$false \
 enableTVM=$false \
 ubuntuRelease=20 \
 OsDiskSize=100
-
-
-
 ```
+
  3. Check your vm connection using your private key
 ```
 # use your private key file path generated in above step to connect to VM.
