@@ -11,7 +11,7 @@ The following steps help create a None-TVM Confidential GPU Virtual Machine from
 - [Workload-Running](#Workload-Running) 
 -------------------------------------------
 
-## requirements:
+## Requirements
 
 - Powershell: version 5.1.19041.1682 and above
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) 

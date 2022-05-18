@@ -12,7 +12,7 @@ The following steps help create a TVM Confidential GPU Virtual Machine from Linu
 
 ---------------------------------------------
 
-## requirements:
+## Requirements
 
 - Linux
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) 

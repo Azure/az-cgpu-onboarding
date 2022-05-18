@@ -12,7 +12,7 @@ The following steps help create a None-TVM Confidential GPU Virtual Machine from
 
 ------------------------------------------------
 
-## requirements
+## Requirements
 
 - Linux
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) 
