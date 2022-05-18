@@ -127,7 +127,7 @@ cd CgpuOnboardingPackage
 bash step-0-install-kernel.sh
 
 ```
-- Go to you VM portal, Set boot diagnostics. Select and existing custom storage account or create new. Click save. The update process may take several minutes to propagate.
+- Go to your VM portal, Set boot diagnostics. Select and existing custom storage account or create new. Click save. The update process may take several minutes to propagate.
 ![image.png](attachment/boot_diagnostics.JPG)
 
 - You can select existing one or create a new one with default configuration.
