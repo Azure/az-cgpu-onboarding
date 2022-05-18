@@ -1,7 +1,6 @@
 ## Introduction
 
 The following steps help create a Non-[TVM](https://docs.microsoft.com/en-us/azure/virtual-machines/trusted-launch) Confidential GPU Virtual Machine with a Windows operating system.
->>>>>>> 49808c1cacb7a15e377f76e0ae835e4afdfa38b6
 
 -----------------------------------------------
 
