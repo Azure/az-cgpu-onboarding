@@ -141,10 +141,10 @@ nvidia-smi conf-compute -f
 ### Attestation
 ```
 # In your VM, Execute attestation scripts in CgpuOnboardingPackage.
+# you should see: GPU 0 verified successfully.
 cd CgpuOnboardingPackage 
 bash step-3-attestation.sh
 ```
-you should see below verifier success.
 
 -----------------
 
