@@ -1,5 +1,6 @@
 ## Introduction
-The following steps help create a [TVM](https://docs.microsoft.com/en-us/azure/virtual-machines/trusted-launch) Confidential GPU Virtual Machine from Windows operating system.
+
+The following steps help create a [TVM](https://docs.microsoft.com/en-us/azure/virtual-machines/trusted-launch) Confidential GPU Virtual Machine with a Windows operating system.
 
 -----------------------------------------------
 
@@ -29,7 +30,7 @@ The following steps help create a [TVM](https://docs.microsoft.com/en-us/azure/v
 
 ### Create-CGPU-VM
 
-1. Prepare ssh key for creating VM (If you don't have one)
+1. Prepare ssh key for creating VM (if you don't have one)
 ```
 E:\cgpu\.ssh>ssh-keygen -t rsa -b 4096 -C example@gmail.com
 Generating public/private rsa key pair.
@@ -61,7 +62,7 @@ The key's randomart image is:
 ```
 
 
-2. Execute VM Creation using Azure CLI
+2. Create VM using Azure CLI
 ```
 # extract PrivatePreview-1.0.1.zip code go into the folder
 cd PrivatePreview-1.0.1
@@ -109,13 +110,13 @@ ubuntuRelease=20 `
 OsDiskSize=100
 
 ```
- 3. Check your vm connection using your private key and verify it's secure boot enabled. 
+ 3. Check your VM connection using your private key and verify secure boot enabled. 
 ```
 # use your private key file path generated in above step to connect to VM.
 # The IP address could be found in VM Azure Portal.
 ssh -i <private key path> -v [adminusername]@20.94.81.45
 
-# check security boot state, should see : SecureBoot enabled
+# check security boot state, you should see : SecureBoot enabled
 mokutil --sb-state
 
 # Success: /dev/tpm0, Failure: ls: cannot access '/dev/tpm0': No such file or directory
@@ -128,27 +129,28 @@ ls /dev/tpm0
 
 ### Enroll-Key-TVM
 ```
-# In local, Upload CgpuOnboardingPackage.tar.gz to your VM.
+# In local, upload CgpuOnboardingPackage.tar.gz to your VM.
 scp -i id_rsa CgpuOnboardingPackage.tar.gz -v [adminusername]@20.110.3.197:/home/[adminusername]
 
-# In your VM, Create a password for the user if it is not already set
+# In your VM, create a password for the user if it is not already set
 sudo passwd [adminusername]
 
-# In your VM, Extract onboarding folder from tar.gz, then step into the folder
+# In your VM, extract the onboarding folder from tar.gz, then step into the folder
 tar -zxvf CgpuOnboardingPackage.tar.gz
 
-# Execute script to import nvidia signing key.
+# Execute the following script to import nvidia signing key.
 cd CgpuOnboardingPackage 
 bash step-0-install-kernel.sh
 
 ```
-- Go to your VM portal, Set boot diagnostics. Select and existing custom storage account or create new. Click save. The update process may take several minutes to propagate.
+- Go to your VM portal to set the boot diagnostics. 
+- This update process may take several minutes to propagate.
 ![image.png](attachment/boot_diagnostics.JPG)
 
 - You can select existing one or create a new one with default configuration.
 ![image.png](attachment/enable_storage_account.JPG)
 
-- Go to Serial Console and login with your adminUserName and password
+- Go to the Serial Console and login with your adminUserName and password
 ![image.png](attachment/serial_console.JPG)
 
 - Reboot the machine from Azure Serial Console by typing sudo reboot. A 10 second countdown will begin. Press up or down key to interrupt the countdown and wait in UEFI console mode. If the timer is not interrupted, the boot process continues and all of the MOK changes are lost. Select: Enroll MOK -> Continue -> Yes -> Enter your signing key password ->  Reboot.
@@ -161,18 +163,18 @@ bash step-0-install-kernel.sh
 
 
 ```
-# After reboot finished, ssh in your VM and install right version kernel folder.
-# This step requires reboot. please wait about 2-5 min to reconnect to VM
+# After the reboot is finished, ssh into your VM and install the right version kernel folder.
+# This step requires a reboot. Afterwards, please wait about 2-5 minutes to reconnect to the VM
 cd CgpuOnboardingPackage 
 bash step-1-install-kernel.sh
 
-# After reboot, reconnect into VM and install GPU-Driver in CgpuOnboardingPackage folder.
-# This step requires reboot. please wait about 2-5 min to reconnect to VM
+# After rebooting, reconnect to the VM and install GPU-Driver in CgpuOnboardingPackage folder.
+# This step also requires a reboot. Please wait about 2-5 min to reconnect to the VM
 cd CgpuOnboardingPackage 
 bash step-2-install-gpu-driver.sh
 
-# After reboot, reconnect into vm and validate if the confidential compute mode is on.
-# you should see: CC status: ON
+# After rebooting, reconnect to the VM and validate if the confidential compute mode is on.
+# You should see: CC status: ON
 nvidia-smi conf-compute -f 
 
 ```
@@ -183,8 +185,8 @@ nvidia-smi conf-compute -f
 
 ### Attestation
 ```
-# In your VM, Execute attestation scripts in CgpuOnboardingPackage.
-# you should see: GPU 0 verified successfully.
+# In your VM, execute attestation scripts in CgpuOnboardingPackage.
+# You should see: GPU 0 verified successfully.
 cd CgpuOnboardingPackage 
 bash step-3-attestation.sh
 ```
@@ -194,7 +196,7 @@ bash step-3-attestation.sh
 ### Workload-Running
 
 ```
-# In your VM, Execute install gpu tool scripts to pull associates dependencies
+# In your VM, execute install gpu tool scripts to pull associates dependencies
 cd CgpuOnboardingPackage 
 bash step-4-install-gpu-tools.sh
 
