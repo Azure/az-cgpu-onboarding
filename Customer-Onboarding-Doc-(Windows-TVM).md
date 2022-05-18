@@ -1,4 +1,4 @@
-## introduction
+## Introduction
 The following steps help create a TVM Confidential GPU Virtual Machine from Windows operating system.
 
 -----------------------------------------------

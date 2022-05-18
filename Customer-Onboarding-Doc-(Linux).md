@@ -1,5 +1,5 @@
-## introduction
-The following steps help create a None-TVM CGPU Virtual Machine from Linux operating system.
+## Introduction
+The following steps help create a None-TVM Confidential GPU Virtual Machine from Linux operating system.
 
 -----------------------------------------------
 
