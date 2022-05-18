@@ -96,9 +96,10 @@ ubuntuRelease=20 \
 OsDiskSize=100
 ```
 
- 3. Check your vm connection using your private key and verify it's secure boot enabled
+ 3. Check your vm connection using your private key and verify it's secure boot enabled.
 ```
 # use your private key file path generated in above step to connect to VM.
+# The IP address could be found in VM Azure Portal.
 ssh -i <private key path> -v [adminusername]@20.94.81.45
 
 # check security boot state, should see : SecureBoot enabled
