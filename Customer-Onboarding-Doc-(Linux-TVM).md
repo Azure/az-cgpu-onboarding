@@ -124,18 +124,16 @@ cd CgpuOnboardingPackage
 bash step-0-install-kernel.sh
 
 ```
-Go to you VM portal, Set boot diagnostics. Select and existing custom storage account or create new. Click save. The update process may take several minutes to propagate.
-
+- Go to you VM portal, Set boot diagnostics. Select and existing custom storage account or create new. Click save. The update process may take several minutes to propagate.
 ![image.png](attachment/boot_diagnostics.JPG)
 
-You can select existing one or create a new one with default configuration.
+- You can select existing one or create a new one with default configuration.
 ![image.png](attachment/enable_storage_account.JPG)
 
-Go to Serial Console and login with your adminUserName and password
+- Go to Serial Console and login with your adminUserName and password
 ![image.png](attachment/serial_console.JPG)
 
-Reboot the machine from Azure Serial Console by typing sudo reboot. A 10 second countdown will begin. Press up or down key to interrupt the countdown and wait in UEFI console mode. If the timer is not interrupted, the boot process continues and all of the MOK changes are lost. Select: Enroll MOK -> Continue -> Yes -> Enter your signing key password ->  Reboot.
-
+- Reboot the machine from Azure Serial Console by typing sudo reboot. A 10 second countdown will begin. Press up or down key to interrupt the countdown and wait in UEFI console mode. If the timer is not interrupted, the boot process continues and all of the MOK changes are lost. Select: Enroll MOK -> Continue -> Yes -> Enter your signing key password ->  Reboot.
 ![image.png](attachment/enrole_key.JPG)
 
 ----------------------------------------------------------------
