@@ -1,5 +1,5 @@
 ## Introduction
-The following steps help create a TVM Confidential GPU Virtual Machine from Linux operating system.
+The following steps help create a TVM Confidential GPU Virtual Machine with a Linux operating system.
 
 -----------------------------------------------
 ## Steps
@@ -117,21 +117,22 @@ ls /dev/tpm0
 ----------------------------------------------------------------
 ### Enroll-Key-TVM
 ```
-# In local, Upload CgpuOnboardingPackage.tar.gz to your VM.
+# In local, upload CgpuOnboardingPackage.tar.gz to your VM.
 scp -i id_rsa CgpuOnboardingPackage.tar.gz -v [adminusername]@20.110.3.197:/home/[adminusername]
 
-# In your VM, Create a password for the user if it is not already set
+# In your VM, create a password for the user if it is not already set
 sudo passwd [adminusername]
 
-# In your VM, Extract onboarding folder from tar.gz, then step into the folder
+# In your VM, extract onboarding folder from tar.gz, then step into the folder
 tar -zxvf CgpuOnboardingPackage.tar.gz
 
-# Execute script to import nvidia signing key.
+# Execute the script to import nvidia signing key.
 cd CgpuOnboardingPackage 
 bash step-0-install-kernel.sh
 
 ```
-- Go to your VM portal, Set boot diagnostics. Select and existing custom storage account or create new. Click save. The update process may take several minutes to propagate.
+- Go to your VM portal to set the boot diagnostics. 
+- This update process may take several minutes to propagate.
 ![image.png](attachment/boot_diagnostics.JPG)
 
 - You can select existing one or create a new one with default configuration.
@@ -140,7 +141,7 @@ bash step-0-install-kernel.sh
 - Go to Serial Console and login with your adminUserName and password
 ![image.png](attachment/serial_console.JPG)
 
-- Reboot the machine from Azure Serial Console by typing sudo reboot. A 10 second countdown will begin. Press up or down key to interrupt the countdown and wait in UEFI console mode. If the timer is not interrupted, the boot process continues and all of the MOK changes are lost. Select: Enroll MOK -> Continue -> Yes -> Enter your signing key password ->  Reboot.
+- Reboot the machine from Azure Serial Console by typing sudo reboot. A 10 second countdown will begin. Press the up or down key to interrupt the countdown and wait in UEFI console mode. If the timer is not interrupted, the boot process continues and all of the MOK changes are lost. Select: Enroll MOK -> Continue -> Yes -> Enter your signing key password ->  Reboot.
 ![image.png](attachment/enrole_key.JPG)
 
 ----------------------------------------------------------------
@@ -149,18 +150,18 @@ bash step-0-install-kernel.sh
 ### Install-GPU-Driver
 
 ```
-# After reboot finished, ssh in your VM and install right version kernel folder.
-# This step requires reboot. please wait about 2-5 min to reconnect to VM
+# After the reboot is finished, ssh in to your VM and install the right version kernel folder.
+# This step requires a reboot. Afterwards, please wait about 2-5 minutes to reconnect to the VM
 cd CgpuOnboardingPackage 
 bash step-1-install-kernel.sh
 
-# After reboot, reconnect into VM and install GPU-Driver in CgpuOnboardingPackage folder.
-# This step requires reboot. please wait about 2-5 min to reconnect to VM
+# After rebooting, reconnect to the VM and install GPU-Driver in CgpuOnboardingPackage folder.
+# This step requires a reboot. Afterwards, please wait about 2-5 minutes to reconnect to the VM
 cd CgpuOnboardingPackage 
 bash step-2-install-gpu-driver.sh
 
-# After reboot, reconnect into vm and validate if the confidential compute mode is on.
-# you should see: CC status: ON
+# After reboot, reconnect to the VM and validate if the confidential compute mode is on.
+# You should see: CC status: ON
 nvidia-smi conf-compute -f 
 
 ```
@@ -171,8 +172,8 @@ nvidia-smi conf-compute -f
 
 ### Attestation
 ```
-# In your VM, Execute attestation scripts in CgpuOnboardingPackage.
-# you should see: GPU 0 verified successfully.
+# In your VM, execute the attestation scripts in CgpuOnboardingPackage.
+# You should see: GPU 0 verified successfully.
 cd CgpuOnboardingPackage 
 bash step-3-attestation.sh
 ```
@@ -181,7 +182,7 @@ bash step-3-attestation.sh
 ### Workload-Running
 
 ```
-# In your VM, Execute install gpu tool scripts to pull associates dependencies
+# In your VM, execute the install gpu tool scripts to pull down dependencies
 cd CgpuOnboardingPackage 
 bash step-4-install-gpu-tools.sh
 
