@@ -97,7 +97,7 @@ ubuntuRelease=20 `
 OsDiskSize=100
 
 ```
- 3. Check your vm connection using your private key
+ 3. Check your vm connection using your private key and verify it's secure boot enabled
 ```
 # use your private key file path generated in above step to connect to VM.
 ssh -i <private key path> -v [adminusername]@20.94.81.45
@@ -108,10 +108,14 @@ mokutil --sb-state
 # Success: /dev/tpm0, Failure: ls: cannot access '/dev/tpm0': No such file or directory
 ls /dev/tpm0
 ```
----------------
+
+
+
+----------------------------------------------------------------
+
 # Enroll-Key-TVM
 ```
-# ssh into VM, Create a password for the user if it is not already set
+# In your VM, Create a password for the user if it is not already set
 sudo passwd [adminusername]
 
 # In local, Upload CgpuOnboardingPackage.tar.gz to your VM.
@@ -133,14 +137,14 @@ Go to you VM portal, Set boot diagnostics. Select and existing custom storage ac
 You can select existing one or create a new one with default configuration.
 ![image.png](attachment/enable_storage_account.JPG)
 
-Go to Serial Console
+Go to Serial Console and login with your adminUserName and password
 ![image.png](attachment/serial_console.JPG)
 
 Reboot the machine from Azure Serial Console by typing sudo reboot. A 10 second countdown will begin. Press up or down key to interrupt the countdown and wait in UEFI console mode. If the timer is not interrupted, the boot process continues and all of the MOK changes are lost. Select: Enroll MOK -> Continue -> Yes -> Enter your signing key password ->  Reboot.
 
 ![image.png](attachment/enrole_key.JPG)
 
------------------------
+----------------------------------------------------------------
 
 
 # Install-GPU-Driver
@@ -162,7 +166,10 @@ bash step-2-install-gpu-driver.sh
 nvidia-smi conf-compute -f 
 
 ```
----------------
+
+
+----------------------------------------------------------------
+
 
 # Attestation
 ```
