@@ -1,5 +1,5 @@
 ## Introduction
-The following steps help create a None-TVM Confidential GPU Virtual Machine from Linux operating system.
+The following steps help create a Non-TVM Confidential GPU Virtual Machine with a Linux operating system.
 
 -----------------------------------------------
 
@@ -28,7 +28,7 @@ The following steps help create a None-TVM Confidential GPU Virtual Machine from
 ### Create-CGPU-VM
 
 
-1. Prepare ssh key for creating VM (If you don't have one)
+1. Prepare ssh key for creating VM (if you don't have one)
 ```
 E:\cgpu\.ssh>ssh-keygen -t rsa -b 4096 -C example@gmail.com
 Generating public/private rsa key pair.
@@ -56,7 +56,7 @@ The key's randomart image is:
 |    . .          |
 +----[SHA256]-----+
 ```
-2. Execute VM Creation using Azure CLI
+2. Create VM using Azure CLI
 ```
 # extract PrivatePreview-1.0.1.tar.gz code go into the folder
 tar -zxvf PrivatePreview-1.0.1.tar.gz
@@ -85,7 +85,7 @@ az group create --name $rg --location eastus2
 
 
 
-# create VM with the provided template.json and parameter.json.(takes few minute to finish)
+# create a VM with the provided template.json and parameter.json.(takes few minute to finish)
 az deployment group create -g $rg -f "template.json" -p "parameters.json" -p cluster="bnz10prdgpc05" \
 vmCount=1 \
 deploymentPrefix=$vmname \
@@ -101,7 +101,7 @@ ubuntuRelease=20 \
 OsDiskSize=100
 ```
 
- 3. Check your vm connection using your private key.
+ 3. Check your VM connection using your private key.
 ```
 # use your private key file path generated in above step to connect to VM.
 # The IP address could be found in VM Azure Portal.
@@ -112,19 +112,19 @@ ssh -i <private key path> -v [adminusername]@20.94.81.45
 ### Install-GPU-Driver
 
 ```
-# In local, Upload CgpuOnboardingPackage.tar.gz to your VM.
+# In local, upload CgpuOnboardingPackage.tar.gz to your VM.
 scp -i id_rsa CgpuOnboardingPackage.tar.gz -v [adminusername]@20.110.3.197:/home/[adminusername]
 
-# In your VM, Extract onboarding folder from tar.gz, then step into the folder
+# In your VM, extract the onboarding folder from tar.gz, then step into the folder
 tar -zxvf CgpuOnboardingPackage.tar.gz
 cd CgpuOnboardingPackage 
 
-# In your VM, Install right version kernel in CgpuOnboardingPackage folder.
-# This step requires reboot. please wait about 2-5 min to reconnect to VM
+# In your VM, install the right version kernel in CgpuOnboardingPackage folder.
+# This step requires a reboot. Afterwards, please wait about 2-5 minutes to reconnect to the VM
 bash step-1-install-kernel.sh
 
-# After reboot, reconnect into VM and install GPU-Driver in CgpuOnboardingPackage folder.
-# This step requires reboot. please wait about 2-5 min to reconnect to VM
+# After reconnecting to the VM, install the GPU-Driver in CgpuOnboardingPackage folder.
+# This step also requires a reboot. Please wait about 2-5 min to reconnect to the VM
 cd CgpuOnboardingPackage 
 bash step-2-install-gpu-driver.sh
 
@@ -137,8 +137,8 @@ nvidia-smi conf-compute -f
 
 ### Attestation
 ```
-# In your VM, Execute attestation scripts in CgpuOnboardingPackage.
-# you should see: GPU 0 verified successfully.
+# In your VM, execute the attestation scripts in CgpuOnboardingPackage.
+# You should see: GPU 0 verified successfully.
 cd CgpuOnboardingPackage 
 bash step-3-attestation.sh
 ```
@@ -147,11 +147,11 @@ bash step-3-attestation.sh
 ### Workload-Running
 
 ```
-# In your VM, Execute install gpu tool scripts to pull associates dependencies
+# In your VM, execute the install gpu tool scripts to pull down dependencies
 cd CgpuOnboardingPackage 
 bash step-4-install-gpu-tools.sh
 
-# Then try to execute sample workload with docker.
+# Then try to execute the sample workload with docker.
 sudo docker run --gpus all -v /home/[your AdminUserName]/CgpuOnboardingPackage:/home -it --rm nvcr.io/nvidia/tensorflow:21.10-tf2-py3 python /home/unet_bosch_ms.py
 
 ```
