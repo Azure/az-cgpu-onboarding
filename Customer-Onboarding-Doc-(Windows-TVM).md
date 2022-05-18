@@ -1,6 +1,7 @@
 ## Steps
 
 - [Create-CGPU-VM](#Create-CGPU-VM)
+- [Enroll-Key-TVM](#Enroll-Key-TVM)
 - [Install-GPU-Driver](#Install-GPU-Driver) 
 - [Attestation ](#Attestation) 
 - [Workload-Running](#Workload-Running) 
@@ -20,11 +21,15 @@ requirements:
 ```
 E:\cgpu\.ssh>ssh-keygen -t rsa -b 4096 -C example@gmail.com
 Generating public/private rsa key pair.
+
 Enter file in which to save the key (C:\Users\soccerl/.ssh/id_rsa): e:\cgpu/.ssh/id_rsa
 e:\cgpu/.ssh/id_rsa already exists.
+
 Overwrite (y/n)? y
+
 Enter passphrase (empty for no passphrase):
 Enter same passphrase again:
+
 Your identification has been saved in e:\cgpu/.ssh/id_rsa.
 Your public key has been saved in e:\cgpu/.ssh/id_rsa.pub.
 The key fingerprint is:
@@ -42,6 +47,8 @@ The key's randomart image is:
 |    . .          |
 +----[SHA256]-----+
 ```
+
+
 2. Executing VM Creation using Azure CLI
 ```
 # extract PrivatePreview-1.0.1.zip code go into the folder
@@ -94,31 +101,55 @@ OsDiskSize=100
 ```
 # use your private key file path generated in above step to connect to VM.
 ssh -i <private key path> -v [adminusername]@20.94.81.45
+
+# check security boot state, should see : SecureBoot enabled
+mokutil --sb-state
+
+# Success: /dev/tpm0, Failure: ls: cannot access '/dev/tpm0': No such file or directory
+ls /dev/tpm0
 ```
 ---------------
-# Install-GPU-Driver
-
+#Enroll-Key-TVM
 ```
+# ssh into VM, Create a password for the user if it is not already set
+sudo passwd [adminusername]
+
 # In local, Upload CgpuOnboardingPackage.tar.gz to your VM.
 cd CgpuOnboardingRepo 
 scp -i id_rsa CgpuOnboardingPackage.tar.gz [adminusername]@20.110.3.197:/home/[adminusername]
 
 # In your VM, Extract onboarding folder from tar.gz, then step into the folder
 tar -zxvf CgpuOnboardingPackage.tar.gz
+
+# Execute script to import nvidia signing key.
 cd CgpuOnboardingPackage 
+bash step-0-install-kernel.sh
 
 ```
-In CgpuOnboardingPackage you should see below files.
-- APM_470.10.08_5.11.0-1028.31.tar
-- step-1-install-kernel.sh
-- step-2-install-gpu-driver.sh
-- step-3-attestation.sh
-- step-4-install-gpu-tools.sh
-- unet_bosch_ms.py
-- verifier_apm_pid3_2.tar
+Go to you VM portal, Set boot diagnostics. Select and existing custom storage account or create new. Click save. The update process may take several minutes to propagate.
+
+![image.png](attachment/boot_diagnostics.JPG)
+
+You can select existing one or create a new one with default configuration.
+![image.png](attachment/enable_storage_account.JPG)
+
+Go to Serial Console
+![image.png](attachment/serial_console.JPG)
+
+Reboot the machine from Azure Serial Console by typing sudo reboot. A 10 second countdown will begin. Press up or down key to interrupt the countdown and wait in UEFI console mode. If the timer is not interrupted, the boot process continues and all of the MOK changes are lost. Select: Enroll MOK -> Continue -> Yes -> Enter your signing key password ->  Reboot.
+
+![image.png](attachment/enrole_key.JPG)
+
+-----------------------
+
+
+# Install-GPU-Driver
+
+
 ```
-# In your VM, Install right version kernel in CgpuOnboardingPackage folder.
+# After reboot finished, ssh in your VM and install right version kernel folder.
 # This step requires reboot. please wait about 2-5 min to reconnect to VM
+cd CgpuOnboardingPackage 
 bash step-1-install-kernel.sh
 
 # After reboot, reconnect into VM and install GPU-Driver in CgpuOnboardingPackage folder.
