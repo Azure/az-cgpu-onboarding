@@ -27,7 +27,7 @@ The following steps help create a TVM Confidential GPU Virtual Machine from Linu
 ### Create-CGPU-VM
 
 
-1. Preparing ssh key for creating VM (If you don't have one)
+1. Prepare ssh key for creating VM (If you don't have one)
 ```
 E:\cgpu\.ssh>ssh-keygen -t rsa -b 4096 -C example@gmail.com
 Generating public/private rsa key pair.
@@ -55,7 +55,7 @@ The key's randomart image is:
 |    . .          |
 +----[SHA256]-----+
 ```
-2. Executing VM Creation using Azure CLI
+2. Execute VM Creation using Azure CLI
 ```
 # extract PrivatePreview-1.0.1.tar.gz code go into the folder
 tar -zxvf PrivatePreview-1.0.1.tar.gz
