@@ -3,7 +3,7 @@ The four major steps are provided to help deploy your first Confidential GPU VM 
 Please make sure to follow all steps exactly as detailed. if you running into issues. please reach out to us as described at the bottom of this document. We are confident that things will be smooth once you get the hang of it!
 
 - Create CGPU VM 
-- Install Gpu Driver 
+- Install GPU Driver 
 - Attestation 
 - Workload Running
 
