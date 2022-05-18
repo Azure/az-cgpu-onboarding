@@ -81,19 +81,20 @@ az group create --name $rg --location eastus2
 
 
 # create VM with the provided template.json and parameter.json.(takes few minute to finish)
-az deployment group create -g $rg -f "template.json" -p "parameters.json" -p cluster="bnz10prdgpc05" `
-vmCount=1 `
-deploymentPrefix=$vmname `
-virtualMachineSize="NCC24ads_A100_v4" `
-adminUsername=$adminusername `
-adminPublicKey="ssh-rsa AAAAB3NzaC1y.....(replace with your publickey)" `
-platform=Linux `
-linuxDistro=Ubuntu `
-enableAN=$false `
-installGpuDrivers=$false `
-enableTVM=$false `
-ubuntuRelease=20 `
+az deployment group create -g $rg -f "template.json" -p "parameters.json" -p cluster="bnz10prdgpc05" \
+vmCount=1 \
+deploymentPrefix=$vmname \
+virtualMachineSize="NCC24ads_A100_v4" \
+adminUsername=xiaobwan \
+adminPublicKey="ssh-rsa AAAAB3NzaC1y.....(replace with your publickey)" \
+platform=Linux \
+linuxDistro=Ubuntu \
+enableAN=$false \
+installGpuDrivers=$false \
+enableTVM=$false \
+ubuntuRelease=20 \
 OsDiskSize=100
+
 
 
 ```
