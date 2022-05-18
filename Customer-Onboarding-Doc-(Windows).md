@@ -4,11 +4,9 @@
 - [Install-GPU-Driver](#Install-GPU-Driver) 
 - [Attestation ](#Attestation) 
 - [Workload-Running](#Workload-Running) 
------
+-------------------------------------------
 
-### Create-CGPU-VM
-
-requirements:
+## requirements:
 
 - Powershell: version 5.1.19041.1682 and above
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) 
@@ -18,6 +16,10 @@ requirements:
     
   - CgpuOnboardingPakcage.tar.gz
     (Contains tools to install CGPU Driver in VM)
+
+----------------------------------------------------
+
+### Create-CGPU-VM
 
 1. Preparing ssh key for creating VM (If you don't have one)
 ```

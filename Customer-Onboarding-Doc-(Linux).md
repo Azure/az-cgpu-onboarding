@@ -5,15 +5,11 @@
 - [Attestation ](#Attestation) 
 - [Workload-Running](#Workload-Running) 
 
+------------------------------------------------
 
+## requirements:
 
------
-### Create-CGPU-VM
-
-
-requirements:
-
-- Linux or Git Bash
+- Linux
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) 
 - Download Files from [Azure-Confidential-Computing-CGPUPrivatePreview-v1.0.1](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V1.0.1 )
   - Source code (tar.gz) --> PrivatePreview-1.0.1.tar.gz
@@ -21,6 +17,11 @@ requirements:
     
   - CgpuOnboardingPakcage.tar.gz
     (Contains tools to install CGPU Driver in VM)
+
+----------------------------------------------------
+
+### Create-CGPU-VM
+
 
 1. Preparing ssh key for creating VM (If you don't have one)
 ```
