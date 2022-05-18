@@ -1,5 +1,5 @@
 ## Introduction
-The following steps help create a TVM Confidential GPU Virtual Machine from Linux operating system.
+The following steps help create a [TVM](https://docs.microsoft.com/en-us/azure/virtual-machines/trusted-launch) Confidential GPU Virtual Machine from Linux operating system.
 
 -----------------------------------------------
 ## Steps
