@@ -104,7 +104,7 @@ ssh -i <private key path> -v [adminusername]@20.94.81.45
 ```
 # In local, Upload CgpuOnboardingPackage.tar.gz to your VM.
 cd CgpuOnboardingRepo 
-scp -i id_rsa CgpuOnboardingPackage.tar.gz [adminusername]@20.110.3.197:/home/[adminusername]
+scp -i id_rsa CgpuOnboardingPackage.tar.gz -v [adminusername]@20.110.3.197:/home/[adminusername]
 
 # In your VM, Extract onboarding folder from tar.gz, then step into the folder
 tar -zxvf CgpuOnboardingPackage.tar.gz

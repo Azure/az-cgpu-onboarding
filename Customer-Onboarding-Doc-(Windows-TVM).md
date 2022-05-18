@@ -115,12 +115,12 @@ ls /dev/tpm0
 
 # Enroll-Key-TVM
 ```
-# In your VM, Create a password for the user if it is not already set
-sudo passwd [adminusername]
-
 # In local, Upload CgpuOnboardingPackage.tar.gz to your VM.
 cd CgpuOnboardingRepo 
-scp -i id_rsa CgpuOnboardingPackage.tar.gz [adminusername]@20.110.3.197:/home/[adminusername]
+scp -i id_rsa CgpuOnboardingPackage.tar.gz -v [adminusername]@20.110.3.197:/home/[adminusername]
+
+# In your VM, Create a password for the user if it is not already set
+sudo passwd [adminusername]
 
 # In your VM, Extract onboarding folder from tar.gz, then step into the folder
 tar -zxvf CgpuOnboardingPackage.tar.gz

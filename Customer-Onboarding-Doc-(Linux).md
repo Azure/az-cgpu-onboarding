@@ -25,9 +25,11 @@ E:\cgpu\.ssh>ssh-keygen -t rsa -b 4096 -C example@gmail.com
 Generating public/private rsa key pair.
 Enter file in which to save the key (C:\Users\soccerl/.ssh/id_rsa): e:\cgpu/.ssh/id_rsa
 e:\cgpu/.ssh/id_rsa already exists.
+
 Overwrite (y/n)? y
 Enter passphrase (empty for no passphrase):
 Enter same passphrase again:
+
 Your identification has been saved in e:\cgpu/.ssh/id_rsa.
 Your public key has been saved in e:\cgpu/.ssh/id_rsa.pub.
 The key fingerprint is:
@@ -102,7 +104,7 @@ ssh -i <private key path> -v [adminusername]@20.94.81.45
 ```
 # In local, Upload CgpuOnboardingPackage.tar.gz to your VM.
 cd CgpuOnboardingRepo 
-scp -i id_rsa CgpuOnboardingPackage.tar.gz [adminusername]@20.110.3.197:/home/[adminusername]
+scp -i id_rsa CgpuOnboardingPackage.tar.gz -v [adminusername]@20.110.3.197:/home/[adminusername]
 
 # In your VM, Extract onboarding folder from tar.gz, then step into the folder
 tar -zxvf CgpuOnboardingPackage.tar.gz
