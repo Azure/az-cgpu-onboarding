@@ -1,6 +1,10 @@
 ## This module helps install/update kernel to given version. If not given version, 
 ## It will try to update to default version "5.11.0-1028-azure".
 ##
+## Requirements: 
+##      nvdia driver:       APM_470.10.07_5.11.0-1028.31.tar
+##      kenrel version:     5.11.0-1028-azure
+##
 ## Example: 
 ##      bash step-1-install-kernel.sh 
 ##      bash step-1-install-kernel.sh -k "5.11.0-1028-azure"
