@@ -1,3 +1,8 @@
+## introduction
+The following steps help create a None-TVM CGPU Virtual Machine from Linux operating system.
+
+-----------------------------------------------
+
 ## Steps
 
 - [Create-CGPU-VM](#Create-CGPU-VM)
@@ -7,7 +12,7 @@
 
 ------------------------------------------------
 
-## requirements:
+## requirements
 
 - Linux
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) 
