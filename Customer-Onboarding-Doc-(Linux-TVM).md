@@ -107,7 +107,7 @@ ls /dev/tpm0
 
 
 ----------------------------------------------------------------
-# Enroll-Key-TVM
+### Enroll-Key-TVM
 ```
 # In local, Upload CgpuOnboardingPackage.tar.gz to your VM.
 cd CgpuOnboardingRepo 
@@ -139,7 +139,7 @@ bash step-0-install-kernel.sh
 ----------------------------------------------------------------
 
 
-# Install-GPU-Driver
+### Install-GPU-Driver
 
 ```
 # After reboot finished, ssh in your VM and install right version kernel folder.
@@ -162,7 +162,7 @@ nvidia-smi conf-compute -f
 ----------------------------------------------------------------
 
 
-# Attestation
+### Attestation
 ```
 # In your VM, Execute attestation scripts in CgpuOnboardingPackage.
 cd CgpuOnboardingPackage 
@@ -171,7 +171,7 @@ bash step-3-attestation.sh
 you should see below verifier success.
 
 -----------------
-# Workload-Running
+### Workload-Running
 
 ```
 # In your VM, Execute install gpu tool scripts to pull associates dependencies

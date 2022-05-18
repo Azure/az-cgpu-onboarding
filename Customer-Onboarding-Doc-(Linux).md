@@ -99,7 +99,8 @@ OsDiskSize=100
 ssh -i <private key path> -v [adminusername]@20.94.81.45
 ```
 ---------------
-# Install-GPU-Driver
+
+### Install-GPU-Driver
 
 ```
 # In local, Upload CgpuOnboardingPackage.tar.gz to your VM.
@@ -126,7 +127,7 @@ nvidia-smi conf-compute -f
 ```
 ---------------
 
-# Attestation
+### Attestation
 ```
 # In your VM, Execute attestation scripts in CgpuOnboardingPackage.
 cd CgpuOnboardingPackage 
@@ -135,7 +136,7 @@ bash step-3-attestation.sh
 you should see below verifier success.
 
 -----------------
-# Workload-Running
+### Workload-Running
 
 ```
 # In your VM, Execute install gpu tool scripts to pull associates dependencies
