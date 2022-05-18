@@ -22,9 +22,11 @@ E:\cgpu\.ssh>ssh-keygen -t rsa -b 4096 -C example@gmail.com
 Generating public/private rsa key pair.
 Enter file in which to save the key (C:\Users\soccerl/.ssh/id_rsa): e:\cgpu/.ssh/id_rsa
 e:\cgpu/.ssh/id_rsa already exists.
+
 Overwrite (y/n)? y
 Enter passphrase (empty for no passphrase):
 Enter same passphrase again:
+
 Your identification has been saved in e:\cgpu/.ssh/id_rsa.
 Your public key has been saved in e:\cgpu/.ssh/id_rsa.pub.
 The key fingerprint is:
@@ -108,16 +110,6 @@ scp -i id_rsa CgpuOnboardingPackage.tar.gz [adminusername]@20.110.3.197:/home/[a
 tar -zxvf CgpuOnboardingPackage.tar.gz
 cd CgpuOnboardingPackage 
 
-```
-In CgpuOnboardingPackage you should see below files.
-- APM_470.10.08_5.11.0-1028.31.tar
-- step-1-install-kernel.sh
-- step-2-install-gpu-driver.sh
-- step-3-attestation.sh
-- step-4-install-gpu-tools.sh
-- unet_bosch_ms.py
-- verifier_apm_pid3_2.tar
-```
 # In your VM, Install right version kernel in CgpuOnboardingPackage folder.
 # This step requires reboot. please wait about 2-5 min to reconnect to VM
 bash step-1-install-kernel.sh

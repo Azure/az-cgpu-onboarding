@@ -108,16 +108,6 @@ scp -i id_rsa CgpuOnboardingPackage.tar.gz [adminusername]@20.110.3.197:/home/[a
 tar -zxvf CgpuOnboardingPackage.tar.gz
 cd CgpuOnboardingPackage 
 
-```
-In CgpuOnboardingPackage you should see below files.
-- APM_470.10.08_5.11.0-1028.31.tar
-- step-1-install-kernel.sh
-- step-2-install-gpu-driver.sh
-- step-3-attestation.sh
-- step-4-install-gpu-tools.sh
-- unet_bosch_ms.py
-- verifier_apm_pid3_2.tar
-```
 # In your VM, Install right version kernel in CgpuOnboardingPackage folder.
 # This step requires reboot. please wait about 2-5 min to reconnect to VM
 bash step-1-install-kernel.sh

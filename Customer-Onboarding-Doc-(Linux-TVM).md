@@ -26,9 +26,11 @@ E:\cgpu\.ssh>ssh-keygen -t rsa -b 4096 -C example@gmail.com
 Generating public/private rsa key pair.
 Enter file in which to save the key (C:\Users\soccerl/.ssh/id_rsa): e:\cgpu/.ssh/id_rsa
 e:\cgpu/.ssh/id_rsa already exists.
+
 Overwrite (y/n)? y
 Enter passphrase (empty for no passphrase):
 Enter same passphrase again:
+
 Your identification has been saved in e:\cgpu/.ssh/id_rsa.
 Your public key has been saved in e:\cgpu/.ssh/id_rsa.pub.
 The key fingerprint is:
