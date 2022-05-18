@@ -109,7 +109,7 @@ mokutil --sb-state
 ls /dev/tpm0
 ```
 ---------------
-#Enroll-Key-TVM
+# Enroll-Key-TVM
 ```
 # ssh into VM, Create a password for the user if it is not already set
 sudo passwd [adminusername]
