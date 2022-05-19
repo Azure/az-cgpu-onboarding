@@ -62,8 +62,8 @@ $adminusername="your user name"
 # resource group name
 $rg="your resource group name"
 
-# vm name 
-$vmname="your vm name"
+# VM name 
+$vmname="your VM name"
 
 # ssh pub key generated from step1.
 $SshCreds="ssh-rsa AAAAB3NzaC..."
@@ -76,7 +76,7 @@ Az login
 # Check if you are on the right subscription
 az account show
 
-# switch subscription if needed.
+# switch subscription if needed
 az account set --subscription [your subscriptionId]
 
 # if you don't have resource group, execute this command for creating an resource group
@@ -84,7 +84,7 @@ az group create --name $rg --location eastus2
 
 
 
-# create VM with (takes few minute to finish)
+# create VM with (takes a few minute to finish)
 az vm create `
 --resource-group $rg `
 --name $vmname `
@@ -102,8 +102,8 @@ az vm create `
 ```
  3. Check your VM connection using your private key
 ```
-# Use your private key file path generated in above and replace the [adminusername] and ip address below to connect to VM
-# The IP address could be found in VM Azure Portal.
+# Use your private key file path generated in above and replace the [adminusername] and IP address below to connect to VM
+# The IP address can be found in the Azure Portal.
 ssh -i <private key path> -v [adminusername]@IP
 ```
 ---------------
