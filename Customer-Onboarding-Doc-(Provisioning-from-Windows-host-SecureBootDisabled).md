@@ -24,6 +24,8 @@ The following steps help create a [secure boot](https://docs.microsoft.com/en-us
 
 1. Prepare ssh key for creating VM (if you don't have one)
 ```
+# id_rsa.pub will used as ssh-key-values for VM creation.
+# id_rsa will be used for ssh in your vm
 E:\cgpu\.ssh>ssh-keygen -t rsa -b 4096 -C example@gmail.com
 Generating public/private rsa key pair.
 Enter file in which to save the key (C:\Users\soccerl/.ssh/id_rsa): e:\cgpu/.ssh/id_rsa
