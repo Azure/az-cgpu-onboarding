@@ -18,9 +18,6 @@ The following steps help create a [secure boot](https://docs.microsoft.com/en-us
 - Linux
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) 
 - Download Files from [Azure-Confidential-Computing-CGPUPrivatePreview-v1.0.1](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V1.0.1 )
-  - Source code (tar.gz) --> PrivatePreview-1.0.1.tar.gz
-    (Contains templates to provision CGPU VM)
-    
   - CgpuOnboardingPakcage.tar.gz
     (Contains tools to install CGPU Driver in VM)
 
