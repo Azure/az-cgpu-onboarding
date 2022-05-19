@@ -56,14 +56,14 @@ The key's randomart image is:
 ```
 2. Create VM using Azure CLI
 ```
-# azure admin user name
+# set your admin username
 $adminusername="your user name"
 
 # resource group name
 $rg="your resource group name"
 
-# vm name 
-$vmname="your vm name"
+# VM name 
+$vmname="your VM name"
 
 # ssh pub key generated from step1.
 $SshCreds="ssh-rsa AAAAB3NzaC..."
@@ -71,20 +71,20 @@ $SshCreds="ssh-rsa AAAAB3NzaC..."
 
 
 # login in with your azure account
-Az login
+az login
 
 # Check if you are on the right subscription
 az account show
 
-# switch subscription if needed.
+# switch subscriptions if needed
 az account set --subscription [your subscriptionId]
 
-# if you don't have resource group, execute this command for creating an resource group
+# if you don't have a resource group already, execute this command to create one
 az group create --name $rg --location eastus2
 
 
 
-# create VM with (takes few minute to finish)
+# create VM with (takes a few minute to finish)
 az vm create `
 --resource-group $rg `
 --name $vmname `
@@ -102,9 +102,9 @@ az vm create `
 ```
  3. Check your VM connection using your private key
 ```
-# Use your private key file path generated in above and replace the [adminusername] and ip address below to connect to VM
-# The IP address could be found in VM Azure Portal.
-ssh -i <private key path> -v [adminusername]@20.94.81.45
+# Use your private key file path generated in above and replace the [adminusername] and IP address below to connect to VM
+# The IP address can be found in the Azure Portal.
+ssh -i <private key path> -v [adminusername]@IP
 ```
 ---------------
 
@@ -114,7 +114,7 @@ Download [CgpuOnboardingPakcage.tar.gz](https://github.com/Azure-Confidential-Co
 
 ```
 # In local, upload CgpuOnboardingPackage.tar.gz to your VM.
-scp -i id_rsa CgpuOnboardingPackage.tar.gz -v [adminusername]@20.110.3.197:/home/[adminusername]
+scp -i id_rsa CgpuOnboardingPackage.tar.gz -v [adminusername]@IP:/home/[adminusername]
 
 # In your VM, extract the onboarding folder from tar.gz, then step into the folder
 tar -zxvf CgpuOnboardingPackage.tar.gz
@@ -150,16 +150,12 @@ bash step-3-attestation.sh
 ### Workload-Running
 
 ```
-# In your VM, execute the install gpu tool scripts to pull down dependencies
+# In your VM, execute the install gpu tools script to pull down dependencies
 cd CgpuOnboardingPackage 
 bash step-4-install-gpu-tools.sh
 
-# Replace the [adminusername] with your admin user name. Then try to execute sample workload with docker.
+# Replace the [adminusername] with your admin username, then try to execute this sample workload with docker.
 # It will download docker image if it couldn't find it.
 sudo docker run --gpus all -v /home/[adminusername]/CgpuOnboardingPackage:/home -it --rm nvcr.io/nvidia/tensorflow:21.10-tf2-py3 python /home/unet_bosch_ms.py
 
 ```
-
-
-
-
