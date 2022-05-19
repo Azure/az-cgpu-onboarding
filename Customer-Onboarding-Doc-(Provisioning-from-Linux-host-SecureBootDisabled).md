@@ -88,7 +88,7 @@ az vm create \
 --image Canonical:0001-com-ubuntu-server-focal:20_04-lts-gen2:latest \
 --public-ip-sku Standard \
 --admin-username $adminusername \
---ssh-key-values "ssh-rsa AAAAB3NzaC1yc2...." \
+--ssh-key-values <private key path> \
 --security-type "TrustedLaunch" \
 --enable-secure-boot $false \
 --enable-vtpm $true \
