@@ -1,6 +1,6 @@
 ## Introduction
 
-The following steps help create a [Secure boot](https://docs.microsoft.com/en-us/azure/virtual-machines/trusted-launch) enabled Confidential GPU Virtual Machine with a Windows operating system.
+The following steps help create a [secure boot](https://docs.microsoft.com/en-us/azure/virtual-machines/trusted-launch) enabled Confidential GPU Virtual Machine with a Windows operating system.
 
 -----------------------------------------------
 
