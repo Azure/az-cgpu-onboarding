@@ -12,10 +12,10 @@ Please make sure to follow all steps exactly as detailed. If you running into is
 
 ## Choose your configuration 
 
-- [Onboarding Docs (Linux)](Customer-Onboarding-Doc-(Linux).md)
+- [Onboarding Docs (Linux-SecureBootDisabled)](Customer-Onboarding-Doc-(Linux-SecureBootDisabled).md)
 
-- [Onboarding Docs (Windows)](Customer-Onboarding-Doc-(Windows).md)
+- [Onboarding Docs (Linux-SecureBootEnabled)](Customer-Onboarding-Doc-(Linux-SecureBootEnabled).md)
 
-- [Onboarding Docs (Linux-TVM)](Customer-Onboarding-Doc-(Linux-TVM).md)
+- [Onboarding Docs (Windows-SecureBootDisabled)](Customer-Onboarding-Doc-(Windows-SecureBootDisabled).md)
 
-- [Onboarding Docs (Windows-TVM)](Customer-Onboarding-Doc-(Windows-TVM).md)
+- [Onboarding Docs (Windows-SecureBootEnabled)](Customer-Onboarding-Doc-(Windows-SecureBootEnabled).md)
