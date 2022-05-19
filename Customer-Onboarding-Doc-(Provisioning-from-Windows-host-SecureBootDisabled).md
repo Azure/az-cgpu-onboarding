@@ -56,7 +56,7 @@ The key's randomart image is:
 ```
 2. Create VM using Azure CLI
 ```
-# azure admin user name
+# set your admin username
 $adminusername="your user name"
 
 # resource group name
@@ -71,15 +71,15 @@ $SshCreds="ssh-rsa AAAAB3NzaC..."
 
 
 # login in with your azure account
-Az login
+az login
 
 # Check if you are on the right subscription
 az account show
 
-# switch subscription if needed
+# switch subscriptions if needed
 az account set --subscription [your subscriptionId]
 
-# if you don't have resource group, execute this command for creating an resource group
+# if you don't have a resource group already, execute this command to create one
 az group create --name $rg --location eastus2
 
 
@@ -150,16 +150,12 @@ bash step-3-attestation.sh
 ### Workload-Running
 
 ```
-# In your VM, execute the install gpu tool scripts to pull down dependencies
+# In your VM, execute the install gpu tools script to pull down dependencies
 cd CgpuOnboardingPackage 
 bash step-4-install-gpu-tools.sh
 
-# Replace the [adminusername] with your admin user name. Then try to execute sample workload with docker.
+# Replace the [adminusername] with your admin username, then try to execute this sample workload with docker.
 # It will download docker image if it couldn't find it.
 sudo docker run --gpus all -v /home/[adminusername]/CgpuOnboardingPackage:/home -it --rm nvcr.io/nvidia/tensorflow:21.10-tf2-py3 python /home/unet_bosch_ms.py
 
 ```
-
-
-
-

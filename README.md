@@ -7,7 +7,7 @@ The following four major steps are provided to help deploy your first Confidenti
 3. Attestation Verification
 4. Workload Running
 
-Please make sure to follow all steps exactly as detailed. If you running into issues, please reach out to us as described at the bottom of this document. We are confident that things will be smooth once you get the hang of it!
+Please make sure to follow all steps exactly as detailed. If you run into issues, please reach out to us as described at the bottom of this document. We are confident that things will be smooth once you get the hang of it!
 
 
 ## Choose your configuration 
