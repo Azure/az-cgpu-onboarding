@@ -7,12 +7,12 @@ The following four major steps are provided to help deploy your first Confidenti
 3. Attestation Verification
 4. Workload Running
 
-Please make sure to follow all steps exactly as detailed. If you running into issues, please reach out to us as described at the bottom of this document. We are confident that things will be smooth once you get the hang of it!
+Please make sure to follow all steps exactly as detailed. If you run into issues, please reach out to us as described at the bottom of this document. We are confident that things will be smooth once you get the hang of it!
 
 
 ## Choose your configuration 
 
-  In private preview, Confidential GPU VM only supports using Linux as guest VM image
+  In private preview, Confidential GPU VM only supports Linux guest VM images.
 
 - [Onboarding Docs (Provisioning from Linux host-SecureBootDisabled)](Customer-Onboarding-Doc-(Provisioning-from-Linux-host-SecureBootDisabled).md)
 
@@ -21,3 +21,5 @@ Please make sure to follow all steps exactly as detailed. If you running into is
 - [Onboarding Docs (Provisioning from Windows host-SecureBootDisabled)](Customer-Onboarding-Doc-(Provisioning-from-Windows-host-SecureBootDisabled).md)
 
 - [Onboarding Docs (Provisioning from Windows host-SecureBootEnabled)](Customer-Onboarding-Doc-(Provisioning-from-Windows-host-SecureBootEnabled).md)
+
+## Contact Information
