@@ -102,10 +102,11 @@ az vm create \
 # The IP address could be found in VM Azure Portal.
 ssh -i <private key path> -v [adminusername]@IP
 
-# check security boot state, should see : SecureBoot enabled
+# Check that secure boot is enabled
 mokutil --sb-state
 
-# Success: /dev/tpm0, Failure: ls: cannot access '/dev/tpm0': No such file or directory
+# You should see a message like this:
+# Success: /dev/tpm0
 ls /dev/tpm0
 ```
 
