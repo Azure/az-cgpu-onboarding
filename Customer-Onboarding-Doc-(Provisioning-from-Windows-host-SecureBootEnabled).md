@@ -64,6 +64,7 @@ The key's randomart image is:
 2. Create VM using Azure CLI
 ```
 # set your admin username
+# note: username cannot contain upper case character A-Z, special characters \/"[]:|<>+=;,?*@#()! or start with $ or -
 $adminusername="your user name"
 
 # resource group name
