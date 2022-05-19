@@ -1,5 +1,6 @@
 ## Introduction
-The following steps help create a TVM Confidential GPU Virtual Machine with a Linux operating system.
+
+The following steps help create a [Azure Secure Boot](https://docs.microsoft.com/en-us/azure/virtual-machines/trusted-launch) enabled Confidential GPU Virtual Machine with a Linux operating system.
 
 -----------------------------------------------
 ## Steps
@@ -15,13 +16,9 @@ The following steps help create a TVM Confidential GPU Virtual Machine with a Li
 ## Requirements
 
 - Linux
+- [Azure Subscription](https://docs.microsoft.com/en-us/azure/cost-management-billing/manage/create-subscription)
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) 
-- Download Files from [Azure-Confidential-Computing-CGPUPrivatePreview-v1.0.1](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V1.0.1 )
-  - Source code (tar.gz) --> PrivatePreview-1.0.1.tar.gz
-    (Contains templates to provision CGPU VM)
-    
-  - CgpuOnboardingPakcage.tar.gz
-    (Contains tools to install CGPU Driver in VM)
+- Download [CgpuOnboardingPakcage.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V1.0.1/CgpuOnboardingPackage.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-v1.0.1](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V1.0.1)
 
 --------------------------------------------------
 ### Create-CGPU-VM
@@ -29,6 +26,8 @@ The following steps help create a TVM Confidential GPU Virtual Machine with a Li
 
 1. Prepare ssh key for creating VM (if you don't have one)
 ```
+# id_rsa.pub will used as ssh-key-values for VM creation.
+# id_rsa will be used for ssh in your vm
 E:\cgpu\.ssh>ssh-keygen -t rsa -b 4096 -C example@gmail.com
 Generating public/private rsa key pair.
 Enter file in which to save the key (C:\Users\soccerl/.ssh/id_rsa): e:\cgpu/.ssh/id_rsa
@@ -57,10 +56,6 @@ The key's randomart image is:
 ```
 2. Create VM using Azure CLI
 ```
-# extract PrivatePreview-1.0.1.tar.gz code go into the folder
-tar -zxvf PrivatePreview-1.0.1.tar.gz
-cd PrivatePreview-1.0.1
-
 # azure admin user name
 adminusername="your user name"
 
@@ -85,25 +80,25 @@ az group create --name $rg --location eastus2
 
 
 
-# create a VM with the provided template.json and parameter.json.(takes few minute to finish)
-az deployment group create -g $rg -f "template.json" -p "parameters.json" -p cluster="bnz10prdgpc05" \
-vmCount=1 \
-deploymentPrefix=$vmname \
-virtualMachineSize="NCC24ads_A100_v4" \
-adminUsername=$adminusername \
-adminPublicKey="ssh-rsa AAAAB3NzaC1y.....(replace with your publickey)" \
-platform=Linux \
-linuxDistro=Ubuntu \
-enableAN=$false \
-installGpuDrivers=$false \
-enableTVM=$true \
-ubuntuRelease=20 \
-OsDiskSize=100
+# create VM.(takes few minute to finish)
+az vm create \
+--resource-group $rg \
+--name $vmname \
+--image Canonical:0001-com-ubuntu-server-focal:20_04-lts-gen2:latest \
+--public-ip-sku Standard \
+--admin-username $adminusername \
+--ssh-key-values "ssh-rsa AAAAB3NzaC1yc2...." \
+--security-type "TrustedLaunch" \
+--enable-secure-boot $true \
+--enable-vtpm $true \
+--size Standard_NCC24ads_A100_v4 \
+--os-disk-size-gb 100 \
+--verbose
 ```
 
  3. Check your vm connection using your private key and verify it's secure boot enabled.
 ```
-# use your private key file path generated in above step to connect to VM.
+# Use your private key file path generated in above and replace the [adminusername] and ip address below to connect to VM
 # The IP address could be found in VM Azure Portal.
 ssh -i <private key path> -v [adminusername]@IP
 
@@ -117,6 +112,9 @@ ls /dev/tpm0
 
 ----------------------------------------------------------------
 ### Enroll-Key-TVM
+
+Download [CgpuOnboardingPakcage.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V1.0.1/CgpuOnboardingPackage.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-v1.0.1](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V1.0.1) if you haven't.
+
 ```
 # In local, upload CgpuOnboardingPackage.tar.gz to your VM.
 scp -i id_rsa CgpuOnboardingPackage.tar.gz -v [adminusername]@IP:/home/[adminusername]
@@ -142,7 +140,7 @@ bash step-0-install-kernel.sh
 - Go to Serial Console and login with your adminUserName and password
 ![image.png](attachment/serial_console.JPG)
 
-- Reboot the machine from Azure Serial Console by typing sudo reboot. A 10 second countdown will begin. Press the up or down key to interrupt the countdown and wait in UEFI console mode. If the timer is not interrupted, the boot process continues and all of the MOK changes are lost. Select: Enroll MOK -> Continue -> Yes -> Enter your signing key password ->  Reboot.
+- Login in to your VM with your adminusername and password in Azure Serial Console. Then reboot the machine from Azure Serial Console by typing sudo reboot. A 10 second countdown will begin. Press the up or down key to interrupt the countdown and wait in UEFI console mode. If the timer is not interrupted, the boot process continues and all of the MOK changes are lost. Select: Enroll MOK -> Continue -> Yes -> Enter your signing key password ->  Reboot.
 ![image.png](attachment/enrole_key.JPG)
 
 ----------------------------------------------------------------
@@ -187,8 +185,9 @@ bash step-3-attestation.sh
 cd CgpuOnboardingPackage 
 bash step-4-install-gpu-tools.sh
 
-# Then try to execute sample workload with docker.
-sudo docker run --gpus all -v /home/[your AdminUserName]/CgpuOnboardingPackage:/home -it --rm nvcr.io/nvidia/tensorflow:21.10-tf2-py3 python /home/unet_bosch_ms.py
+# Replace the [adminusername] with your admin user name. Then try to execute sample workload with docker.
+# It will download docker image if it couldn't find it.
+sudo docker run --gpus all -v /home/[adminusername]/CgpuOnboardingPackage:/home -it --rm nvcr.io/nvidia/tensorflow:21.10-tf2-py3 python /home/unet_bosch_ms.py
 
 ```
 

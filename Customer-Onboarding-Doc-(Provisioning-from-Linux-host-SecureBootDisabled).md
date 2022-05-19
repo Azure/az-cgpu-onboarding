@@ -1,5 +1,6 @@
 ## Introduction
-The following steps help create a Non-TVM Confidential GPU Virtual Machine with a Windows operating system.
+
+The following steps help create a [Azure Secure Boot](https://docs.microsoft.com/en-us/azure/virtual-machines/trusted-launch) disabled Confidential GPU Virtual Machine with a Linux operating system.
 
 -----------------------------------------------
 
@@ -9,25 +10,25 @@ The following steps help create a Non-TVM Confidential GPU Virtual Machine with 
 - [Install-GPU-Driver](#Install-GPU-Driver) 
 - [Attestation ](#Attestation) 
 - [Workload-Running](#Workload-Running) 
--------------------------------------------
+
+------------------------------------------------
 
 ## Requirements
 
-- Powershell: version 5.1.19041.1682 and above
+- Linux
+- [Azure Subscription](https://docs.microsoft.com/en-us/azure/cost-management-billing/manage/create-subscription)
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) 
-- Download Files from [Azure-Confidential-Computing-CGPUPrivatePreview-v1.0.1](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V1.0.1 )
-  - Source code (zip) --> CGPUPrivatePreview-1.0.1.zip
-    (Contains templates to provision CGPU VM)
-    
-  - CgpuOnboardingPakcage.tar.gz
-    (Contains tools to install CGPU Driver in VM)
+- Download [CgpuOnboardingPakcage.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V1.0.1/CgpuOnboardingPackage.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-v1.0.1](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V1.0.1)
 
 ----------------------------------------------------
 
 ### Create-CGPU-VM
 
+
 1. Prepare ssh key for creating VM (if you don't have one)
 ```
+# id_rsa.pub will used as ssh-key-values for VM creation.
+# id_rsa will be used for ssh in your vm
 E:\cgpu\.ssh>ssh-keygen -t rsa -b 4096 -C example@gmail.com
 Generating public/private rsa key pair.
 Enter file in which to save the key (C:\Users\soccerl/.ssh/id_rsa): e:\cgpu/.ssh/id_rsa
@@ -56,22 +57,15 @@ The key's randomart image is:
 ```
 2. Create VM using Azure CLI
 ```
-# extract PrivatePreview-1.0.1.zip code go into the folder
-cd PrivatePreview-1.0.1
-
 # azure admin user name
-$adminusername="your user name"
+adminusername="your user name"
 
 # resource group name
-$rg="your resource group name"
+rg="your resource group name"
 
-# vm name 
-$vmname="your vm name"
-
-# ssh pub key generated from step1.
-$SshCreds="ssh-rsa AAAAB3NzaC..."
-
-
+# VM name
+# Note: Linux host names cannot exceed 64 characters in length or contain the following characters: ` ~ ! @ # $ % ^ & * ( ) = + _ [ ] { } \\ | ; : ' \" , < > / ?
+vmname="your vm name"
 
 # login in with your azure account
 Az login
@@ -87,31 +81,33 @@ az group create --name $rg --location eastus2
 
 
 
-# create VM with the provided template.json and parameter.json.(takes few minute to finish)
-az deployment group create -g $rg -f "template.json" -p "parameters.json" -p cluster="bnz10prdgpc05" `
-vmCount=1 `
-deploymentPrefix=$vmname `
-virtualMachineSize="NCC24ads_A100_v4" `
-adminUsername=$adminusername `
-adminPublicKey=$SshCreds `
-platform=Linux `
-linuxDistro=Ubuntu `
-enableAN=$false `
-installGpuDrivers=$false `
-enableTVM=$false `
-ubuntuRelease=20 `
-OsDiskSize=100
+# create a VM.(takes few minute to finish)
+az vm create \
+--resource-group $rg \
+--name $vmname \
+--image Canonical:0001-com-ubuntu-server-focal:20_04-lts-gen2:latest \
+--public-ip-sku Standard \
+--admin-username $adminusername \
+--ssh-key-values "ssh-rsa AAAAB3NzaC1yc2...." \
+--security-type "TrustedLaunch" \
+--enable-secure-boot $false \
+--enable-vtpm $true \
+--size Standard_NCC24ads_A100_v4 \
+--os-disk-size-gb 100 \
+--verbose
+```
 
+ 3. Check your VM connection using your private key.
 ```
- 3. Check your VM connection using your private key
-```
-# use your private key file path generated in above step to connect to VM. 
+# Use your private key file path generated in above and replace the [adminusername] and ip address below to connect to VM
 # The IP address could be found in VM Azure Portal.
 ssh -i <private key path> -v [adminusername]@IP
 ```
 ---------------
 
 ### Install-GPU-Driver
+
+Download [CgpuOnboardingPakcage.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V1.0.1/CgpuOnboardingPackage.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-v1.0.1](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V1.0.1) if you haven't.
 
 ```
 # In local, upload CgpuOnboardingPackage.tar.gz to your VM.
@@ -130,12 +126,11 @@ bash step-1-install-kernel.sh
 cd CgpuOnboardingPackage 
 bash step-2-install-gpu-driver.sh
 
-# After rebooting, reconnect to the VM and validate if the confidential compute mode is on.
+# After rebooting, reconnect into vm and validate if the confidential compute mode is on.
 # You should see: CC status: ON
 nvidia-smi conf-compute -f 
 
 ```
-
 ---------------
 
 ### Attestation
@@ -147,7 +142,6 @@ bash step-3-attestation.sh
 ```
 
 -----------------
-
 ### Workload-Running
 
 ```
@@ -155,8 +149,9 @@ bash step-3-attestation.sh
 cd CgpuOnboardingPackage 
 bash step-4-install-gpu-tools.sh
 
-# Then try to execute the sample workload with docker.
-sudo docker run --gpus all -v /home/[your AdminUserName]/CgpuOnboardingPackage:/home -it --rm nvcr.io/nvidia/tensorflow:21.10-tf2-py3 python /home/unet_bosch_ms.py
+# Replace the [adminusername] with your admin user name. Then try to execute sample workload with docker.
+# It will download docker image if it couldn't find it.
+sudo docker run --gpus all -v /home/[adminusername]/CgpuOnboardingPackage:/home -it --rm nvcr.io/nvidia/tensorflow:21.10-tf2-py3 python /home/unet_bosch_ms.py
 
 ```
 
