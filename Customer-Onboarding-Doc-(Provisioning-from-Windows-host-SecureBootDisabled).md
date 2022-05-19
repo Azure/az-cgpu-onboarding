@@ -16,9 +16,7 @@ The following steps help create a [secure boot](https://docs.microsoft.com/en-us
 
 - Powershell: version 5.1.19041.1682 and above
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) 
-- Download Files from [Azure-Confidential-Computing-CGPUPrivatePreview-v1.0.1](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V1.0.1 )
-  - CgpuOnboardingPakcage.tar.gz
-    (Contains tools to install CGPU Driver in VM)
+- Download CgpuOnboardingPakcage.tar.gz(https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V1.0.1/CgpuOnboardingPackage.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-v1.0.1](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V1.0.1)
 
 ----------------------------------------------------
 
