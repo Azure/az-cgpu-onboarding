@@ -565,21 +565,7 @@
             "apiVersion": "2016-09-01",
             "location": "[resourceGroup().location]",
             "properties": {
-                "securityRules": [
-                    {
-                        "name": "default-allow-remoteaccess",
-                        "properties": {
-                            "priority": 1000,
-                            "sourceAddressPrefix": "*",
-                            "protocol": "TCP",
-                            "destinationPortRange": "[if(equals(parameters('platform'), 'Windows'), variables('windowsRemotePort'), variables('linuxRemotePort'))]",
-                            "access": "Allow",
-                            "direction": "Inbound",
-                            "sourcePortRange": "*",
-                            "destinationAddressPrefix": "*"
-                        }
-                    }
-                ]
+                "securityRules": []
             }
         },
         {
