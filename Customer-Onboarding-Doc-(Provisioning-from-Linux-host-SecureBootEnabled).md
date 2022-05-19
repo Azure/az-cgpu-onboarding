@@ -18,9 +18,6 @@ The following steps help create a [secure boot](https://docs.microsoft.com/en-us
 - Linux
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) 
 - Download Files from [Azure-Confidential-Computing-CGPUPrivatePreview-v1.0.1](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V1.0.1 )
-  - Source code (tar.gz) --> PrivatePreview-1.0.1.tar.gz
-    (Contains templates to provision CGPU VM)
-    
   - CgpuOnboardingPakcage.tar.gz
     (Contains tools to install CGPU Driver in VM)
 
@@ -58,10 +55,6 @@ The key's randomart image is:
 ```
 2. Execute VM Creation using Azure CLI
 ```
-# extract PrivatePreview-1.0.1.tar.gz code go into the folder
-tar -zxvf PrivatePreview-1.0.1.tar.gz
-cd PrivatePreview-1.0.1
-
 # azure admin user name
 adminusername="your user name"
 
@@ -85,20 +78,20 @@ az group create --name $rg --location eastus2
 
 
 
-# create VM with the provided template.json and parameter.json.(takes few minute to finish)
-az deployment group create -g $rg -f "template.json" -p "parameters.json" -p cluster="bnz10prdgpc05" \
-vmCount=1 \
-deploymentPrefix=$vmname \
-virtualMachineSize="NCC24ads_A100_v4" \
-adminUsername=xiaobwan \
-adminPublicKey="ssh-rsa AAAAB3NzaC1y.....(replace with your publickey)" \
-platform=Linux \
-linuxDistro=Ubuntu \
-enableAN=$false \
-installGpuDrivers=$false \
-enableTVM=$true \
-ubuntuRelease=20 \
-OsDiskSize=100
+# create VM.(takes few minute to finish)
+az vm create \
+--resource-group $rg \
+--name $vmname \
+--image Canonical:0001-com-ubuntu-server-focal:20_04-lts-gen2:latest \
+--public-ip-sku Standard \
+--admin-username $adminusername \
+--ssh-key-values "ssh-rsa AAAAB3NzaC1yc2...." \
+--security-type "TrustedLaunch" \
+--enable-secure-boot $true \
+--enable-vtpm $true \
+--size Standard_NCC24ads_A100_v4 \
+--os-disk-size-gb 100 \
+--verbose
 ```
 
  3. Check your vm connection using your private key and verify it's secure boot enabled.
