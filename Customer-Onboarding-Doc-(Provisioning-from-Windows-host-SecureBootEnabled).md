@@ -95,7 +95,7 @@ az vm create `
 --name $vmname `
 --image Canonical:0001-com-ubuntu-server-focal:20_04-lts-gen2:latest `
 --public-ip-sku Standard `
---admin-username $adminusername`
+--admin-username $adminusername `
 --ssh-key-values $SshCreds `
 --security-type "TrustedLaunch" `
 --enable-secure-boot $true `
