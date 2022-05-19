@@ -102,10 +102,11 @@ az vm create \
 # The IP address could be found in VM Azure Portal.
 ssh -i <private key path> -v [adminusername]@IP
 
-# check security boot state, should see : SecureBoot enabled
+# Check that secure boot is enabled
 mokutil --sb-state
 
-# Success: /dev/tpm0, Failure: ls: cannot access '/dev/tpm0': No such file or directory
+# You should see a message like this:
+# Success: /dev/tpm0
 ls /dev/tpm0
 ```
 
@@ -140,7 +141,7 @@ bash step-0-enroll-signing-key.sh
 - Go to the Serial Console and login with your adminusername and password
 ![image.png](attachment/serial_console.JPG)
 
-- Login in to your VM with your adminusername and password in Azure Serial Console. Then reboot the machine from Azure Serial Console by typing sudo reboot. A 10 second countdown will begin. Immediately press the up or down key to interrupt the countdown and wait in UEFI console mode. If the timer is not interrupted, the boot process continues and all of the MOK changes are lost. 
+- Login in to your VM with your adminusername and password in Azure Serial Console. Then reboot the machine from Azure Serial Console by typing "sudo reboot". A 10 second countdown will begin. Immediately press the up or down key to interrupt the countdown and wait in UEFI console mode. If the timer is not interrupted, the boot process continues and all of the MOK changes are lost. 
 - Select: Enroll MOK -> Continue -> Yes -> Enter your signing key password ->  Reboot.
 ![image.png](attachment/enrole_key.JPG)
 
