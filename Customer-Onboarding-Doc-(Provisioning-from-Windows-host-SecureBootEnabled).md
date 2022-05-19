@@ -109,8 +109,7 @@ az vm create `
 ```
  3. Check your VM connection using your private key and verify secure boot enabled. 
 ```
-# Use your private key file path generated in above step to connect to VM.
-# Replace the adminusername and ip address associated to your VM.
+# Use your private key file path generated in above and replace the [adminusername] and ip address below to connect to VM
 # The IP address could be found in VM Azure Portal.
 ssh -i <private key path> -v [adminusername]@20.94.81.45
 
