@@ -29,7 +29,7 @@ The following steps help create a [Azure Secure Boot](https://docs.microsoft.com
 ```
 # id_rsa.pub will used as ssh-key-values for VM creation.
 # id_rsa will be used for ssh in your vm
-E:\cgpu\.ssh>ssh-keygen -t rsa -b 4096 -C example@gmail.com
+E:\cgpu\.ssh>ssh-keygen -t rsa -b 4096 -C <your email here>
 Generating public/private rsa key pair.
 Enter file in which to save the key (C:\Users\soccerl/.ssh/id_rsa): e:\cgpu/.ssh/id_rsa
 e:\cgpu/.ssh/id_rsa already exists.
