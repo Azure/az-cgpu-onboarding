@@ -126,7 +126,7 @@ tar -zxvf CgpuOnboardingPackage.tar.gz
 
 # Execute the script to import nvidia signing key.
 cd CgpuOnboardingPackage 
-bash step-0-install-kernel.sh
+bash step-0-enroll-signing-key.sh
 
 ```
 - Go to your VM portal to set the boot diagnostics. 
