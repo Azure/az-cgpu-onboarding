@@ -68,7 +68,8 @@ adminusername="your user name"
 # resource group name
 rg="your resource group name"
 
-# vm name 
+# VM name
+# Note: Linux host names cannot exceed 64 characters in length or contain the following characters: ` ~ ! @ # $ % ^ & * ( ) = + _ [ ] { } \\ | ; : ' \" , < > / ?
 vmname="your vm name"
 
 # login in with your azure account
@@ -90,7 +91,7 @@ az deployment group create -g $rg -f "template.json" -p "parameters.json" -p clu
 vmCount=1 \
 deploymentPrefix=$vmname \
 virtualMachineSize="NCC24ads_A100_v4" \
-adminUsername=xiaobwan \
+adminUsername=$adminusername \
 adminPublicKey="ssh-rsa AAAAB3NzaC1y.....(replace with your publickey)" \
 platform=Linux \
 linuxDistro=Ubuntu \
@@ -105,7 +106,7 @@ OsDiskSize=100
 ```
 # use your private key file path generated in above step to connect to VM.
 # The IP address could be found in VM Azure Portal.
-ssh -i <private key path> -v [adminusername]@20.94.81.45
+ssh -i <private key path> -v [adminusername]@IP
 ```
 ---------------
 
@@ -113,7 +114,7 @@ ssh -i <private key path> -v [adminusername]@20.94.81.45
 
 ```
 # In local, upload CgpuOnboardingPackage.tar.gz to your VM.
-scp -i id_rsa CgpuOnboardingPackage.tar.gz -v [adminusername]@20.110.3.197:/home/[adminusername]
+scp -i id_rsa CgpuOnboardingPackage.tar.gz -v [adminusername]@IP:/home/[adminusername]
 
 # In your VM, extract the onboarding folder from tar.gz, then step into the folder
 tar -zxvf CgpuOnboardingPackage.tar.gz
@@ -128,8 +129,8 @@ bash step-1-install-kernel.sh
 cd CgpuOnboardingPackage 
 bash step-2-install-gpu-driver.sh
 
-# After reboot, reconnect into vm and validate if the confidential compute mode is on.
-# you should see: CC status: ON
+# After rebooting, reconnect into vm and validate if the confidential compute mode is on.
+# You should see: CC status: ON
 nvidia-smi conf-compute -f 
 
 ```

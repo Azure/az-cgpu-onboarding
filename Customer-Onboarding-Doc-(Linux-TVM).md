@@ -27,7 +27,7 @@ The following steps help create a TVM Confidential GPU Virtual Machine with a Li
 ### Create-CGPU-VM
 
 
-1. Prepare ssh key for creating VM (If you don't have one)
+1. Prepare ssh key for creating VM (if you don't have one)
 ```
 E:\cgpu\.ssh>ssh-keygen -t rsa -b 4096 -C example@gmail.com
 Generating public/private rsa key pair.
@@ -55,7 +55,7 @@ The key's randomart image is:
 |    . .          |
 +----[SHA256]-----+
 ```
-2. Execute VM Creation using Azure CLI
+2. Create VM using Azure CLI
 ```
 # extract PrivatePreview-1.0.1.tar.gz code go into the folder
 tar -zxvf PrivatePreview-1.0.1.tar.gz
@@ -67,7 +67,8 @@ adminusername="your user name"
 # resource group name
 rg="your resource group name"
 
-# vm name 
+# VM name
+# Note: Linux host names cannot exceed 64 characters in length or contain the following characters: ` ~ ! @ # $ % ^ & * ( ) = + _ [ ] { } \\ | ; : ' \" , < > / ?
 vmname="your vm name"
 
 # login in with your azure account
@@ -76,7 +77,7 @@ Az login
 # Check if you are on the right subscription
 az account show
 
-# switch subscription if needed.
+# switch subscription if needed
 az account set --subscription [your subscriptionId]
 
 # if you don't have resource group, execute this command for creating an resource group
@@ -84,12 +85,12 @@ az group create --name $rg --location eastus2
 
 
 
-# create VM with the provided template.json and parameter.json.(takes few minute to finish)
+# create a VM with the provided template.json and parameter.json.(takes few minute to finish)
 az deployment group create -g $rg -f "template.json" -p "parameters.json" -p cluster="bnz10prdgpc05" \
 vmCount=1 \
 deploymentPrefix=$vmname \
 virtualMachineSize="NCC24ads_A100_v4" \
-adminUsername=xiaobwan \
+adminUsername=$adminusername \
 adminPublicKey="ssh-rsa AAAAB3NzaC1y.....(replace with your publickey)" \
 platform=Linux \
 linuxDistro=Ubuntu \
@@ -104,7 +105,7 @@ OsDiskSize=100
 ```
 # use your private key file path generated in above step to connect to VM.
 # The IP address could be found in VM Azure Portal.
-ssh -i <private key path> -v [adminusername]@20.94.81.45
+ssh -i <private key path> -v [adminusername]@IP
 
 # check security boot state, should see : SecureBoot enabled
 mokutil --sb-state
@@ -118,7 +119,7 @@ ls /dev/tpm0
 ### Enroll-Key-TVM
 ```
 # In local, upload CgpuOnboardingPackage.tar.gz to your VM.
-scp -i id_rsa CgpuOnboardingPackage.tar.gz -v [adminusername]@20.110.3.197:/home/[adminusername]
+scp -i id_rsa CgpuOnboardingPackage.tar.gz -v [adminusername]@IP:/home/[adminusername]
 
 # In your VM, create a password for the user if it is not already set
 sudo passwd [adminusername]

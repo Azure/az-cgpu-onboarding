@@ -113,7 +113,7 @@ OsDiskSize=100
 ```
 # use your private key file path generated in above step to connect to VM.
 # The IP address could be found in VM Azure Portal.
-ssh -i <private key path> -v [adminusername]@20.94.81.45
+ssh -i <private key path> -v [adminusername]IP
 
 # check security boot state, you should see : SecureBoot enabled
 mokutil --sb-state
@@ -129,7 +129,7 @@ ls /dev/tpm0
 ### Enroll-Key-TVM
 ```
 # In local, upload CgpuOnboardingPackage.tar.gz to your VM.
-scp -i id_rsa CgpuOnboardingPackage.tar.gz -v [adminusername]@20.110.3.197:/home/[adminusername]
+scp -i id_rsa CgpuOnboardingPackage.tar.gz -v [adminusername]@IP:/home/[adminusername]
 
 # In your VM, create a password for the user if it is not already set
 sudo passwd [adminusername]

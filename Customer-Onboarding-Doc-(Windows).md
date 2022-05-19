@@ -107,7 +107,7 @@ OsDiskSize=100
 ```
 # use your private key file path generated in above step to connect to VM. 
 # The IP address could be found in VM Azure Portal.
-ssh -i <private key path> -v [adminusername]@20.94.81.45
+ssh -i <private key path> -v [adminusername]@IP
 ```
 ---------------
 
@@ -115,7 +115,7 @@ ssh -i <private key path> -v [adminusername]@20.94.81.45
 
 ```
 # In local, upload CgpuOnboardingPackage.tar.gz to your VM.
-scp -i id_rsa CgpuOnboardingPackage.tar.gz -v [adminusername]@20.110.3.197:/home/[adminusername]
+scp -i id_rsa CgpuOnboardingPackage.tar.gz -v [adminusername]@IP:/home/[adminusername]
 
 # In your VM, extract the onboarding folder from tar.gz, then step into the folder
 tar -zxvf CgpuOnboardingPackage.tar.gz
