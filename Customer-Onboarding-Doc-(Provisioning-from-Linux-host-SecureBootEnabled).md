@@ -97,7 +97,8 @@ az vm create \
 
  3. Check your vm connection using your private key and verify it's secure boot enabled.
 ```
-# use your private key file path generated in above step to connect to VM.
+# Use your private key file path generated in above step to connect to VM.
+# Replace the adminusername and ip address associated to your VM.
 # The IP address could be found in VM Azure Portal.
 ssh -i <private key path> -v [adminusername]@20.94.81.45
 
@@ -184,8 +185,9 @@ bash step-3-attestation.sh
 cd CgpuOnboardingPackage 
 bash step-4-install-gpu-tools.sh
 
-# Then try to execute sample workload with docker.
-sudo docker run --gpus all -v /home/[your AdminUserName]/CgpuOnboardingPackage:/home -it --rm nvcr.io/nvidia/tensorflow:21.10-tf2-py3 python /home/unet_bosch_ms.py
+# Replace the [adminusername] with your admin user name. Then try to execute sample workload with docker.
+# It will download docker image if it couldn't find it.
+sudo docker run --gpus all -v /home/[adminusername]/CgpuOnboardingPackage:/home -it --rm nvcr.io/nvidia/tensorflow:21.10-tf2-py3 python /home/unet_bosch_ms.py
 
 ```
 
