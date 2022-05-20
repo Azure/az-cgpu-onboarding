@@ -82,7 +82,7 @@ az group create --name $rg --location eastus2
 
 # create a VM.(takes few minute to finish)
 # please replace <private key path> with your id_rsa.pub path
-# eg: --ssh-key-values @E:\cgpu\.ssh\id_rsa.pub 
+# eg: --ssh-key-values @/e/cgpu/.ssh/id_rsa.pub
 # create VM.(takes few minute to finish)
 az vm create \
 --resource-group $rg \
@@ -103,7 +103,7 @@ az vm create \
 ```
 # Use your private key file path generated in above and replace the [adminusername] and [IP] address below to connect to VM
 # The IP address could be found in VM Azure Portal.
-ssh -i <private key path> -v [adminusername]@[IP]
+ssh -i <private key path> [adminusername]@[IP] -v
 
 # Check that secure boot is enabled
 mokutil --sb-state
@@ -121,7 +121,8 @@ Download [CgpuOnboardingPakcage.tar.gz](https://github.com/Azure-Confidential-Co
 
 ```
 # In local, upload CgpuOnboardingPackage.tar.gz to your VM.
-scp -i id_rsa CgpuOnboardingPackage.tar.gz -v [adminusername]@IP:/home/[adminusername]
+# Replace [adminusername] and [IP] with your admin user name and IP address
+scp -i id_rsa CgpuOnboardingPackage.tar.gz [adminusername]@[IP]:/home/[adminusername] -v
 
 # In your VM, create a password for the user if it is not already set
 sudo passwd [adminusername]
@@ -155,12 +156,12 @@ bash step-0-enroll-signing-key.sh
 
 ```
 # After the reboot is finished, ssh in to your VM and install the right version kernel folder.
-# This step requires a reboot. Afterwards, please wait about 2-5 minutes to reconnect to the VM
+# This step requires a reboot. Afterwards, please wait about 5-10 minutes to reconnect to the VM
 cd CgpuOnboardingPackage 
 bash step-1-install-kernel.sh
 
 # After rebooting, reconnect to the VM and install GPU-Driver in CgpuOnboardingPackage folder.
-# This step requires a reboot. Afterwards, please wait about 2-5 minutes to reconnect to the VM
+# This step requires a reboot. Afterwards, please wait about 5-10 minutes to reconnect to the VM
 cd CgpuOnboardingPackage 
 bash step-2-install-gpu-driver.sh
 

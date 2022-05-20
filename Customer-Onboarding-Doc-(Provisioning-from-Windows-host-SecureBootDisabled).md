@@ -106,7 +106,7 @@ az vm create `
 ```
 # Use your private key file path generated in above and replace the [adminusername] and [IP] address below to connect to VM
 # The IP address could be found in VM Azure Portal.
-ssh -i <private key path> -v [adminusername]@[IP]
+ssh -i <private key path> [adminusername]@[IP] -v
 ```
 ---------------
 
@@ -116,18 +116,19 @@ Download [CgpuOnboardingPakcage.tar.gz](https://github.com/Azure-Confidential-Co
 
 ```
 # In local, upload CgpuOnboardingPackage.tar.gz to your VM.
-scp -i id_rsa CgpuOnboardingPackage.tar.gz -v [adminusername]@IP:/home/[adminusername]
+# Replace [adminusername] and [IP] with your admin user name and IP address
+scp -i id_rsa CgpuOnboardingPackage.tar.gz [adminusername]@[IP]:/home/[adminusername] -v
 
 # In your VM, extract the onboarding folder from tar.gz, then step into the folder
 tar -zxvf CgpuOnboardingPackage.tar.gz
 cd CgpuOnboardingPackage 
 
 # In your VM, install the right version kernel in CgpuOnboardingPackage folder.
-# This step requires a reboot. Afterwards, please wait about 2-5 minutes to reconnect to the VM
+# This step requires a reboot. Afterwards, please wait about 5-10 minutes to reconnect to the VM
 bash step-1-install-kernel.sh
 
 # After reconnecting to the VM, install the GPU-Driver in CgpuOnboardingPackage folder.
-# This step also requires a reboot. Please wait about 2-5 min to reconnect to the VM
+# This step also requires a reboot. Please wait about 5-10 min to reconnect to the VM
 cd CgpuOnboardingPackage 
 bash step-2-install-gpu-driver.sh
 
