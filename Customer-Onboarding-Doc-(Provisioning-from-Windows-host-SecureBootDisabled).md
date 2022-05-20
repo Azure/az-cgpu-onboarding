@@ -18,7 +18,7 @@ The following steps help create a [Azure Secure Boot](https://docs.microsoft.com
 - Powershell: version 5.1.19041.1682 and above (please run windows powershell as administrator)
 - [Azure Subscription](https://docs.microsoft.com/en-us/azure/cost-management-billing/manage/create-subscription)
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) 
-- Download [CgpuOnboardingPakcage.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V1.0.1/CgpuOnboardingPackage.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-v1.0.1](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V1.0.1)
+- Download [CgpuOnboardingPakcage.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V1.0.1/cgpu-onboarding-package.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-v1.0.1](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V1.0.1)
 
 ----------------------------------------------------
 
@@ -113,24 +113,24 @@ ssh -i <private key path> [adminusername]@[IP] -v
 
 ### Install-GPU-Driver
 
-Download [CgpuOnboardingPakcage.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V1.0.1/CgpuOnboardingPackage.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-v1.0.1](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V1.0.1) if you haven't.
+Download [CgpuOnboardingPakcage.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V1.0.1/cgpu-onboarding-package.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-v1.0.1](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V1.0.1) if you haven't.
 
 ```
-# In local, upload CgpuOnboardingPackage.tar.gz to your VM.
+# In local, upload cgpu-onboarding-package.tar.gz to your VM.
 # Replace [adminusername] and [IP] with your admin user name and IP address
-scp -i id_rsa CgpuOnboardingPackage.tar.gz -v [adminusername]@[IP]:/home/[adminusername] 
+scp -i id_rsa cgpu-onboarding-package.tar.gz -v [adminusername]@[IP]:/home/[adminusername] 
 
 # In your VM, extract the onboarding folder from tar.gz, then step into the folder
-tar -zxvf CgpuOnboardingPackage.tar.gz
-cd CgpuOnboardingPackage 
+tar -zxvf cgpu-onboarding-package.tar.gz
+cd cgpu-onboarding-package 
 
-# In your VM, install the right version kernel in CgpuOnboardingPackage folder.
+# In your VM, install the right version kernel in cgpu-onboarding-package folder.
 # This step requires a reboot. Afterwards, please wait about 5-10 minutes to reconnect to the VM
 bash step-1-install-kernel.sh
 
-# After reconnecting to the VM, install the GPU-Driver in CgpuOnboardingPackage folder.
+# After reconnecting to the VM, install the GPU-Driver in cgpu-onboarding-package folder.
 # This step also requires a reboot. Please wait about 5-10 min to reconnect to the VM
-cd CgpuOnboardingPackage 
+cd cgpu-onboarding-package 
 bash step-2-install-gpu-driver.sh
 
 # After rebooting, reconnect to the VM and validate if the confidential compute mode is on.
@@ -143,9 +143,9 @@ nvidia-smi conf-compute -f
 
 ### Attestation
 ```
-# In your VM, execute the attestation scripts in CgpuOnboardingPackage.
+# In your VM, execute the attestation scripts in cgpu-onboarding-package.
 # You should see: GPU 0 verified successfully.
-cd CgpuOnboardingPackage 
+cd cgpu-onboarding-package 
 bash step-3-attestation.sh
 ```
 
@@ -155,11 +155,11 @@ bash step-3-attestation.sh
 
 ```
 # In your VM, execute the install gpu tools script to pull down dependencies
-cd CgpuOnboardingPackage 
+cd cgpu-onboarding-package 
 bash step-4-install-gpu-tools.sh
 
 # Replace the [adminusername] with your admin username, then try to execute this sample workload with docker.
 # It will download docker image if it couldn't find it.
-sudo docker run --gpus all -v /home/[adminusername]/CgpuOnboardingPackage:/home -it --rm nvcr.io/nvidia/tensorflow:21.10-tf2-py3 python /home/unet_bosch_ms.py
+sudo docker run --gpus all -v /home/[adminusername]/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:21.10-tf2-py3 python /home/unet_bosch_ms.py
 
 ```
