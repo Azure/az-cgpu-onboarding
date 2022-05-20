@@ -15,7 +15,7 @@ The following steps help create a [Azure Secure Boot](https://docs.microsoft.com
 ## Requirements
 
 - Windows
-- Powershell: version 5.1.19041.1682 and above
+- Powershell: version 5.1.19041.1682 and above (please run windows powershell as administrator)
 - [Azure Subscription](https://docs.microsoft.com/en-us/azure/cost-management-billing/manage/create-subscription)
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) 
 - Download [CgpuOnboardingPakcage.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V1.0.1/CgpuOnboardingPackage.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-v1.0.1](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V1.0.1)
@@ -118,7 +118,7 @@ Download [CgpuOnboardingPakcage.tar.gz](https://github.com/Azure-Confidential-Co
 ```
 # In local, upload CgpuOnboardingPackage.tar.gz to your VM.
 # Replace [adminusername] and [IP] with your admin user name and IP address
-scp -i id_rsa CgpuOnboardingPackage.tar.gz [adminusername]@[IP]:/home/[adminusername] -v
+scp -i id_rsa CgpuOnboardingPackage.tar.gz -v [adminusername]@[IP]:/home/[adminusername] 
 
 # In your VM, extract the onboarding folder from tar.gz, then step into the folder
 tar -zxvf CgpuOnboardingPackage.tar.gz

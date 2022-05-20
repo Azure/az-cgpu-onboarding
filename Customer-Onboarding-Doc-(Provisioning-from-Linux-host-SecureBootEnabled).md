@@ -123,7 +123,7 @@ Download [CgpuOnboardingPakcage.tar.gz](https://github.com/Azure-Confidential-Co
 ```
 # In local, upload CgpuOnboardingPackage.tar.gz to your VM.
 # Replace [adminusername] and [IP] with your admin user name and IP address
-scp -i id_rsa CgpuOnboardingPackage.tar.gz [adminusername]@[IP]:/home/[adminusername] -v
+scp -i id_rsa CgpuOnboardingPackage.tar.gz -v [adminusername]@[IP]:/home/[adminusername] 
 
 # In your VM, create a password for the user if it is not already set
 sudo passwd [adminusername]
