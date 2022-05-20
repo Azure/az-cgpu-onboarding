@@ -28,8 +28,9 @@ The following steps help create a [Azure Secure Boot](https://docs.microsoft.com
 1. Prepare ssh key for creating VM (if you don't have one)
 ```
 # id_rsa.pub will used as ssh-key-values for VM creation.
-# id_rsa will be used for ssh in your vm
-$ ssh-keygen -t rsa -b 4096 -C example@gmail.com
+# id_rsa will be used for ssh in your vm.
+# replace <your email here> with your email address.
+$ ssh-keygen -t rsa -b 4096 -C <your email here>
 Generating public/private rsa key pair.
 
 Enter file in which to save the key (/c/Users/xiaobwan.REDMOND/.ssh/id_rsa): /e/cgpu/.ssh/id_rsa
@@ -42,7 +43,7 @@ Enter same passphrase again:
 Your identification has been saved in /e/cgpu/.ssh/id_rsa
 Your public key has been saved in /e/cgpu/.ssh/id_rsa.pub
 The key fingerprint is:
-SHA256:jPDCUwOmopYt+G49tBX2zZdaGQYnb9pGufj8/w9JsEY example@gmail.com
+SHA256:jPDCUwOmopYt+G49tBX2zZdaGQYnb9pGufj8/w9JsEY example@microsoft.com
 The key's randomart image is:
 +---[RSA 4096]----+
 |    o            |
