@@ -34,7 +34,7 @@ The following steps help create a [Azure Secure Boot](https://docs.microsoft.com
 E:\cgpu\.ssh>ssh-keygen -t rsa -b 4096 -C example@gmail.com
 Generating public/private rsa key pair.
 
-Enter file in which to save the key (C:\Users\soccerl/.ssh/id_rsa): e:\cgpu/.ssh/id_rsa
+Enter file in which to save the key (C:\Users\*****/.ssh/id_rsa): E:\cgpu\.ssh\id_rsa
 e:\cgpu/.ssh/id_rsa already exists.
 
 Overwrite (y/n)? y
@@ -42,8 +42,8 @@ Overwrite (y/n)? y
 Enter passphrase (empty for no passphrase):
 Enter same passphrase again:
 
-Your identification has been saved in e:\cgpu/.ssh/id_rsa.
-Your public key has been saved in e:\cgpu/.ssh/id_rsa.pub.
+Your identification has been saved in E:\cgpu\.ssh\id_rsa.
+Your public key has been saved in E:\cgpu\.ssh\id_rsa.pub.
 The key fingerprint is:
 SHA256:YiPxu6SEIlIXmYKUzprXDhXqI13gLYmcyQzGNYGmdtk example@microsoft.com
 The key's randomart image is:
@@ -73,9 +73,6 @@ $rg="your resource group name"
 # vm name 
 $vmname="your vm name"
 
-# ssh pub key generated from step1.
-$SshCreds="ssh-rsa AAAAB3NzaC..."
-
 
 # login in with your azure account
 az login
@@ -90,6 +87,9 @@ az account set --subscription [your subscriptionId]
 az group create --name $rg --location eastus2
 
 
+# create a VM.(takes few minute to finish)
+# please replace <private key path> with your id_rsa.pub path
+# eg: --ssh-key-values @E:\cgpu\.ssh\id_rsa.pub 
 # create VM with (takes few minute to finish)
 az vm create `
 --resource-group $rg `
@@ -97,7 +97,7 @@ az vm create `
 --image Canonical:0001-com-ubuntu-server-focal:20_04-lts-gen2:latest `
 --public-ip-sku Standard `
 --admin-username $adminusername `
---ssh-key-values $SshCreds `
+--ssh-key-values <private key path> `
 --security-type "TrustedLaunch" `
 --enable-secure-boot $true `
 --enable-vtpm $true `
@@ -108,9 +108,9 @@ az vm create `
 ```
  3. Check your VM connection using your private key and verify secure boot enabled. 
 ```
-# Use your private key file path generated in above and replace the [adminusername] and ip address below to connect to VM
+# Use your private key file path generated in above and replace the [adminusername] and [IP] address below to connect to VM
 # The IP address could be found in VM Azure Portal.
-ssh -i <private key path> -v [adminusername]IP
+ssh -i <private key path> -v [adminusername]@[IP]
 
 # Check that secure boot is enabled
 mokutil --sb-state
