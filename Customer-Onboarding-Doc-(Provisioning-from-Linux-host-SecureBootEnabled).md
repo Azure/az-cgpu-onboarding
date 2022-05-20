@@ -82,7 +82,7 @@ az group create --name $rg --location eastus2
 
 
 # create a VM.(takes few minute to finish)
-# please replace <private key path> with your id_rsa.pub path
+# please replace <public key path> with your id_rsa.pub path
 # eg: --ssh-key-values @/e/cgpu/.ssh/id_rsa.pub
 # create VM.(takes few minute to finish)
 az vm create \
@@ -91,7 +91,7 @@ az vm create \
 --image Canonical:0001-com-ubuntu-server-focal:20_04-lts-gen2:latest \
 --public-ip-sku Standard \
 --admin-username $adminusername \
---ssh-key-values <private key path> \
+--ssh-key-values @<public key path> \
 --security-type "TrustedLaunch" \
 --enable-secure-boot $true \
 --enable-vtpm $true \
