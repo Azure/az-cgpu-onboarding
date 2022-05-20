@@ -33,7 +33,7 @@ The following steps help create a [Azure Secure Boot](https://docs.microsoft.com
 $ ssh-keygen -t rsa -b 4096 -C <your email here>
 Generating public/private rsa key pair.
 
-Enter file in which to save the key (/c/Users/xiaobwan.REDMOND/.ssh/id_rsa): /e/cgpu/.ssh/id_rsa
+Enter file in which to save the key (/c/Users/*****/.ssh/id_rsa): /e/cgpu/.ssh/id_rsa
 /e/cgpu/.ssh/id_rsa already exists.
 
 Overwrite (y/n)? y
