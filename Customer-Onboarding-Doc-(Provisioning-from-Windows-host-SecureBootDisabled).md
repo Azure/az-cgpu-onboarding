@@ -126,7 +126,7 @@ Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure-Confidential-
 ```
 # In local, upload cgpu-onboarding-package.tar.gz to your VM.
 # Replace [adminusername] and [IP] with your admin user name and IP address
-scp -i id_rsa cgpu-onboarding-package.tar.gz -v [adminusername]@[IP]:/home/[adminusername] 
+scp -i id_rsa cgpu-onboarding-package.tar.gz [adminusername]@[IP]:/home/[adminusername] 
 
 # In your VM, extract the onboarding folder from tar.gz, then step into the folder
 tar -zxvf cgpu-onboarding-package.tar.gz
