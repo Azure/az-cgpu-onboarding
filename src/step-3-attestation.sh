@@ -11,8 +11,8 @@
 
 
 attestation(){
-	tar -xvf verifier_apm_pid3_3.tar
-	cd verifier_apm_pid3_3
+	tar -xvf verifier_apm_pid3_2.tar
+	cd verifier_apm_pid3_2
 	sudo apt install python3-pip
 	sudo pip3 install -r requirements.txt
 	sudo pip3 install -e pynvml_src/
