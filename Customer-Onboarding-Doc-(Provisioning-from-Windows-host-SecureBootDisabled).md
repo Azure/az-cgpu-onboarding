@@ -169,6 +169,6 @@ bash step-4-install-gpu-tools.sh
 
 # Replace the [adminusername] with your admin username, then try to execute this sample workload with docker.
 # It will download docker image if it couldn't find it.
-sudo docker run --gpus all -v /home/[adminusername]/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:21.10-tf2-py3 python /home/ms-sample-workload.py
+sudo docker run --gpus all -v /home/[adminusername]/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:21.10-tf2-py3 python /home/mnist-sample-workload.py
 
 ```
