@@ -7,9 +7,10 @@ The following steps help create a [Azure Secure Boot](https://docs.microsoft.com
 ## Steps
 
 - [Create-CGPU-VM](#Create-CGPU-VM)
-- [Install-GPU-Driver](#Install-GPU-Driver) 
-- [Attestation ](#Attestation) 
-- [Workload-Running](#Workload-Running) 
+- [Install-GPU-Driver](#Install-GPU-Driver)
+- [Attestation](#Attestation)
+- [Workload-Running](#Workload-Running)
+
 -------------------------------------------
 
 ## Requirements
@@ -17,7 +18,7 @@ The following steps help create a [Azure Secure Boot](https://docs.microsoft.com
 - Windows
 - Powershell: version 5.1.19041.1682 and above (please run windows powershell as administrator)
 - [Azure Subscription](https://docs.microsoft.com/en-us/azure/cost-management-billing/manage/create-subscription)
-- [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) 
+- [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
 - Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V1.0.1/cgpu-onboarding-package.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-v1.0.1](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V1.0.1)
 
 ----------------------------------------------------
@@ -25,6 +26,7 @@ The following steps help create a [Azure Secure Boot](https://docs.microsoft.com
 ### Create-CGPU-VM
 
 1. Prepare ssh key for creating VM (if you don't have one)
+
 ```
 # id_rsa.pub will used as ssh-key-values for VM creation.
 # id_rsa will be used for ssh in your vm
@@ -57,7 +59,9 @@ The key's randomart image is:
 |    . .          |
 +----[SHA256]-----+
 ```
+
 2. Create VM using Azure CLI
+
 ```
 # set your admin username
 # note: username cannot contain upper case character A-Z, special characters \/"[]:|<>+=;,?*@#()! or start with $ or -
@@ -94,6 +98,7 @@ az vm create `
 --image Canonical:0001-com-ubuntu-server-focal:20_04-lts-gen2:latest `
 --public-ip-sku Standard `
 --admin-username $adminusername `
+--nsg-rule NONE `
 --ssh-key-values @<public key path> `
 --security-type "TrustedLaunch" `
 --enable-secure-boot $false `
@@ -103,12 +108,15 @@ az vm create `
 --verbose
 
 ```
+
  3. Check your VM connection using your private key
+
 ```
 # Use your private key file path generated in above and replace the [adminusername] and [IP] address below to connect to VM
 # The IP address could be found in VM Azure Portal.
 ssh -i <private key path> [adminusername]@[IP] -v
 ```
+
 ---------------
 
 ### Install-GPU-Driver
@@ -142,6 +150,7 @@ nvidia-smi conf-compute -f
 ---------------
 
 ### Attestation
+
 ```
 # In your VM, execute the attestation scripts in cgpu-onboarding-package.
 # You should see: GPU 0 verified successfully.
