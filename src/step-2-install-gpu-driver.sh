@@ -1,4 +1,4 @@
-## This module helps install gpu driver to current gpu driver version APM_470.10.07_5.11.0-1028.31.tar
+## This module helps install gpu driver to current gpu driver version APM_470.10.07_5.11.0-1028.31.tar.
 ##
 ## Requirements: 
 ##		nvdia driver:		APM_470.10.10_5.11.0-1028.31.tar

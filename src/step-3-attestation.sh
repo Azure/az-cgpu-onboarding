@@ -1,6 +1,6 @@
-## This module helps install associate dependency and  do attestation against CGPU driver
+## This module helps install associate dependency and  do attestation against CGPU driver.
 ##
-## Requirements: 
+## Requirements:
 ##		nvdia driver:		APM_470.10.07_5.11.0-1028.31.tar
 ## 		kenrel version:		5.11.0-1028-azure
 ##		verifier:			verifier_apm_pid3.tar
