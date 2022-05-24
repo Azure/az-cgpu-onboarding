@@ -1,7 +1,7 @@
 ## This module helps install gpu driver to current gpu driver version APM_470.10.07_5.11.0-1028.31.tar
 ##
 ## Requirements: 
-##		nvdia driver:		APM_470.10.07_5.11.0-1028.31.tar
+##		nvdia driver:		APM_470.10.10_5.11.0-1028.31.tar
 ## 		kenrel version:		5.11.0-1028-azure
 ##
 ## Example:
@@ -10,7 +10,7 @@
 
 
 REQUIRED_KERNEL_VERSION="5.11.0-1028-azure"
-DRIVER_PACKAGE=APM_470.10.08_5.11.0-1028.31.tar
+DRIVER_PACKAGE=APM_470.10.10_5.11.0-1028.31.tar
 
 
 ## Install gpu driver required dependency and driver itself. It will reboot the system at the end.
