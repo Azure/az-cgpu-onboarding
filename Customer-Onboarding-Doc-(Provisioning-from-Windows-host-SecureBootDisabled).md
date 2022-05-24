@@ -98,7 +98,6 @@ az vm create `
 --image Canonical:0001-com-ubuntu-server-focal:20_04-lts-gen2:latest `
 --public-ip-sku Standard `
 --admin-username $adminusername `
---nsg-rule NONE `
 --ssh-key-values @<public key path> `
 --security-type "TrustedLaunch" `
 --enable-secure-boot $false `
