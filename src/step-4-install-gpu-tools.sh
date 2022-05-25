@@ -16,7 +16,7 @@ install_gpu_tools(){
     if [ "$attestation_result" != "GPU 0 verified successfully." ]; 
     then
       echo "Current gpu attestation failed: ${attestation_result}, expected: GPU 0 verified successfully."
-      echo "Please verify previous steps and retry attestation."
+      echo "Please verify previous steps and retry step-3-attestation."
     else 
       echo "Attestation successfully, start docker installation."
       # Install Docker
