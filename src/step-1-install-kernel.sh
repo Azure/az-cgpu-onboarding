@@ -83,7 +83,6 @@ update_kernel(){
     else
         echo "Kernel is already on specified version ($current_kernel)"
     fi
-
 }
 
 # Install kernel to given version, it will reboot the system at the end.
