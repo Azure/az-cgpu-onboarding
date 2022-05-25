@@ -13,7 +13,6 @@
 install_gpu_tools(){
 
     attestation_result=$(bash step-3-attestation.sh | tail -1| sed -e 's/^[[:space:]]*//')
-    attestation_result=${attestation_result##*( )}
     if [ "$attestation_result" != "GPU 0 verified successfully." ]; 
     then
       echo "Current gpu attestation failed: ${attestation_result}, expected: GPU 0 verified successfully."
