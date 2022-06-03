@@ -20,7 +20,7 @@ install_gpu_driver(){
     if [ "$current_kernel" != "$REQUIRED_KERNEL_VERSION" ]; 
     then
         echo "Current kernel version: ($current_kernel), expected: ($REQUIRED_KERNEL_VERSION)."
-        echo "Please retry step-1-install-kernel."
+        echo "Please try utilities-update-kernel.sh 5.11.0-1028-azure."
     else 
         # verify secure boot and key enrollment.
         secure_boot_status=$(mokutil --sb)

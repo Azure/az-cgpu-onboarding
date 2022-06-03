@@ -17,7 +17,7 @@ attestation(){
     if [ "$current_driver_interface_version" != "$REQUIRED_DRIVER_INTERFACE_VERSION" ]; 
     then
     	echo "Current gpu driver version: ($current_driver_interface_version), Expected: ($REQUIRED_DRIVER_INTERFACE_VERSION)."
-    	echo "Please retry step-2-install-gpu-driver."
+    	echo "Please retry step-1-install-gpu-driver."
     else 
     	echo "Driver verified successfully, start attestation."
 		tar -xvf verifier_apm_pid3_3.tar
