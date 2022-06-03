@@ -7,7 +7,7 @@ The following steps help create a [Azure Secure Boot](https://docs.microsoft.com
 ## Steps
 
 - [Create-CGPU-VM](#Create-CGPU-VM)
-- [Enroll-Key-TVM](#Enroll-Key-TVM)
+- [Enroll-Key-For-Secure-Boot](#Enroll-Key-For-Secure-Boot)
 - [Install-GPU-Driver](#Install-GPU-Driver)
 - [Attestation](#Attestation)
 - [Workload-Running](#Workload-Running)
@@ -20,7 +20,7 @@ The following steps help create a [Azure Secure Boot](https://docs.microsoft.com
 - Powershell: version 5.1.19041.1682 and above (please run windows powershell as administrator)
 - [Azure Subscription](https://docs.microsoft.com/en-us/azure/cost-management-billing/manage/create-subscription)
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
-- Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V1.0.1/cgpu-onboarding-package.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-v1.0.1](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V1.0.1)
+- Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V1.0.2/cgpu-onboarding-package.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-v1.0.2](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V1.0.2)
 
 -----------------------------------------
 
@@ -125,9 +125,9 @@ ls /dev/tpm0
 
 ----------------------------------------------------------------
 
-### Enroll-Key-TVM
+### Enroll-Key-For-Secure-Boot
 
-Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V1.0.1/cgpu-onboarding-package.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-v1.0.1](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V1.0.1) if you haven't.
+Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V1.0.2/cgpu-onboarding-package.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-v1.0.2](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V1.0.2) if you haven't.
 
 ```
 # In local, upload cgpu-onboarding-package.tar.gz to your VM.
@@ -165,15 +165,10 @@ bash step-0-enroll-signing-key.sh
 ### Install-GPU-Driver
 
 ```
-# After the reboot is finished, ssh into your VM and install the right version kernel folder.
-# This step requires a reboot. Afterwards, please wait about 5-10 minutes to reconnect to the VM
-cd cgpu-onboarding-package 
-bash step-1-install-kernel.sh
-
 # After rebooting, reconnect to the VM and install GPU-Driver in cgpu-onboarding-package folder.
 # This step also requires a reboot. Please wait about 5-10 min to reconnect to the VM
 cd cgpu-onboarding-package 
-bash step-2-install-gpu-driver.sh
+bash step-1-install-gpu-driver.sh
 
 # After rebooting, reconnect to the VM and validate if the confidential compute mode is on.
 # You should see: CC status: ON
@@ -189,7 +184,7 @@ nvidia-smi conf-compute -f
 # In your VM, execute attestation scripts in cgpu-onboarding-package.
 # You should see: GPU 0 verified successfully.
 cd cgpu-onboarding-package 
-bash step-3-attestation.sh
+bash step-2-attestation.sh
 ```
 
 -----------------
@@ -199,7 +194,7 @@ bash step-3-attestation.sh
 ```
 # In your VM, execute the install gpu tools script to pull down dependencies
 cd cgpu-onboarding-package 
-bash step-4-install-gpu-tools.sh
+bash step-3-install-gpu-tools.sh
 
 # Replace the [adminusername] with your admin username, then try to execute this sample workload with docker.
 # It will download docker image if it couldn't find it.

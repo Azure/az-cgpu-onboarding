@@ -6,12 +6,13 @@
 ##		verifier:			verifier_apm_pid3.tar
 ##
 ## Example:
-##		bash step-2-install-gpu-driver.sh
+##		bash step-2-attestation.sh
 ##
 
 REQUIRED_DRIVER_INTERFACE_VERSION="NVIDIA System Management Interface -- v470.10.10"
 
 attestation(){
+	# verify nvdia gpu driver has been install correctly.
 	current_driver_interface_version=$(sudo nvidia-smi -h | head -1)
     if [ "$current_driver_interface_version" != "$REQUIRED_DRIVER_INTERFACE_VERSION" ]; 
     then
