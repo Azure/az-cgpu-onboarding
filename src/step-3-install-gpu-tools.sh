@@ -5,19 +5,19 @@
 ##      kenrel version:     5.11.0-1028-azure
 ##
 ## Example:
-##      bash step-4-install-gpu-tools.sh
+##      bash step-3-install-gpu-tools.sh
 ##
 
 ATEESTATION_SUCCESS_MESSAGE="GPU 0 verified successfully."
 
 ## install dockder dependency.
 install_gpu_tools(){
-
-    attestation_result=$(bash step-3-attestation.sh | tail -1| sed -e 's/^[[:space:]]*//')
+    # verify attestation is given the correct result.
+    attestation_result=$(bash step-2-attestation.sh | tail -1| sed -e 's/^[[:space:]]*//')
     if [ "$attestation_result" != "$ATEESTATION_SUCCESS_MESSAGE" ]; 
     then
       echo "Current gpu attestation failed: ${attestation_result}, expected: GPU 0 verified successfully."
-      echo "Please verify previous steps and retry step-3-attestation."
+      echo "Please verify previous steps and retry step-2-attestation."
     else 
       echo "Attestation successfully, start docker installation."
       # Install Docker

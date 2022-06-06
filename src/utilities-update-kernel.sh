@@ -6,8 +6,8 @@
 ##      kenrel version:     5.11.0-1028-azure
 ##
 ## Example: 
-##      bash step-1-install-kernel.sh 
-##      bash step-1-install-kernel.sh -k "5.11.0-1028-azure"
+##      bash utilities-update-kernel.sh 
+##      bash utilities-update-kernel.sh -k "5.11.0-1028-azure"
 ##
 
 # Default Azure kernel version to be update to
