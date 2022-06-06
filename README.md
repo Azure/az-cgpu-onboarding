@@ -14,12 +14,8 @@ Please make sure to follow all steps exactly as detailed. If you run into issues
 
   In private preview, Confidential GPU VM only supports Linux guest VM images.
 
-- [Onboarding Docs (Provisioning from Linux host-SecureBootDisabled)](Customer-Onboarding-Doc-(Provisioning-from-Linux-host-SecureBootDisabled).md)
+- [Onboarding Docs (Provisioning from Linux host)](Customer-Onboarding-Doc-(Provisioning-from-Linux-host-SecureBootDisabled).md)
 
-- [Onboarding Docs (Provisioning from Linux host-SecureBootEnabled)](Customer-Onboarding-Doc-(Provisioning-from-Linux-host-SecureBootEnabled).md)
-
-- [Onboarding Docs (Provisioning from Windows host-SecureBootDisabled)](Customer-Onboarding-Doc-(Provisioning-from-Windows-host-SecureBootDisabled).md)
-
-- [Onboarding Docs (Provisioning from Windows host-SecureBootEnabled)](Customer-Onboarding-Doc-(Provisioning-from-Windows-host-SecureBootEnabled).md)
+- [Onboarding Docs (Provisioning from Windows host)](Customer-Onboarding-Doc-(Provisioning-from-Windows-host-SecureBootDisabled).md)
 
 ## Contact Information

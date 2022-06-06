@@ -1,6 +1,6 @@
 ## Introduction
 
-The following steps help create a [Azure Secure Boot](https://docs.microsoft.com/en-us/azure/virtual-machines/trusted-launch) disabled Confidential GPU Virtual Machine with a Linux operating system.
+The following steps help create a Confidential GPU Virtual Machine with a Linux operating system.
 
 -----------------------------------------------
 
