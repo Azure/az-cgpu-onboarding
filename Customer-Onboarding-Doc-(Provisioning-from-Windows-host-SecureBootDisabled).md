@@ -123,20 +123,23 @@ ssh -i <private key path> [adminusername]@[IP] -v
 Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V1.0.2/cgpu-onboarding-package.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-v1.0.2](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V1.0.2) if you haven't.
 
 ```
-# In local, upload cgpu-onboarding-package.tar.gz to your VM.
+# In a separate local terminal not connected to your vm, upload cgpu-onboarding-package.tar.gz to your VM   
 # Replace [adminusername] and [IP] with your admin user name and IP address
-scp -i id_rsa cgpu-onboarding-package.tar.gz [adminusername]@[IP]:/home/[adminusername] 
+scp -i <private key path> cgpu-onboarding-package.tar.gz [adminusername]@[IP]:/home/[adminusername]
 
-# In your VM, extract the onboarding folder from tar.gz, then step into the folder
+# In the terminal window connected to your VM, extract the onboarding folder from tar.gz, then step into the folder
 tar -zxvf cgpu-onboarding-package.tar.gz
 cd cgpu-onboarding-package 
 
-# In your VM, install the GPU-Driver in cgpu-onboarding-package folder.
+# In the terminal window connected to your VM, install the GPU-Driver in cgpu-onboarding-package folder.
 # This step also requires a reboot. Please wait about 5-10 min to reconnect to the VM
 bash step-1-install-gpu-driver.sh
 
-# After rebooting, reconnect to the VM and validate if the confidential compute mode is on.
-# You should see: CC status: ON
+# After rebooting, reconnect to the VM. Recall it is as shown
+ssh -i <private key path> [adminusername]@[IP] -v
+
+# validate if the confidential compute mode is on.
+# you should see "CC status: ON"
 nvidia-smi conf-compute -f 
 
 ```
