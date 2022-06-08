@@ -63,11 +63,11 @@ The key's randomart image is:
 2. Create VM using Azure CLI
 
 ```
-# set your admin username.
+# Set your admin username.
 # note: username cannot contain upper case character A-Z, special characters \/"[]:|<>+=;,?*@#()! or start with $ or -
 $adminusername="your user name"
 
-# resource group name.
+# Resource group name.
 $rg="your resource group name"
 
 # VM name.
@@ -76,23 +76,23 @@ $vmname="your VM name"
 
 
 
-# login in with your azure account.
+# Login in with your azure account.
 az login
 
 # Check if you are on the right subscription.
 az account show
 
-# switch subscriptions if needed.
+# Switch subscriptions if needed.
 az account set --subscription [your subscriptionId]
 
-# if you don't have a resource group already, execute this command to create one.
+# If you don't have a resource group already, execute this command to create one.
 az group create --name $rg --location eastus2
 
 
-# create a VM.(takes few minute to finish)
-# please replace <public key path> with your id_rsa.pub path.
-# eg: --ssh-key-values @E:\cgpu\.ssh\id_rsa.pub 
-# create VM with (takes a few minute to finish)
+# Create a VM.(takes few minute to finish)
+# Please replace <public key path> with your id_rsa.pub path.
+# EG: --ssh-key-values @E:\cgpu\.ssh\id_rsa.pub 
+# Create VM with (takes a few minute to finish)
 az vm create `
 --resource-group $rg `
 --name $vmname `
@@ -139,8 +139,8 @@ bash step-1-install-gpu-driver.sh
 # After rebooting, reconnect to the VM. Recall it is as shown.
 ssh -i <private key path> [adminusername]@[IP] -v
 
-# validate if the confidential compute mode is on.
-# you should see "CC status: ON".
+# Validate if the confidential compute mode is on.
+# You should see "CC status: ON".
 nvidia-smi conf-compute -f 
 
 ```
