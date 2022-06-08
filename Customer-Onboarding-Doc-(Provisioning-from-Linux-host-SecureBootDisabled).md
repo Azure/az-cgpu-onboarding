@@ -29,7 +29,7 @@ The following steps help create a Confidential GPU Virtual Machine with a Linux 
 ```
 # id_rsa.pub will used as ssh-key-values for VM creation.
 # id_rsa will be used for ssh in your vm.
-# replace <your email here> with your email address.
+# Replace <your email here> with your email address.
 $ ssh-keygen -t rsa -b 4096 -C <your email here>
 Generating public/private rsa key pair.
 
@@ -61,33 +61,34 @@ The key's randomart image is:
 2. Create VM using Azure CLI
 
 ```
-# set your admin username
+# Set your admin username.
+# Note: username cannot contain upper case character A-Z, special characters \/"[]:|<>+=;,?*@#()! or start with $ or -
 adminusername="your user name"
 
-# resource group name
+# Resource group name.
 rg="your resource group name"
 
-# VM name
+# VM name.
 # Note: Linux host names cannot exceed 64 characters in length or contain the following characters: ` ~ ! @ # $ % ^ & * ( ) = + _ [ ] { } \\ | ; : ' \" , < > / ?
 vmname="your vm name"
 
-# login in with your azure account
+# Login in with your azure account.
 az login
 
-# Check if you are on the right subscription
+# Check if you are on the right subscription.
 az account show
 
-# switch subscriptions if needed
+# Switch subscriptions if needed.
 az account set --subscription [your subscriptionId]
 
-# if you don't have a resource group already, execute this command to create one
+# If you don't have a resource group already, execute this command to create one.
 az group create --name $rg --location eastus2
 
 
 
-# create a VM.(takes few minute to finish)
-# please replace <public key path> with your id_rsa.pub path
-# eg: --ssh-key-values @/e/cgpu/.ssh/id_rsa.pub 
+# Create a VM.(takes few minute to finish)
+# Please replace <public key path> with your id_rsa.pub path.
+# EG: --ssh-key-values @/e/cgpu/.ssh/id_rsa.pub 
 az vm create \
 --resource-group $rg \
 --name $vmname \
@@ -106,7 +107,7 @@ az vm create \
  3. Check your VM connection using your private key.
 
 ```
-# Use your private key file path generated in above and replace the [adminusername] and [IP] address below to connect to VM
+# Use your private key file path generated in above and replace the [adminusername] and [IP] address below to connect to VM.
 # The IP address could be found in VM Azure Portal.
 ssh -i <private key path> [adminusername]@[IP] -v
 ```
@@ -118,20 +119,23 @@ ssh -i <private key path> [adminusername]@[IP] -v
 Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V1.0.2/cgpu-onboarding-package.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-v1.0.2](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V1.0.2) if you haven't.
 
 ```
-# In local, upload cgpu-onboarding-package.tar.gz to your VM.
-# Replace [adminusername] and [IP] with your admin user name and IP address
-scp -i id_rsa cgpu-onboarding-package.tar.gz [adminusername]@[IP]:/home/[adminusername]
+# In a separate local terminal not connected to your vm, upload cgpu-onboarding-package.tar.gz to your VM.   
+# Replace [adminusername] and [IP] with your admin user name and IP address.
+scp -i <private key path> cgpu-onboarding-package.tar.gz [adminusername]@[IP]:/home/[adminusername]
 
-# In your VM, extract the onboarding folder from tar.gz, then step into the folder
+# In the terminal window connected to your VM, extract the onboarding folder from tar.gz, then step into the folder.
 tar -zxvf cgpu-onboarding-package.tar.gz
 cd cgpu-onboarding-package 
 
-# In your VM, install the GPU-Driver in cgpu-onboarding-package folder.
-# This step also requires a reboot. Please wait about 5-10 min to reconnect to the VM
+# In the terminal window connected to your VM, install the GPU-Driver in cgpu-onboarding-package folder.
+# This step also requires a reboot. Please wait about 5-10 min to reconnect to the VM.
 bash step-1-install-gpu-driver.sh
 
-# After rebooting, reconnect into vm and validate if the confidential compute mode is on.
-# You should see: CC status: ON
+# After rebooting, reconnect to the VM. Recall it is as shown.
+ssh -i <private key path> [adminusername]@[IP] -v
+
+# Validate if the confidential compute mode is on.
+# You should see "CC status: ON".
 nvidia-smi conf-compute -f 
 
 ```
@@ -152,7 +156,7 @@ bash step-2-attestation.sh
 ### Workload-Running
 
 ```
-# In your VM, execute the install gpu tools script to pull down dependencies
+# In your VM, execute the install gpu tools script to pull down dependencies.
 cd cgpu-onboarding-package 
 bash step-3-install-gpu-tools.sh
 
