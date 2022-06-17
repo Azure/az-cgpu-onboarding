@@ -10,6 +10,7 @@
 ##
 
 REQUIRED_DRIVER_INTERFACE_VERSION="NVIDIA System Management Interface -- v470.10.10"
+MAX_RETRY=3
 
 attestation(){
 	# verify nvdia gpu driver has been install correctly.
@@ -27,10 +28,24 @@ attestation(){
 		sudo pip3 install -e pynvml_src/
 
 		sudo python3 cc_admin.py
+		cd ..
+        lockError=$(cat logs/current-operation.log | grep "Could not get lock")
+        if [ "$lockError" != "" ] && [ $MAX_RETRY \> 0 ];
+        then
+            # start of retry, clean up current-operation log.
+            MAX_RETRY=$((MAX_RETRY-1)) > logs/current-operation.log 
+            echo "Found lock error retry attestation step."  
+            echo "Retry left:"   
+            echo $MAX_RETRY   
+            sudo apt-get install -y libgl1 binutils xserver-xorg-core   
+            sudo apt --fix-broken install   
+            attestation "$@" 
+        fi
 	fi
 }
 
 
 if [[ "${#BASH_SOURCE[@]}" -eq 1 ]]; then
-    attestation "$@"
+	mkdir logs
+    attestation "$@" | tee logs/current-operation.log | tee -a logs/all-operation.log
 fi

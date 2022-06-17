@@ -9,6 +9,7 @@
 ##
 
 ATEESTATION_SUCCESS_MESSAGE="GPU 0 verified successfully."
+MAX_RETRY=3
 
 ## install dockder dependency.
 install_gpu_tools(){
@@ -56,9 +57,22 @@ install_gpu_tools(){
       sudo systemctl restart docker
 
       sudo docker run --rm --gpus all nvidia/cuda:11.0-base nvidia-smi
+
+      lockError=$(cat logs/current-operation.log | grep "Could not get lock")
+      if [ "$lockError" != "" ] && [ $MAX_RETRY \> 0 ];
+        then
+            # start of retry, clean up current-operation log.
+            MAX_RETRY=$((MAX_RETRY-1)) > logs/current-operation.log 
+            echo "Found lock error retry install gpu tools step."  
+            echo "Retry left:"   
+            echo $MAX_RETRY   
+            sudo apt-get install -y libgl1 binutils xserver-xorg-core   
+            sudo apt --fix-broken install   
+            install_gpu_tools "$@" 
+        fi
     fi
 }
 
 if [[ "${#BASH_SOURCE[@]}" -eq 1 ]]; then
-    install_gpu_tools "$@"
+    install_gpu_tools "$@" | tee logs/current-operation.log | tee -a logs/all-operation.log
 fi

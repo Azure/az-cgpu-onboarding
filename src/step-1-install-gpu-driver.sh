@@ -32,37 +32,43 @@ install_gpu_driver(){
         fi
 
         # install neccessary kernel update.
-        sudo apt-get update
-        sudo apt-get -y install
-
+        sudo apt-get update   
+        sudo apt-get -y install   
 
         echo "kernel verified successfully, start driver installation." 
-        echo "start gpu driver log." > step-2-out.log
+        echo "start gpu driver log."   
 
-        sudo apt-get install -y libgl1 binutils xserver-xorg-core 2>> step-2-out.log
+        sudo apt-get install -y libgl1 binutils xserver-xorg-core   
 
-        sudo systemctl set-default multi-user.target 2>> step-2-out.log
+        sudo systemctl set-default multi-user.target   
         mkdir apm470driver
         tar -xvf $DRIVER_PACKAGE --directory apm470driver 
-        sudo dpkg -i apm470driver/*.deb 2>> step-2-out.log
+        sudo dpkg -i apm470driver/*.deb   
 
         # capture transient couldn't get lock issue and retry the operation with maximum retry count of 3.
-        lockError=$(cat step-2-out.log | grep "Could not get lock")
+        lockError=$(cat logs/current-operation.log | grep "Could not get lock")
         if [ "$lockError" != "" ] && [ $MAX_RETRY \> 0 ];
         then
-            MAX_RETRY=$((MAX_RETRY-1))
-            echo "Found lock error retry install gpu driver operations."
-            echo "Retry left:"
-            echo $MAX_RETRY
-            sudo apt-get install -y libgl1 binutils xserver-xorg-core
-            sudo apt --fix-broken install
-            install_gpu_driver "$@"
+            # start of retry, clean up current-operation log.
+            MAX_RETRY=$((MAX_RETRY-1)) > logs/current-operation.log 
+            echo "Found lock error retry install gpu driver operations."  
+            echo "Retry left:"   
+            echo $MAX_RETRY   
+            sudo apt-get install -y libgl1 binutils xserver-xorg-core   
+            sudo apt --fix-broken install   
+            install_gpu_driver "$@" 
         else 
-            sudo reboot
+            if [ "$lockError" == "" ];
+            then
+                sudo reboot
+            else 
+                echo "Couldn't resolve lock issue with 3 time retries. Please restart the VM and try it again."
+            fi 
         fi
     fi
 }
 
 if [[ "${#BASH_SOURCE[@]}" -eq 1 ]]; then
-    install_gpu_driver "$@"
+    mkdir logs
+    install_gpu_driver "$@" 2>&1 | tee logs/current-operation.log | tee -a logs/all-operation.log
 fi
