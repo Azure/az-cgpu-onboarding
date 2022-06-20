@@ -23,6 +23,7 @@ install_gpu_driver(){
         echo "Please try utilities-update-kernel.sh 5.11.0-1028-azure."
     else 
         # verify secure boot and key enrollment.
+        sudo apt-mark hold $REQUIRED_KERNEL_VERSION
         secure_boot_status=$(mokutil --sb)
         nvidia_signing_key=$(mokutil --list-enrolled | grep "NVIDIA")
         if [ "$secure_boot_status" == "SecureBoot enabled" ] && [ "$nvidia_signing_key" == "" ];
