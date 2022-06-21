@@ -21,7 +21,7 @@ install_gpu_tools(){
       echo "Please verify previous steps and retry step-2-attestation."
     else 
       echo "Attestation successfully, start docker installation."
-      # Install Docker
+      # Install Docker 
       sudo apt-get update -y
 
       sudo apt-get install \

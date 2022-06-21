@@ -7,7 +7,7 @@
 ##
 ## Example:
 ##		bash step-2-attestation.sh
-##
+## 
 
 REQUIRED_DRIVER_INTERFACE_VERSION="NVIDIA System Management Interface -- v470.10.10"
 MAX_RETRY=3
