@@ -19,7 +19,7 @@ The following steps help create a Confidential GPU Virtual Machine with a Window
 - Powershell: version 5.1.19041.1682 and above (please run windows powershell as administrator)
 - [Azure Subscription](https://docs.microsoft.com/en-us/azure/cost-management-billing/manage/create-subscription)
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
-- Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V1.0.2/cgpu-onboarding-package.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-v1.0.2](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V1.0.2)
+- Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V1.0.3/cgpu-onboarding-package.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-V1.0.3](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V1.0.3)
 
 ----------------------------------------------------
 
@@ -121,7 +121,7 @@ ssh -i <private key path> [adminusername]@[IP] -v
 
 ### Install-GPU-Driver
 
-Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V1.0.2/cgpu-onboarding-package.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-v1.0.2](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V1.0.2) if you haven't.
+Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V1.0.3/cgpu-onboarding-package.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-V1.0.3](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V1.0.3) if you haven't.
 
 ```
 # In a separate local terminal not connected to your vm, upload cgpu-onboarding-package.tar.gz to your VM. 
