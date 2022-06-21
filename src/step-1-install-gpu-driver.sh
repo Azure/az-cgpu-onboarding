@@ -32,7 +32,7 @@ install_gpu_driver(){
         fi
 
         # install neccessary kernel update.
-        sudo apt-get update   
+        sudo apt-get update
         sudo apt-get -y install   
 
         echo "kernel verified successfully, start driver installation." 
