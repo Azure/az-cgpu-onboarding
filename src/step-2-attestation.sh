@@ -47,5 +47,5 @@ attestation(){
 
 if [[ "${#BASH_SOURCE[@]}" -eq 1 ]]; then
 	mkdir logs
-    attestation "$@" | tee logs/current-operation.log | tee -a logs/all-operation.log
+    attestation "$@" 2>&1 | tee logs/current-operation.log | tee -a logs/all-operation.log
 fi
