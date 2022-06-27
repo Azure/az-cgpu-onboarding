@@ -1,3 +1,15 @@
+Package: libcuda1-* 
+Pin: release * 
+Pin-Priority: -1 
+
 Package: linux* 
 Pin: release * 
 Pin-Priority: -1
+
+Package: nvidia-[0-9][0-9][0-9] 
+Pin: release * 
+Pin-Priority: -1 
+ 
+Package: nvidia-driver* 
+Pin: release * 
+Pin-Priority: -1 
