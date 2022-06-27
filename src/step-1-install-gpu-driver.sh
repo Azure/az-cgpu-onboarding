@@ -22,7 +22,12 @@ install_gpu_driver(){
         echo "Current kernel version: ($current_kernel), expected: ($REQUIRED_KERNEL_VERSION)."
         echo "Please try utilities-update-kernel.sh 5.11.0-1028-azure."
     else 
-        # verify secure boot and key enrollment.
+        # lock the current kernel version from update.
+        sudo cp nvidia.pref /etc/apt/preferences.d/nvidia.pref
+        sudo chmod 0644 /etc/apt/preferences.d/nvidia.pref
+        sudo cat /etc/apt/preferences.d/nvidia.pref
+
+        # verify secure boot and key enrollment.        
         secure_boot_status=$(mokutil --sb)
         nvidia_signing_key=$(mokutil --list-enrolled | grep "NVIDIA")
         if [ "$secure_boot_status" == "SecureBoot enabled" ] && [ "$nvidia_signing_key" == "" ];
@@ -32,7 +37,7 @@ install_gpu_driver(){
         fi
 
         # install neccessary kernel update.
-        sudo apt-get update
+        sudo apt-get update   
         sudo apt-get -y install   
 
         echo "kernel verified successfully, start driver installation." 
