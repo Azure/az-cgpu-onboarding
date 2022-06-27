@@ -97,8 +97,8 @@ az vm create \
 --admin-username $adminusername \
 --ssh-key-values @<public key path> \
 --security-type "TrustedLaunch" \
---enable-secure-boot $true \
---enable-vtpm $true \
+--enable-secure-boot true \
+--enable-vtpm true \
 --size Standard_NCC24ads_A100_v4 \
 --os-disk-size-gb 100 \
 --verbose
