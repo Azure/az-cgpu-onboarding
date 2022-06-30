@@ -92,7 +92,7 @@ az group create --name $rg --location eastus2
 az vm create \
 --resource-group $rg \
 --name $vmname \
---image Canonical:0001-com-ubuntu-server-focal:20_04-lts-gen2:20.04.202201310 \
+--image Canonical:0001-com-ubuntu-server-focal:20_04-lts-gen2:20.04.202205100 \
 --public-ip-sku Standard \
 --admin-username $adminusername \
 --ssh-key-values @<public key path> \
