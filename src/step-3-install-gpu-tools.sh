@@ -1,8 +1,8 @@
 ## This module helps install gpu nvdia docker image for helping execute machine learning workload. 
 ##
 ## Requirements: 
-##      nvdia driver:       APM_470.10.08_5.11.0-1028.31.tar
-##      kenrel version:     5.11.0-1028-azure
+##      nvdia driver:       APM_470.10.11_5.13.0-1023.27.tar
+##      kernel version:     5.13.0-1023-azure
 ##
 ## Example:
 ##      bash step-3-install-gpu-tools.sh
