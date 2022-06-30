@@ -10,7 +10,7 @@
 
 
 REQUIRED_KERNEL_VERSION="5.13.0-1023-azure"
-DRIVER_PACKAGE=APM_470.10.10_5.11.0-1028.31.tar
+DRIVER_PACKAGE=APM_470.10.11_5.13.0-1023.27.tar
 MAX_RETRY=3
 
 
@@ -20,7 +20,7 @@ install_gpu_driver(){
     if [ "$current_kernel" != "$REQUIRED_KERNEL_VERSION" ]; 
     then
         echo "Current kernel version: ($current_kernel), expected: ($REQUIRED_KERNEL_VERSION)."
-        echo "Please try utilities-update-kernel.sh 5.11.0-1028-azure."
+        echo "Please try utilities-update-kernel.sh 5.13.0-1023-azure."
     else 
         # lock the current kernel version from update.
         sudo cp nvidia.pref /etc/apt/preferences.d/nvidia.pref
