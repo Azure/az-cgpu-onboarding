@@ -44,6 +44,8 @@ install_gpu_driver(){
         echo "start gpu driver log."   
 
         sudo apt-get install -y libgl1 binutils xserver-xorg-core   
+        
+        sudo apt install linux-libc-dev=5.4.0-121.137
 
         sudo systemctl set-default multi-user.target   
         mkdir apm470driver
