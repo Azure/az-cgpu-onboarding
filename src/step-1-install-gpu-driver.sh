@@ -1,16 +1,16 @@
 ## This module helps install gpu driver to current gpu driver version APM_470.10.07_5.11.0-1028.31.tar.
 ##
 ## Requirements: 
-##      nvdia driver:       APM_470.10.10_5.11.0-1028.31.tar
-##      kenrel version:     5.11.0-1028-azure
+##      nvdia driver:       APM_470.10.11_5.13.0-1023.27.tar
+##      kernel version:     5.13.0-1023-azure
 ##
 ## Example:
 ##      bash step-1-install-gpu-driver.sh
 ##
 
 
-REQUIRED_KERNEL_VERSION="5.11.0-1028-azure"
-DRIVER_PACKAGE=APM_470.10.10_5.11.0-1028.31.tar
+REQUIRED_KERNEL_VERSION="5.13.0-1023-azure"
+DRIVER_PACKAGE=APM_470.10.11_5.13.0-1023.27.tar
 MAX_RETRY=3
 
 
@@ -20,7 +20,7 @@ install_gpu_driver(){
     if [ "$current_kernel" != "$REQUIRED_KERNEL_VERSION" ]; 
     then
         echo "Current kernel version: ($current_kernel), expected: ($REQUIRED_KERNEL_VERSION)."
-        echo "Please try utilities-update-kernel.sh 5.11.0-1028-azure."
+        echo "Please try utilities-update-kernel.sh 5.13.0-1023-azure."
     else 
         # lock the current kernel version from update.
         sudo cp nvidia.pref /etc/apt/preferences.d/nvidia.pref
@@ -44,6 +44,8 @@ install_gpu_driver(){
         echo "start gpu driver log."   
 
         sudo apt-get install -y libgl1 binutils xserver-xorg-core   
+        
+        sudo apt install linux-libc-dev=5.4.0-121.137
 
         sudo systemctl set-default multi-user.target   
         mkdir apm470driver

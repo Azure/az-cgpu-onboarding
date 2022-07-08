@@ -18,7 +18,7 @@ The following steps help create a Confidential GPU Virtual Machine with a Linux 
 - Linux
 - [Azure Subscription](https://docs.microsoft.com/en-us/azure/cost-management-billing/manage/create-subscription)
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
-- Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V1.0.4/cgpu-onboarding-package.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-V1.0.4](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V1.0.4)
+- Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V1.0.5/cgpu-onboarding-package.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-V1.0.5](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V1.0.5)
 
 ----------------------------------------------------
 
@@ -92,7 +92,7 @@ az group create --name $rg --location eastus2
 az vm create \
 --resource-group $rg \
 --name $vmname \
---image Canonical:0001-com-ubuntu-server-focal:20_04-lts-gen2:20.04.202201310 \
+--image Canonical:0001-com-ubuntu-server-focal:20_04-lts-gen2:20.04.202205100 \
 --public-ip-sku Standard \
 --admin-username $adminusername \
 --ssh-key-values @<public key path> \
@@ -116,7 +116,7 @@ ssh -i <private key path> [adminusername]@[IP] -v
 
 ### Install-GPU-Driver
 
-Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V1.0.4/cgpu-onboarding-package.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-V1.0.4](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V1.0.4) if you haven't.
+Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V1.0.5/cgpu-onboarding-package.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-V1.0.5](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V1.0.5) if you haven't.
 
 ```
 # In a separate local terminal not connected to your vm, upload cgpu-onboarding-package.tar.gz to your VM.   

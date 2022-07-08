@@ -1,15 +1,15 @@
 ## This module helps install associate dependency and  do attestation against CGPU driver.
 ##
 ## Requirements:
-##		nvdia driver:		APM_470.10.07_5.11.0-1028.31.tar
-## 		kenrel version:		5.11.0-1028-azure
-##		verifier:			verifier_apm_pid3.tar
+##      nvdia driver:       APM_470.10.11_5.13.0-1023.27.tar
+##      kernel version:     5.13.0-1023-azure
+##	verifier:	    verifier_apm_pid3_4.tar
 ##
 ## Example:
 ##		bash step-2-attestation.sh
 ## 
 
-REQUIRED_DRIVER_INTERFACE_VERSION="NVIDIA System Management Interface -- v470.10.10"
+REQUIRED_DRIVER_INTERFACE_VERSION="NVIDIA System Management Interface -- v470.10.11"
 MAX_RETRY=3
 
 attestation(){
@@ -21,8 +21,8 @@ attestation(){
     	echo "Please retry step-1-install-gpu-driver."
     else 
     	echo "Driver verified successfully, start attestation."
-		tar -xvf verifier_apm_pid3_3.tar
-		cd verifier_apm_pid3_3
+		tar -xvf verifier_apm_pid3_4.tar
+		cd verifier_apm_pid3_4
 		sudo apt install python3-pip
 		sudo pip3 install -r requirements.txt
 		sudo pip3 install -e pynvml_src/
