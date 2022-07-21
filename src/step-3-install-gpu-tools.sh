@@ -53,6 +53,7 @@ install_gpu_tools(){
               sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
 
       sudo apt-get update
+      sudo apt-get install -y  nvidia-container-toolkit=1.7.0~rc.1-1
       sudo apt-get install -y nvidia-docker2
       sudo systemctl restart docker
 
