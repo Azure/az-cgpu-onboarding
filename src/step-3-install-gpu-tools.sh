@@ -48,16 +48,11 @@ install_gpu_tools(){
                   sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
                   sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
 
-      curl -s -L https://nvidia.github.io/libnvidia-container/experimental/$distribution/libnvidia-container.list | \
-              sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
-              sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
-
       sudo apt-get update
-      sudo apt-get install -y  nvidia-container-toolkit=1.7.0~rc.1-1
       sudo apt-get install -y nvidia-docker2
       sudo systemctl restart docker
 
-      sudo docker run --rm --gpus all nvidia/cuda:11.0-base nvidia-smi
+      sudo docker run --rm --gpus all nvidia/cuda:11.4.0-base nvidia-smi
 
       lockError=$(cat logs/current-operation.log | grep "Could not get lock")
       if [ "$lockError" != "" ] && [ $MAX_RETRY \> 0 ];
