@@ -1,34 +1,34 @@
 ## This module helps install associate dependency and  do attestation against CGPU driver.
 ##
 ## Requirements:
-##      nvdia driver:       APM_470.10.11_5.13.0-1023.27.tar
-##      kernel version:     5.13.0-1023-azure
-##	verifier:	    verifier_apm_pid3_4.tar
+##      nvdia driver:       APM_470.10.12_5.15.0-1014.17.tar
+##      kenrel version:     5.15.0-1014-azure
+##      verifier:           verifier_apm_pid3.tar
 ##
 ## Example:
-##		bash step-2-attestation.sh
+##      bash step-2-attestation.sh
 ## 
 
-REQUIRED_DRIVER_INTERFACE_VERSION="NVIDIA System Management Interface -- v470.10.11"
+REQUIRED_DRIVER_INTERFACE_VERSION="NVIDIA System Management Interface -- v470.10.12"
 MAX_RETRY=3
 
 attestation(){
-	# verify nvdia gpu driver has been install correctly.
-	current_driver_interface_version=$(sudo nvidia-smi -h | head -1)
+    # verify nvdia gpu driver has been install correctly.
+    current_driver_interface_version=$(sudo nvidia-smi -h | head -1)
     if [ "$current_driver_interface_version" != "$REQUIRED_DRIVER_INTERFACE_VERSION" ]; 
     then
-    	echo "Current gpu driver version: ($current_driver_interface_version), Expected: ($REQUIRED_DRIVER_INTERFACE_VERSION)."
-    	echo "Please retry step-1-install-gpu-driver."
+        echo "Current gpu driver version: ($current_driver_interface_version), Expected: ($REQUIRED_DRIVER_INTERFACE_VERSION)."
+        echo "Please retry step-1-install-gpu-driver."
     else 
-    	echo "Driver verified successfully, start attestation."
-		tar -xvf verifier_apm_pid3_4.tar
-		cd verifier_apm_pid3_4
-		sudo apt install python3-pip
-		sudo pip3 install -r requirements.txt
-		sudo pip3 install -e pynvml_src/
+        echo "Driver verified successfully, start attestation."
+        tar -xvf verifier_apm_pid3_5.tar
+        cd verifier_apm_pid3_5
+        sudo apt install python3-pip
+        sudo pip3 install -r requirements.txt
+        sudo pip3 install -e pynvml_src/
 
-		sudo python3 cc_admin.py
-		cd ..
+        sudo python3 cc_admin.py
+        cd ..
         lockError=$(cat logs/current-operation.log | grep "Could not get lock")
         if [ "$lockError" != "" ] && [ $MAX_RETRY \> 0 ];
         then
@@ -41,11 +41,11 @@ attestation(){
             sudo apt --fix-broken install   
             attestation "$@" 
         fi
-	fi
+    fi
 }
 
 
 if [[ "${#BASH_SOURCE[@]}" -eq 1 ]]; then
-	mkdir logs
+    mkdir logs
     attestation "$@" 2>&1 | tee logs/current-operation.log | tee -a logs/all-operation.log
 fi
