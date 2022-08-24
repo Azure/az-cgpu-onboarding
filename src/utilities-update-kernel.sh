@@ -1,17 +1,17 @@
 ## This module helps install/update kernel to given version. If not given version, 
-## It will try to update to default version "5.11.0-1028-azure".
+## It will try to update to default version "5.15.0-1014-azure".
 ##
 ## Requirements: 
-##      nvdia driver:       APM_470.10.11_5.13.0-1023.27.tar
-##      kernel version:     5.13.0-1023-azure
+##      nvdia driver:       APM_470.10.07_5.11.0-1028.31.tar
+##      kenrel version:     5.15.0-1014-azure
 ##
 ## Example: 
 ##      bash utilities-update-kernel.sh 
-##      bash utilities-update-kernel.sh -k "5.13.0-1023-azure"
+##      bash utilities-update-kernel.sh -k "5.15.0-1014-azure"
 ##
 
 # Default Azure kernel version to be update to
-DEFAULT_KERNEL_VERSION="5.13.0-1023-azure"
+DEFAULT_KERNEL_VERSION="5.15.0-1014-azure"
 
 
 # Compare if two given version is matching or not.
@@ -58,7 +58,7 @@ update_kernel(){
         esac
     done
     if [ -z ${new_kernel+x} ]; then
-        echo "No argument selected. Use default kernel version 5.13.0-1023-azure" 
+        echo "No argument selected. Use default kernel version 5.15.0-1014-azure " 
         new_kernel=$DEFAULT_KERNEL_VERSION
     else
         echo "Updating to kernel: '$new_kernel'"
