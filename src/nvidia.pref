@@ -2,7 +2,31 @@ Package: libcuda1-*
 Pin: release * 
 Pin-Priority: -1 
 
-Package: linux* 
+Package: linux-headers* 
+Pin: release * 
+Pin-Priority: -1
+
+Package: linux-image* 
+Pin: release * 
+Pin-Priority: -1
+
+Package: linux-tools* 
+Pin: release * 
+Pin-Priority: -1
+
+Package: linux-cloud-tools* 
+Pin: release * 
+Pin-Priority: -1
+
+Package: linux-modules-extra* 
+Pin: release * 
+Pin-Priority: -1
+
+Package: linux-modules* 
+Pin: release * 
+Pin-Priority: -1
+
+Package: linux-modules-extra* 
 Pin: release * 
 Pin-Priority: -1
 
