@@ -43,7 +43,6 @@ install_gpu_driver(){
         echo "kernel verified successfully, start driver installation." 
         echo "start gpu driver log."   
 
-        sudo apt install linux-libc-dev=5.4.0-124.140
         sudo apt-get install -y libgl1 binutils xserver-xorg-core   
 
         sudo systemctl set-default multi-user.target   
