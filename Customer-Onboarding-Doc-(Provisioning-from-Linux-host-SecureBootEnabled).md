@@ -120,13 +120,15 @@ bash SecurebootEnableOnboarding.sh  \
 -v "<vm name>"  \
 -n <vm number>
 
+OutPut:
+
 ******************************************************************************************
 Please execute below command to login to your VM and try attestation:
-ssh -i /home/xiaobwan/.ssh/id_rsa xiaobwan@20.65.59.69
+ssh -i /home/azuretestuser/.ssh/id_rsa azuretestuser@20.65.59.69
 cd cgpu-onboarding-package; bash step-2-attestation.sh
 ------------------------------------------------------------------------------------------
 Please execute below command to login to your VM and try a sample workload:
-ssh -i /home/xiaobwan/.ssh/id_rsa xiaobwan@20.65.59.69
+ssh -i /home/azuretestuser/.ssh/id_rsa azuretestuser@20.65.59.69
 bash mnist_example.sh pytorch
 ******************************************************************************************
 Validate Confidential GPU capability.
