@@ -87,9 +87,9 @@ https://login.microsoftonline.com/<tenant id>/oauth2/authorize?client_id=<servic
 #	-i <private key path>: your id_rsa path. 
 #	-c <CustomerOnboardingPackage path>: Customer onboarding package path.
 #	-a <admin user name>: Admin user name.
-#	-v <vm name>: your VM name
 #	-s <service principal id>: your service principal id you got from microsoft.
 #	-x <secret>: your service principal secrect you got from microsoft.
+#	-v <vm name>: your VM name
 #	-n <vm number>: number of vm to be generated.
 #
 # Example:
@@ -101,9 +101,9 @@ https://login.microsoftonline.com/<tenant id>/oauth2/authorize?client_id=<servic
 # -i "/home/username/.ssh/id_rsa"  \
 # -c "/home/username/cgpu-onboarding-package.tar.gz" \
 # -a "azuretestuser" \
-# -v "confidential-test-vm"  \
 # -d "4082afe7-2bca-4f09-8cd1-a584c0520589" \
 # -x "FBw8......." \
+# -v "confidential-test-vm"  \
 # -n 1
 
 
@@ -115,10 +115,31 @@ bash SecurebootEnableOnboarding.sh  \
 -i "<private key path>"  \
 -c "<CustomerOnboardingPackage path>" \
 -a "<admin user name>" \
--v "<vm name>"  \
 -d "<sevice principal id>" \
 -x "<secret>" \
+-v "<vm name>"  \
 -n <vm number>
+
+******************************************************************************************
+Please execute below command to login to your VM and try attestation:
+ssh -i /home/xiaobwan/.ssh/id_rsa xiaobwan@20.65.59.69
+cd cgpu-onboarding-package; bash step-2-attestation.sh
+------------------------------------------------------------------------------------------
+Please execute below command to login to your VM and try a sample workload:
+ssh -i /home/xiaobwan/.ssh/id_rsa xiaobwan@20.65.59.69
+bash mnist_example.sh pytorch
+******************************************************************************************
+Validate Confidential GPU capability.
+start try connect
+try to connect:
+connected
+kernel validation passed. Current kernel: 5.15.0-1019-azure
+CC status: ON
+Confidential Compute mode validation passed. Current Confidential Compute retrieve is CC status: ON
+Confidential Compute environment validation passed. current Confidential Compute environment is CC Environment: INTERNAL
+Attestation validation passed. last attestation message: GPU 0 verified successfully.
+Current number of VM finished: 1, total Success: 1.
+Total VM to onboard: 1, total Success: 1.
 ```
 
 ### Attestation

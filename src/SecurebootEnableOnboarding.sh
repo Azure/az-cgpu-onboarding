@@ -1,3 +1,38 @@
+# This Scripts will help to get authenticated with microsoft tenant 
+# and get access to a private Cononical Signed Confidential Gpu capable Image with Nvidia GPU driver installed.
+# Then it will lanucn SecureBoot Enabled VMs based on provided argument in specified resource group.
+#
+# Note: First time execution will required administrator role for the target Azure subsciption to
+# provision generate associate serviceprincipal contributor roles in target resource group. 
+#
+# Required Arguments: 
+#	-t <tenant id>: Id of your Tenant/Directory. 
+#	-s <subscription id>: Id of your subscription. 
+#	-r <resource group name>: The resource group name for Vm creation.
+#                          It will create ResourceGroup if it is not found under given subscription.
+#	-p <public key path>: your id_rsa.pub path. 
+#	-i <private key path>: your id_rsa path. 
+#	-c <CustomerOnboardingPackage path>: Customer onboarding package path.
+#	-a <admin user name>: Admin user name.
+#	-s <service principal id>: your service principal id you got from microsoft.
+#	-x <secret>: your service principal secrect you got from microsoft.
+#	-v <vm name>: your VM name
+#	-n <vm number>: number of vm to be generated.
+#
+# Example:
+# bash SecurebootEnableOnboarding.sh  \
+# -t "8af6653d-c9c0-4957-ab01-615c7212a40b" \
+# -s "9269f664-5a68-4aee-9498-40a701230eb2" \
+# -r "confidential-gpu-rg" \
+# -p "/home/username/.ssh/id_rsa.pub"  \
+# -i "/home/username/.ssh/id_rsa"  \
+# -c "/home/username/cgpu-onboarding-package.tar.gz" \
+# -a "azuretestuser" \
+# -d "4082afe7-2bca-4f09-8cd1-a584c0520589" \
+# -x "FBw8......." \
+# -v "confidential-test-vm"  \
+# -n 1
+
 # Auto Create and Onboard Multiple CGPU VM with Nvidia Driver pre-installed image. 
 auto_onboard_cgpu_multi_vm() {
 	while getopts t:s:r:p:i:c:a:v:d:x:n: flag
@@ -10,9 +45,9 @@ auto_onboard_cgpu_multi_vm() {
 	        i) private_key_path=${OPTARG};;
 	        c) cgpu_package_path=${OPTARG};;
 	        a) adminuser_name=${OPTARG};;
-	        v) vmname_prefix=${OPTARG};;
 	        d) service_principal_id=${OPTARG};;
 	        x) service_principal_secret=${OPTARG};;
+	        v) vmname_prefix=${OPTARG};;
 	        n) total_vm_number=${OPTARG};;
 	    esac
 	done
@@ -26,9 +61,9 @@ auto_onboard_cgpu_multi_vm() {
 	echo "Private key path:  ${private_key_path}"
 	echo "Cgpu onboarding package path:  ${cgpu_package_path}"
 	echo "Admin user name:  ${adminuser_name}"
-	echo "Vm Name prefix:  ${vmname_prefix}"
 	echo "Service principal id:  ${service_principal_id}"
 	echo "Service principal secret:  Hided"
+	echo "Vm Name prefix:  ${vmname_prefix}"
 	echo "Total VM number:  ${total_vm_number}"
 
 	prepare_subscription_and_rg
@@ -37,27 +72,11 @@ auto_onboard_cgpu_multi_vm() {
 		return
 	fi
 
-	# check contributor role for service principal
-	if [ "$(az role assignment list --assignee $service_principal_id --resource-group $rg --role "Contributor" | grep "Contributor")" == "" ]; then
-		echo "Contributor role dosen't exist for resource group ${rg}."	
-		echo "Start creating Contributor role in target resource group ${rg} for service principal ${service_principal_id}."	
-		
-		# assign contributor role for service pricipal
-		echo "Assign service pricipal Contributor role."
-		az role assignment create --assignee $service_principal_id --role "Contributor" --resource-group $rg
-	else 
-		echo "Service principal ${service_principal_id} contributor role has already been provisioned to target ${rg}"
-	fi 
-
-	# get access token for image in Microsoft tenant.
-	az account clear
-	az login --service-principal -u $service_principal_id -p $service_principal_secret --tenant "72f988bf-86f1-41af-91ab-2d7cd011db47"
-	az account get-access-token 
-
-	# get access token for customer's resource group.
-	az login --service-principal -u $service_principal_id -p $service_principal_secret --tenant $tenant_id
-	az account get-access-token 
-
+	prepare_access_token
+	if [ "$is_success" == "failed" ]; then
+		echo "failed to prepare_access_token.."
+		return
+	fi
 	# start Vm creation with number of specified VMs.
 	current_vm_count=1
 	successCount=0
@@ -65,8 +84,8 @@ auto_onboard_cgpu_multi_vm() {
 	do
 		is_success="Succeeded"
 		vmname="${vmname_prefix}-${current_vm_count}"
-		#auto_onboard_cgpu_single_vm $vmname
-		#validation
+		auto_onboard_cgpu_single_vm $vmname
+		validation
 		if [ "$is_success" == "Succeeded" ];
 		then 
 			successCount=$(($successCount+1))
@@ -78,11 +97,10 @@ auto_onboard_cgpu_multi_vm() {
 	echo "Total VM to onboard: ${total_vm_number}, total Success: ${successCount}."
 
 	az account clear
-
-	# Optional: clean up Contributor Role in customer's ResourceGroup. 
-	# az login
-	# echo "Remove service pricipal Contributor role."
-	#az role assignment delete --assignee $service_principal_id --role "Contributor" --resource-group $rg
+	echo "------------------------------------------------------------------------------------------"
+	echo "# Optional: clean up Contributor Role in customer's ResourceGroup."
+	echo "# az login"
+	echo "# az role assignment delete --assignee ${service_principal_id} --role \"Contributor\" --resource-group ${rg}"
 }
 
 # login to subscription and check resource group. 
@@ -116,6 +134,34 @@ prepare_subscription_and_rg() {
 	echo "Resource group ${rg} validation Succeeded."
 }
 
+prepare_access_token() {
+	# check contributor role for service principal
+	if [ "$(az role assignment list --assignee $service_principal_id --resource-group $rg --role "Contributor" | grep "Contributor")" == "" ]; then
+		echo "Contributor role dosen't exist for resource group ${rg}."	
+		echo "Start creating Contributor role in target resource group ${rg} for service principal ${service_principal_id}."	
+		
+		# assign contributor role for service pricipal
+		echo "Assign service pricipal Contributor role."
+		az role assignment create --assignee $service_principal_id --role "Contributor" --resource-group $rg
+	else 
+		echo "Service principal ${service_principal_id} contributor role has already been provisioned to target ${rg}"
+	fi 
+
+	if [ "$(az role assignment list --assignee $service_principal_id --resource-group $rg --role "Contributor" | grep "Contributor")" == "" ]; then
+		echo "Create and Validate Contributor role failed in resource group: ${rg}."
+		is_success="failed"
+	fi
+
+	# get access token for image in Microsoft tenant.
+	az account clear
+	az login --service-principal -u $service_principal_id -p $service_principal_secret --tenant "72f988bf-86f1-41af-91ab-2d7cd011db47"
+	az account get-access-token 
+
+	# get access token for customer's resource group.
+	az login --service-principal -u $service_principal_id -p $service_principal_secret --tenant $tenant_id
+	az account get-access-token 
+}
+
 # Create a single VM and onboard confidential gpu.
 auto_onboard_cgpu_single_vm() {
 	local vmname=$1
@@ -132,11 +178,15 @@ auto_onboard_cgpu_single_vm() {
 	# Attestation.
 	attestation
 
-	echo "******************************************************************************************************************************************************************"
+	echo "******************************************************************************************"
+	echo "Please execute below command to login to your VM and try attestation:"
+	echo "ssh -i $private_key_path $vm_ssh_info" 
+	echo "cd cgpu-onboarding-package; bash step-2-attestation.sh";
+	echo "------------------------------------------------------------------------------------------"
 	echo "Please execute below command to login to your VM and try a sample workload:"
-	echo "ssh  -i $private_key_path $vm_ssh_info" 
+	echo "ssh -i $private_key_path $vm_ssh_info" 
 	echo "bash mnist_example.sh pytorch";
-	echo "******************************************************************************************************************************************************************"
+	echo "******************************************************************************************"
 }
 
 # Upload_package to VM.
@@ -192,14 +242,16 @@ create_vm() {
 }
 
 validation() {
+	echo "Validate Confidential GPU capability."	
 	try_connect
 	kernel_version=$(ssh -i $private_key_path $vm_ssh_info "sudo uname -r;")
-	echo $kernel_version
 	
 	if [ "$kernel_version" != "5.15.0-1019-azure" ];
 	then
 		is_success="failed"
-		echo "kenrel version validation failed. current kernel is ${kernel_version}"
+		echo "kernel version validation failed. current kernel is ${kernel_version}"
+	else
+		echo "kernel validation passed. Current kernel: ${kernel_version}"
 	fi
 
 	cc_retrieve=$(ssh -i $private_key_path $vm_ssh_info "nvidia-smi conf-compute -f;")
@@ -207,23 +259,28 @@ validation() {
 	if [ "$cc_retrieve" != "CC status: ON" ];
 	then
 		is_success="failed"
-		echo "cc retrieve validation failed. current cc retrieve is ${cc_retrieve}"
+		echo "Confidential Compute retrieve validation failed. current Confidential Compute retrieve is ${cc_retrieve}"
+	else 
+		echo "Confidential Compute mode validation passed. Current Confidential Compute retrieve is ${cc_retrieve}"
 	fi
 
 	cc_environment=$(ssh -i $private_key_path $vm_ssh_info "nvidia-smi conf-compute -e;")
-	echo $cc_environment
 	if [ "$cc_environment" != "CC Environment: INTERNAL" ];
 	then
 		is_success="failed"
-		echo "cc environment validation failed. current cc environment is ${cc_environment}"
+		echo "Confidential Compute environment validation failed. current Confidential Compute environment is ${cc_environment}"
+	else 
+		echo "Confidential Compute environment validation passed. current Confidential Compute environment is ${cc_environment}"
+
 	fi
 
 	attestation_result=$(ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; bash step-2-attestation.sh | tail -1| sed -e 's/^[[:space:]]*//'")
-	echo $attestation_result
 	if [ "$attestation_result" != "GPU 0 verified successfully." ];
 	then
 		is_success="failed"
-		echo "attestation validation failed. last attestation message: ${attestation_result}"
+		echo "Attestation validation failed. last attestation message: ${attestation_result}"
+	else 
+		echo "Attestation validation passed. last attestation message: ${attestation_result}"
 	fi
 }
 
