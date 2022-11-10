@@ -60,8 +60,11 @@ The key's randomart image is:
 2. Provision Service Pricipal(First Time Only)
 
 ```
-Please contact Microsoft Confidential Team to get <sevice principal id> and <secret> for the Image Access.
-Give Tenant access to the image requires provision Service Prinsipal into your tenant by requesting a sign-in using a browser. Replace <tenant id> with the your tenant id for the tenant that you would like to create the vm. Replace <service principal id> with the service principal id Microsoft shared with you. When done making the replacements, paste the URL into a browser and follow the sign-in prompts to sign into your tenant.
+# Please contact Microsoft Confidential Team to get <sevice principal id> and <secret> for the Image Access.
+# Give Tenant access to the image requires provision Service Prinsipal into your tenant by requesting a sign-in using a browser. 
+# Replace <tenant id> with the your tenant id for the tenant that you would like to create the vm. 
+# Replace <service principal id> with the service principal id Microsoft shared with you. 
+# When done making the replacements, paste the URL into a browser and follow the sign-in prompts to sign into your tenant.
 
 https://login.microsoftonline.com/<tenant id>/oauth2/authorize?client_id=<service principal id>&response_type=code&redirect_uri=https%3A%2F%2Fwww.microsoft.com%2F 
 ```
@@ -79,8 +82,8 @@ https://login.microsoftonline.com/<tenant id>/oauth2/authorize?client_id=<servic
 # Required Arguments: 
 #	<tenant id>: Id of your Tenant/Directory. 
 #	<subscription id>: Id of your subscription. 
-#   <resource group name>: The resource group name for Vm creation.
-#					       It will create ResourceGroup if it is not found under given subscription.
+#	<resource group name>: The resource group name for Vm creation.
+#                          It will create ResourceGroup if it is not found under given subscription.
 #	<public key path>: your id_rsa.pub path. 
 #	<private key path>: your id_rsa path. 
 #	<CustomerOnboardingPackage path>: Customer onboarding package path.

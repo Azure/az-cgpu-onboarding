@@ -37,10 +37,18 @@ auto_onboard_cgpu_multi_vm() {
 		return
 	fi
 
-	# assign contributor role for service pricipal
-	echo "Assign service pricipal Contributor role."
-	az role assignment create --assignee $service_principal_id --role "Contributor" --resource-group $rg
-	
+	# check contributor role for service principal
+	if [ "$(az role assignment list --assignee $service_principal_id --resource-group $rg --role "Contributor" | grep "Contributor")" == "" ]; then
+		echo "Contributor role dosen't exist for resource group ${rg}."	
+		echo "Start creating Contributor role in target resource group ${rg} for service principal ${service_principal_id}."	
+		
+		# assign contributor role for service pricipal
+		echo "Assign service pricipal Contributor role."
+		az role assignment create --assignee $service_principal_id --role "Contributor" --resource-group $rg
+	else 
+		echo "Service principal ${service_principal_id} contributor role has already been provisioned to target ${rg}"
+	fi 
+
 	# get access token for image in Microsoft tenant.
 	az account clear
 	az login --service-principal -u $service_principal_id -p $service_principal_secret --tenant "72f988bf-86f1-41af-91ab-2d7cd011db47"
@@ -57,8 +65,8 @@ auto_onboard_cgpu_multi_vm() {
 	do
 		is_success="Succeeded"
 		vmname="${vmname_prefix}-${current_vm_count}"
-		auto_onboard_cgpu_single_vm $vmname
-		validation
+		#auto_onboard_cgpu_single_vm $vmname
+		#validation
 		if [ "$is_success" == "Succeeded" ];
 		then 
 			successCount=$(($successCount+1))
@@ -69,11 +77,12 @@ auto_onboard_cgpu_multi_vm() {
 
 	echo "Total VM to onboard: ${total_vm_number}, total Success: ${successCount}."
 
-	# Optional: clean up Contributor Role in customer's ResourceGroup. 
 	az account clear
-	az login
-	echo "Remove service pricipal Contributor role."
-	az role assignment delete --assignee $service_principal_id --role "Contributor" --resource-group $rg
+
+	# Optional: clean up Contributor Role in customer's ResourceGroup. 
+	# az login
+	# echo "Remove service pricipal Contributor role."
+	#az role assignment delete --assignee $service_principal_id --role "Contributor" --resource-group $rg
 }
 
 # login to subscription and check resource group. 
@@ -88,6 +97,7 @@ prepare_subscription_and_rg() {
 			is_success="failed"
 			return
 		fi 
+		
 	fi 
 	
 	echo "SubscriptionId validation success."
