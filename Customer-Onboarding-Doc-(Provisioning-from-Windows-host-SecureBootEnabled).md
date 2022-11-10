@@ -75,24 +75,24 @@ https://login.microsoftonline.com/<tenant id>/oauth2/authorize?client_id=<servic
 # and get access to a private Cononical Signed Confidential Gpu capable Image with Nvidia GPU driver installed.
 # Then it will lanucn SecureBoot Enabled VMs based on provided argument in specified resource group.
 #
-# First time execution will required administrator role for the target Azure subsciption to
-# provision ServicePricipal into target Tenant and to generate associate serviceprincipal roles in target 
-# resource group. 
+# Note: First time execution will required administrator role for the target Azure subsciption to
+# provision generate associate serviceprincipal contributor roles in target resource group. 
 #
 # Required Arguments: 
-#	<tenant id>: Id of your Tenant/Directory. 
-#	<subscription id>: Id of your subscription. 
-#	<resource group name>: The resource group name for Vm creation.
+#	-t <tenant id>: Id of your Tenant/Directory. 
+#	-s <subscription id>: Id of your subscription. 
+#	-r <resource group name>: The resource group name for Vm creation.
 #                          It will create ResourceGroup if it is not found under given subscription.
-#	<public key path>: your id_rsa.pub path. 
-#	<private key path>: your id_rsa path. 
-#	<CustomerOnboardingPackage path>: Customer onboarding package path.
-#	<admin user name>: Admin user name.
-#	<vm name>: your VM name
-#	<service principal id>: your service principal id you got from microsoft.
-#	<secret>: your service principal secrect you got from microsoft.
-#	<vm number>: number of vm to be generated.
+#	-p <public key path>: your id_rsa.pub path. 
+#	-i <private key path>: your id_rsa path. 
+#	-c <CustomerOnboardingPackage path>: Customer onboarding package path.
+#	-a <admin user name>: Admin user name.
+#	-v <vm name>: your VM name
+#	-s <service principal id>: your service principal id you got from microsoft.
+#	-x <secret>: your service principal secrect you got from microsoft.
+#	-n <vm number>: number of vm to be generated.
 #
+# Example:
 # bash SecurebootEnableOnboarding.sh  \
 # -t "8af6653d-c9c0-4957-ab01-615c7212a40b" \
 # -s "9269f664-5a68-4aee-9498-40a701230eb2" \
@@ -121,7 +121,23 @@ bash SecurebootEnableOnboarding.sh  \
 -n <vm number>
 ```
 
+### Attestation
 
+```
+# In your VM, execute the attestation scripts in cgpu-onboarding-package.
+# You should see: GPU 0 verified successfully.
+cd cgpu-onboarding-package 
+bash step-2-attestation.sh
+```
+
+
+### Workload-Running
+
+```
+# In your VM, execute the below command for a pytorch sample execution. (estimates finish in 10 min) 
+bash mnist_example.sh pytorch
+
+```
 
 
 
