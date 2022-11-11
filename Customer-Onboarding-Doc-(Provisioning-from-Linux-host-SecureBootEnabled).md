@@ -57,47 +57,47 @@ The key's randomart image is:
 +----[SHA256]-----+
 ```
 
-2. Provision Service Pricipal(First Time Only)
+2. Provision Service Principal (First Time Only)
 
 ```
-# Please contact Azure Confidential Computing Team to get <sevice principal id> and <secret> for the Image Access.
-# Give Tenant access to the image requires provision Service Prinsipal into your tenant by requesting a sign-in using a browser. 
-# Replace <tenant id> with the your tenant id for the tenant that you would like to create the vm. 
-# Replace <service principal id> with the service principal id Microsoft shared with you. 
+# Please contact Azure Confidential Computing Team to get your <service principal ID> and <secret> for the Image Access.
+# Giving tenant access to the image requires provisioning a Service Principal into your tenant by requesting a sign-in using a browser. 
+# In the below link, replace <tenant ID> with your tenant ID for the tenant that you would like to create the VM with. 
+# Replace <service principal ID> with the service principal ID that Microsoft shared with you. 
 # When done making the replacements, paste the URL into a browser and follow the sign-in prompts to sign into your tenant.
 
-https://login.microsoftonline.com/<tenant id>/oauth2/authorize?client_id=<service principal id>&response_type=code&redirect_uri=https%3A%2F%2Fwww.microsoft.com%2F 
+https://login.microsoftonline.com/<tenant ID>/oauth2/authorize?client_id=<service principal ID>&response_type=code&redirect_uri=https%3A%2F%2Fwww.microsoft.com%2F 
 ```
 
-3. Create VM Based On confidential capable VM
+3. Create VM Based on confidential capable VM
 ```
-# This Scripts will help to get authenticated with microsoft tenant 
-# and get access to a private Cononical Signed Confidential Gpu capable Image with Nvidia GPU driver installed.
-# Then it will lanucn SecureBoot Enabled VMs based on provided argument in specified resource group.
+# This script will help to get you authenticated with Microsoft tenant 
+# and get access to a private Canonical-signed confidential GPU-capable image with an Nvidia GPU driver already installed.
+# Then it will launch VMs with secure boot enabled, based on the provided arguments in your specified resource group.
 #
-# Note: First time execution will required administrator role for the target Azure subsciption to
-# provision generate associate serviceprincipal contributor roles in target resource group. 
+# Note: First time execution will require the administrator role for the target Azure subscription to
+# provision by generating the associated service principal contributor roles in your target resource group. 
 #
 # Required Arguments: 
-#	-t <tenant id>: Id of your Tenant/Directory. 
-#	-s <subscription id>: Id of your subscription. 
-#	-r <resource group name>: The resource group name for Vm creation.
-#                          It will create ResourceGroup if it is not found under given subscription.
-#	-p <public key path>: your id_rsa.pub path. 
-#	-i <private key path>: your id_rsa path. 
-#	-c <CustomerOnboardingPackage path>: Customer onboarding package path.
-#	-a <admin user name>: Admin user name.
-#	-s <service principal id>: your service principal id you got from microsoft.
-#	-x <secret>: your service principal secrect you got from microsoft.
+#	-t <tenant ID>: ID of your Tenant/Directory
+#	-s <subscription ID>: ID of your subscription.
+#	-r <resource group name>: The resource group name for VM creation
+#                          It will create the Resource Group if it is not found under given subscription
+#	-p <public key path>: your id_rsa.pub path 
+#	-i <private key path>: your id_rsa path
+#	-c <CustomerOnboardingPackage path>: Customer onboarding package path
+#	-a <admin user name>: administrator username for the VM
+#	-s <service principal id>: your service principal ID you got from Microsoft
+#	-x <secret>: your service principal secrect you got from Microsoft
 #	-v <vm name>: your VM name
-#	-n <vm number>: number of vm to be generated.
+#	-n <vm number>: number of VMs to be generated
 #
 # Example:
 # bash secureboot-enable-onboarding-from-vmi.sh  \
 # -t "8af6653d-c9c0-4957-ab01-615c7212a40b" \
 # -s "9269f664-5a68-4aee-9498-40a701230eb2" \
 # -r "confidential-gpu-rg" \
-# -p "/home/username/.ssh/id_rsa.pub"  \
+# -p "/home/username/.ssh/id_rsa.pub" \
 # -i "/home/username/.ssh/id_rsa"  \
 # -c "/home/username/cgpu-onboarding-package.tar.gz" \
 # -a "azuretestuser" \
@@ -114,13 +114,13 @@ bash secureboot-enable-onboarding-from-vmi.sh  \
 -p "<public key path>"  \
 -i "<private key path>"  \
 -c "<CustomerOnboardingPackage path>" \
--a "<admin user name>" \
+-a "<admin username>" \
 -d "<sevice principal id>" \
 -x "<secret>" \
 -v "<vm name>"  \
 -n <vm number>
 
-OutPut:
+Sample output:
 
 ******************************************************************************************
 Please execute below command to login to your VM and try attestation:
