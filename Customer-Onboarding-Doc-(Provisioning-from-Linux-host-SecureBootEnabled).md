@@ -60,7 +60,7 @@ The key's randomart image is:
 2. Provision Service Pricipal(First Time Only)
 
 ```
-# Please contact Microsoft Confidential Team to get <sevice principal id> and <secret> for the Image Access.
+# Please contact Azure Confidential Computing Team to get <sevice principal id> and <secret> for the Image Access.
 # Give Tenant access to the image requires provision Service Prinsipal into your tenant by requesting a sign-in using a browser. 
 # Replace <tenant id> with the your tenant id for the tenant that you would like to create the vm. 
 # Replace <service principal id> with the service principal id Microsoft shared with you. 

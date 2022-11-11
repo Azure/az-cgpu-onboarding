@@ -254,6 +254,16 @@ validation() {
 		echo "kernel validation passed. Current kernel: ${kernel_version}"
 	fi
 
+	secure_boot_state=$(ssh -i $private_key_path $vm_ssh_info "mokutil --sb-state;")
+	
+	if [ "$secure_boot_state" != "SecureBoot enabled" ];
+	then
+		is_success="failed"
+		echo "secure boot state validation failed. current kernel is ${secure_boot_state}"
+	else
+		echo "secure boot state validation passed. Current kernel: ${secure_boot_state}"
+	fi
+
 	cc_retrieve=$(ssh -i $private_key_path $vm_ssh_info "nvidia-smi conf-compute -f;")
 	echo $cc_retrieve
 	if [ "$cc_retrieve" != "CC status: ON" ];
