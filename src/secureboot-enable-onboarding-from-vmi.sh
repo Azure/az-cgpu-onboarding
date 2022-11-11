@@ -20,7 +20,7 @@
 #	-n <vm number>: number of vm to be generated.
 #
 # Example:
-# bash SecurebootEnableOnboarding.sh  \
+# bash secureboot-enable-onboarding-from-vmi.sh  \
 # -t "8af6653d-c9c0-4957-ab01-615c7212a40b" \
 # -s "9269f664-5a68-4aee-9498-40a701230eb2" \
 # -r "confidential-gpu-rg" \
@@ -255,7 +255,6 @@ validation() {
 	fi
 
 	secure_boot_state=$(ssh -i $private_key_path $vm_ssh_info "mokutil --sb-state;")
-	
 	if [ "$secure_boot_state" != "SecureBoot enabled" ];
 	then
 		is_success="failed"
