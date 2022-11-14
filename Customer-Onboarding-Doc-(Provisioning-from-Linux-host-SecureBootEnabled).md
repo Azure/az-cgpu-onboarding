@@ -72,7 +72,7 @@ https://login.microsoftonline.com/<tenant ID>/oauth2/authorize?client_id=<servic
 
 3. Create VM Based on confidential capable VM
 
-First time deployment will need subscription administrator to execute the script. ([Learn about administrator role](https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-portal-subscription-admin))
+First time deployment will need subscription owner/administrator to execute the script. ([Learn about owner/administrator role](https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-portal-subscription-admin))
 
 ```
 # This script will help to get you authenticated with Microsoft tenant 
