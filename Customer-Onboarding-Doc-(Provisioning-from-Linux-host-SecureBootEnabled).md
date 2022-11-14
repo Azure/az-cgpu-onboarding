@@ -1,6 +1,6 @@
 ## Introduction
 
-The following steps help create a Secureboot enabled Confidential GPU Virtual Machine with a Linux operating system.
+The following steps help create a [Azure Secure Boot](https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-portal-subscription-admin) enabled Confidential GPU Virtual Machine with a Linux operating system.
 
 -----------------------------------------------
 
@@ -72,7 +72,7 @@ https://login.microsoftonline.com/<tenant ID>/oauth2/authorize?client_id=<servic
 
 3. Create VM Based on confidential capable VM
 
-First time deployment will need subscription administrator to execute the script. [Learn about administrator role](https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-portal-subscription-admin))
+First time deployment will need subscription administrator to execute the script. ([Learn about administrator role](https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-portal-subscription-admin))
 
 ```
 # This script will help to get you authenticated with Microsoft tenant 
