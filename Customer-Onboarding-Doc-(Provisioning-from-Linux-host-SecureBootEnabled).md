@@ -59,6 +59,7 @@ The key's randomart image is:
 
 2. Provision Service Pricipal(First Time Only)
 
+
 ```
 # Please contact Azure Confidential Computing Team to get <sevice principal id> and <secret> for the Image Access.
 # Give Tenant access to the image requires provision Service Prinsipal into your tenant by requesting a sign-in using a browser. 
@@ -70,6 +71,9 @@ https://login.microsoftonline.com/<tenant id>/oauth2/authorize?client_id=<servic
 ```
 
 3. Create VM Based On confidential capable VM
+
+First time deployment will need subscription administrator to execute the script. [Learn about administrator role](https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-portal-subscription-admin))
+
 ```
 # This Scripts will help to get authenticated with microsoft tenant 
 # and get access to a private Cononical Signed Confidential Gpu capable Image with Nvidia GPU driver installed.

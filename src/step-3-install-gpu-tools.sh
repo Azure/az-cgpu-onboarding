@@ -70,5 +70,9 @@ install_gpu_tools(){
 }
 
 if [[ "${#BASH_SOURCE[@]}" -eq 1 ]]; then
+    if [ ! -d "logs" ];
+    then
+        mkdir logs
+    fi  
     install_gpu_tools "$@" 2>&1 | tee logs/current-operation.log | tee -a logs/all-operation.log
 fi

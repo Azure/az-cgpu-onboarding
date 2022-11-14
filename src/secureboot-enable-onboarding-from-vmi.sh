@@ -52,9 +52,6 @@ auto_onboard_cgpu_multi_vm() {
 	    esac
 	done
 
-	echo "clear previous acocunt info."
-	az account clear
-	az login
 	echo "Tenant id: ${tenant_id}" 
 	echo "Resource group: ${rg}" 
 	echo "Public key path:  ${public_key_path}"
@@ -65,6 +62,10 @@ auto_onboard_cgpu_multi_vm() {
 	echo "Service principal secret:  Hided"
 	echo "Vm Name prefix:  ${vmname_prefix}"
 	echo "Total VM number:  ${total_vm_number}"
+
+	echo "clear previous acocunt info."
+	az account clear
+	az login --tenant ${tenant_id}
 
 	prepare_subscription_and_rg
 	if [ "$is_success" == "failed" ]; then
@@ -83,7 +84,15 @@ auto_onboard_cgpu_multi_vm() {
 	while [ $current_vm_count -le $total_vm_number ]
 	do
 		is_success="Succeeded"
-		vmname="${vmname_prefix}-${current_vm_count}"
+		if [ $current_vm_count == 1 ];
+		then 
+			vmname="${vmname_prefix}";
+		else 
+			vmname_ending=$(($current_vm_count+1));
+			vmname="${vmname_prefix}-${vmname_ending}"
+		fi
+
+		echo "vmname: ${vmname}";
 		auto_onboard_cgpu_single_vm $vmname
 		validation
 		if [ "$is_success" == "Succeeded" ];
@@ -98,8 +107,8 @@ auto_onboard_cgpu_multi_vm() {
 
 	az account clear
 	echo "------------------------------------------------------------------------------------------"
-	echo "# Optional: clean up Contributor Role in customer's ResourceGroup."
-	echo "# az login"
+	echo "# Optional: Clean up Contributor Role in your ResourceGroup."
+	echo "# az login --tenant ${tenant_id}"
 	echo "# az role assignment delete --assignee ${service_principal_id} --role \"Contributor\" --resource-group ${rg}"
 }
 
@@ -107,6 +116,7 @@ auto_onboard_cgpu_multi_vm() {
 # It will create an resource group if it doesn't exist.
 prepare_subscription_and_rg() {
 	if [ "$(az account show | grep $subscription_id)" == "" ]; then
+		az account clear
 		az login
 		az account set --subscription $subscription_id
 
@@ -209,11 +219,11 @@ attestation() {
 
 # Try to connect to VM with 50 maximum retry.
 try_connect() {
-	echo "start try connect"
+	#echo "start try connect"
 	connectionoutput="disconnected"
 	while [ "$connectionoutput" != "connected" ];
 	do
-		echo "try to connect:"
+		#echo "try to connect:"
 		connectionoutput=$(ssh -i $private_key_path -o "StrictHostKeyChecking no" $vm_ssh_info "sudo echo 'connected';")
 		echo $connectionoutput
 	done
@@ -249,37 +259,36 @@ validation() {
 	if [ "$kernel_version" != "5.15.0-1019-azure" ];
 	then
 		is_success="failed"
-		echo "kernel version validation failed. current kernel is ${kernel_version}"
+		echo "Failed: kernel version validation. Current kernel: ${kernel_version}"
 	else
-		echo "kernel validation passed. Current kernel: ${kernel_version}"
+		echo "Passed: kernel validation. Current kernel: ${kernel_version}"
 	fi
 
 	secure_boot_state=$(ssh -i $private_key_path $vm_ssh_info "mokutil --sb-state;")
 	if [ "$secure_boot_state" != "SecureBoot enabled" ];
 	then
 		is_success="failed"
-		echo "secure boot state validation failed. current kernel is ${secure_boot_state}"
+		echo "Failed: secure boot state validation. Current secure boot state: ${secure_boot_state}"
 	else
-		echo "secure boot state validation passed. Current kernel: ${secure_boot_state}"
+		echo "Passed: secure boot state validation. Current secure boot state: ${secure_boot_state}"
 	fi
 
 	cc_retrieve=$(ssh -i $private_key_path $vm_ssh_info "nvidia-smi conf-compute -f;")
-	echo $cc_retrieve
 	if [ "$cc_retrieve" != "CC status: ON" ];
 	then
 		is_success="failed"
-		echo "Confidential Compute retrieve validation failed. current Confidential Compute retrieve is ${cc_retrieve}"
+		echo "Failed: Confidential Compute retrieve validation. current Confidential Compute retrieve is ${cc_retrieve}"
 	else 
-		echo "Confidential Compute mode validation passed. Current Confidential Compute retrieve is ${cc_retrieve}"
+		echo "Passed: Confidential Compute mode validation passed. Current Confidential Compute retrieve is ${cc_retrieve}"
 	fi
 
 	cc_environment=$(ssh -i $private_key_path $vm_ssh_info "nvidia-smi conf-compute -e;")
 	if [ "$cc_environment" != "CC Environment: INTERNAL" ];
 	then
 		is_success="failed"
-		echo "Confidential Compute environment validation failed. current Confidential Compute environment is ${cc_environment}"
+		echo "Failed: Confidential Compute environment validation. current Confidential Compute environment is ${cc_environment}"
 	else 
-		echo "Confidential Compute environment validation passed. current Confidential Compute environment is ${cc_environment}"
+		echo "Passed: Confidential Compute environment validation. current Confidential Compute environment is ${cc_environment}"
 
 	fi
 
@@ -287,9 +296,9 @@ validation() {
 	if [ "$attestation_result" != "GPU 0 verified successfully." ];
 	then
 		is_success="failed"
-		echo "Attestation validation failed. last attestation message: ${attestation_result}"
+		echo "Failed: Attestation validation failed. last attestation message: ${attestation_result}"
 	else 
-		echo "Attestation validation passed. last attestation message: ${attestation_result}"
+		echo "Passed: Attestation validation passed. last attestation message: ${attestation_result}"
 	fi
 }
 
