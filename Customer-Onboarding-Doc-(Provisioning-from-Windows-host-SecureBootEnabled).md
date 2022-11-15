@@ -114,26 +114,18 @@ Auto-Onboard-CGPU-Multi-VM `
 
 Sample output:
 
+Passed: kernel validation. Current kernel: 5.15.0-1019-azure
 ******************************************************************************************
 Please execute below command to login to your VM and try attestation:
-ssh -i /home/azuretestuser/.ssh/id_rsa azuretestuser@20.65.59.69
+ssh -i E:\cgpu\.ssh\id_rsa xiaobwan@20.10.213.244
 cd cgpu-onboarding-package; bash step-2-attestation.sh
 ------------------------------------------------------------------------------------------
 Please execute below command to login to your VM and try a sample workload:
-ssh -i /home/azuretestuser/.ssh/id_rsa azuretestuser@20.65.59.69
+ssh -i E:\cgpu\.ssh\id_rsa xiaobwan@20.10.213.244
 bash mnist_example.sh pytorch
 ******************************************************************************************
-Validate Confidential GPU capability.
-start try connect
-try to connect:
-connected
-kernel validation passed. Current kernel: 5.15.0-1019-azure
-CC status: ON
-Confidential Compute mode validation passed. Current Confidential Compute retrieve is CC status: ON
-Confidential Compute environment validation passed. current Confidential Compute environment is CC Environment: INTERNAL
-Attestation validation passed. last attestation message: GPU 0 verified successfully.
-Current number of VM finished: 1, total Success: 1.
 Total VM to onboard: 1, total Success: 1.
+
 ```
 
 ### Attestation
