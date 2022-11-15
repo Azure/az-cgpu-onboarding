@@ -52,11 +52,8 @@ auto_onboard_cgpu_multi_vm() {
 	    esac
 	done
 
-	echo "clear previous account info."
-	az account clear
-	az login
-	
 	echo "Tenant id: ${tenant_id}" 
+	echo "subscription id: ${subscription_id}" 
 	echo "Resource group: ${rg}" 
 	echo "Public key path:  ${public_key_path}"
 	echo "Private key path:  ${private_key_path}"
