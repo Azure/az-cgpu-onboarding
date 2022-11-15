@@ -301,7 +301,8 @@ function Try-Connect {
 function Validation {
 	param($vmsshinfo,
 		  $privatekeypath)
-		  
+
+	echo "Started cgpu capable validation."
 	$kernelversion=$(ssh -i $privatekeypath $vmsshinfo "sudo uname -r;")
 	if ($kernelversion -ne "5.15.0-1019-azure") 
 	{
@@ -312,4 +313,50 @@ function Validation {
 	{
 		echo "Passed: kernel validation. Current kernel: ${kernelversion}"
 	}
+
+	$securebootstate=$(ssh -i $privatekeypath $vmsshinfo "mokutil --sb-state;")
+	if ($securebootstate -ne "SecureBoot enabled") 
+	{
+		$issuccess="failed"
+		echo "Failed: secure boot state validation. Current secure boot state: ${securebootstate}"
+	}
+	else 
+	{
+		echo "Passed: secure boot state validation. Current secure boot state: ${securebootstate}"
+	}
+
+	$ccretrieve=$(ssh -i $privatekeypath $vmsshinfo "nvidia-smi conf-compute -f;")
+	if ($ccretrieve -ne "CC status: ON") 
+	{
+		$issuccess="failed"
+		echo "Failed: Confidential Compute retrieve validation. current Confidential Compute retrieve state: ${ccretrieve}"
+	}
+	else 
+	{
+		echo "Passed: Confidential Compute mode validation passed. Current Confidential Compute retrieve state: ${ccretrieve}"
+	}
+
+	$ccenvironment=$(ssh -i $privatekeypath $vmsshinfo "nvidia-smi conf-compute -e;")
+	if ($ccenvironment -ne "CC Environment: INTERNAL") 
+	{
+		$issuccess="failed"
+		echo "Failed: Confidential Compute environment validation. current Confidential Compute environment state: ${ccenvironment}"
+	}
+	else 
+	{
+		echo "Passed: Confidential Compute environment validation. current Confidential Compute environment: ${ccenvironment}"
+	}
+
+	$attestationresult=$(ssh -i $privatekeypath $vmsshinfo "cd cgpu-onboarding-package; bash step-2-attestation.sh | tail -1| sed -e 's/^[[:space:]]*//'")
+	if ($attestationresult -ne "GPU 0 verified successfully.") 
+	{
+		$issuccess="failed"
+		echo "Failed: Attestation validation failed. last attestation message: ${attestationresult}"
+	}
+	else 
+	{
+		echo "Passed: Attestation validation passed. last attestation message: ${attestationresult}"
+	}
+
+	echo "Finished cgpu capable validation."
 }
