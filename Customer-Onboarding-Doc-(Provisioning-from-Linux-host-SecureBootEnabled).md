@@ -18,7 +18,7 @@ The following steps help create a [Azure Secure Boot](https://learn.microsoft.co
 - Linux
 - [Azure Subscription](https://docs.microsoft.com/en-us/azure/cost-management-billing/manage/create-subscription)
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
-- Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V1.0.6/cgpu-onboarding-package.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-V1.0.6](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V1.0.6)
+- Download [cgpu-sb-enable-vmi-onboarding.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V1.0.7/cgpu-sb-enable-vmi-onboarding.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-V1.0.7](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V1.0.7)
 
 
 ### Create-CGPU-VM
@@ -72,7 +72,15 @@ https://login.microsoftonline.com/<tenant ID>/oauth2/authorize?client_id=<servic
 
 3. Create VM Based on confidential capable VM
 
-First time deployment will need subscription owner/administrator to execute the script. ([Learn about owner/administrator role](https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-portal-subscription-admin))
+(First time deployment will need subscription owner/administrator to execute the script. ([Learn about owner/administrator role](https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-portal-subscription-admin)))
+
+- Decompress [cgpu-sb-enable-vmi-onboarding.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V1.0.7/cgpu-sb-enable-vmi-onboarding.tar.gz) and enter the folder.
+```
+tar -zxvf cgpu-sb-enable-vmi-onboarding.tar.gz
+ cd cgpu-sb-enable-vmi-onboarding
+```
+
+- Execute cgpu onboarding scripts
 
 ```
 # This script will help to get you authenticated with Microsoft tenant 
@@ -103,13 +111,12 @@ First time deployment will need subscription owner/administrator to execute the 
 # -r "confidential-gpu-rg" \
 # -p "/home/username/.ssh/id_rsa.pub" \
 # -i "/home/username/.ssh/id_rsa"  \
-# -c "/home/username/cgpu-onboarding-package.tar.gz" \
+# -c "/cgpu-onboarding-package.tar.gz" \
 # -a "azuretestuser" \
 # -d "4082afe7-2bca-4f09-8cd1-a584c0520589" \
 # -x "FBw8......." \
 # -v "confidential-test-vm"  \
 # -n 1
-
 
 bash secureboot-enable-onboarding-from-vmi.sh  \
 -t "<tenant id>" \
@@ -125,27 +132,28 @@ bash secureboot-enable-onboarding-from-vmi.sh  \
 -n <vm number>
 
 Sample output:
-
 ******************************************************************************************
 Please execute below command to login to your VM and try attestation:
-ssh -i /home/azuretestuser/.ssh/id_rsa azuretestuser@20.65.59.69
+ssh -i /home/azuretestuser/.ssh/id_rsa azuretestuser@172.177.164.26
 cd cgpu-onboarding-package; bash step-2-attestation.sh
 ------------------------------------------------------------------------------------------
 Please execute below command to login to your VM and try a sample workload:
-ssh -i /home/azuretestuser/.ssh/id_rsa azuretestuser@20.65.59.69
+ssh -i /home/azuretestuser/.ssh/id_rsa azuretestuser@172.177.164.26
 bash mnist_example.sh pytorch
 ******************************************************************************************
 Validate Confidential GPU capability.
-start try connect
-try to connect:
 connected
-kernel validation passed. Current kernel: 5.15.0-1019-azure
-CC status: ON
-Confidential Compute mode validation passed. Current Confidential Compute retrieve is CC status: ON
-Confidential Compute environment validation passed. current Confidential Compute environment is CC Environment: INTERNAL
-Attestation validation passed. last attestation message: GPU 0 verified successfully.
+Passed: kernel validation. Current kernel: 5.15.0-1019-azure
+Passed: secure boot state validation. Current secure boot state: SecureBoot enabled
+Passed: Confidential Compute mode validation passed. Current Confidential Compute retrieve is CC status: ON
+Passed: Confidential Compute environment validation. current Confidential Compute environment is CC Environment: INTERNAL
+Passed: Attestation validation passed. last attestation message: GPU 0 verified successfully.
 Current number of VM finished: 1, total Success: 1.
 Total VM to onboard: 1, total Success: 1.
+------------------------------------------------------------------------------------------
+# Optional: Clean up Contributor Role in your ResourceGroup.
+# az login --tenant 72f988bf-86f1-41af-91ab-2d7cd011db47
+# az role assignment delete --assignee 4082afe7-2bca-4f09-8cd1-a584c0520588 --role "Contributor" --resource-group confidential-gpu-rg
 ```
 
 ### Attestation
@@ -165,6 +173,3 @@ bash step-2-attestation.sh
 bash mnist_example.sh pytorch
 
 ```
-
-
-
