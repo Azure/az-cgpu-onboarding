@@ -86,11 +86,12 @@ Note: First time deployment will need subscription owner/administrator to execut
 # This script will help to get you authenticated with Microsoft tenant 
 # and get access to a private Canonical-signed confidential GPU-capable image with an Nvidia GPU driver already installed.
 # Then it will launch VMs with secure boot enabled, based on the provided arguments in your specified resource group.
+# If resource group doesn't exist, it will create the resource group with the specified name in the target subsription.
 #
 # Note: First time execution will require the administrator role for the target Azure subscription to
 # provision by generating the associated service principal contributor roles in your target resource group. 
 #
-# Required Arguments: 
+# Example Arguments: 
 #	-tenantid "8af6653d-c9c0-4957-ab01-615c7212a40b" `
 #	-subscriptionid "9269f664-5a68-4aee-9498-40a701230eb2" `
 #	-rg "cgpu-test-rg" `
