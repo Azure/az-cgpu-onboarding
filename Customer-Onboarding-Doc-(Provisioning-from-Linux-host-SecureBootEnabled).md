@@ -151,7 +151,7 @@ Total VM to onboard: 1, total Success: 1.
 ------------------------------------------------------------------------------------------
 # Optional: Clean up Contributor Role in your ResourceGroup.
 # az login --tenant 72f988bf-86f1-41af-91ab-2d7cd011db47
-# az role assignment delete --assignee 4082afe7-2bca-4f09-8cd1-a584c0520588 --role "Contributor" --resource-group xiaobo-gpu-test-13
+# az role assignment delete --assignee 4082afe7-2bca-4f09-8cd1-a584c0520588 --role "Contributor" --resource-group confidential-gpu-rg
 ```
 
 ### Attestation
