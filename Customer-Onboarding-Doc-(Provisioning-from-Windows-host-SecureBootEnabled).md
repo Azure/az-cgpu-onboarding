@@ -75,8 +75,13 @@ https://login.microsoftonline.com/<tenant ID>/oauth2/authorize?client_id=<servic
 
 3. Create VM Based on confidential capable VM
 
-First time deployment will need subscription owner/administrator to execute the script. ([Learn about owner/administrator role](https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-portal-subscription-admin))
+- Decompress [cgpu-sb-enable-vmi-onboarding.zip](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V1.0.7/cgpu-sb-enable-vmi-onboarding.zip) and enter the folder.
+```
+cd cgpu-sb-enable-vmi-onboarding
+```
 
+- Execute cgpu onboarding script.
+Note: First time deployment will need subscription owner/administrator to execute the script. ([Learn about owner/administrator role](https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-portal-subscription-admin))
 ```
 # This script will help to get you authenticated with Microsoft tenant 
 # and get access to a private Canonical-signed confidential GPU-capable image with an Nvidia GPU driver already installed.
@@ -114,14 +119,20 @@ Auto-Onboard-CGPU-Multi-VM `
 
 Sample output:
 
+Started cgpu capable validation.
 Passed: kernel validation. Current kernel: 5.15.0-1019-azure
+Passed: secure boot state validation. Current secure boot state: SecureBoot enabled
+Passed: Confidential Compute mode validation passed. Current Confidential Compute retrieve state: CC status: ON
+Passed: Confidential Compute environment validation. current Confidential Compute environment: CC Environment: INTERNAL
+Passed: Attestation validation passed. last attestation message: GPU 0 verified successfully.
+Finished cgpu capable validation.
 ******************************************************************************************
 Please execute below command to login to your VM and try attestation:
-ssh -i E:\cgpu\.ssh\id_rsa xiaobwan@20.10.213.244
+ssh -i E:\cgpu\.ssh\id_rsa xiaobwan@20.80.221.83
 cd cgpu-onboarding-package; bash step-2-attestation.sh
 ------------------------------------------------------------------------------------------
 Please execute below command to login to your VM and try a sample workload:
-ssh -i E:\cgpu\.ssh\id_rsa xiaobwan@20.10.213.244
+ssh -i E:\cgpu\.ssh\id_rsa xiaobwan@20.80.221.83
 bash mnist_example.sh pytorch
 ******************************************************************************************
 Total VM to onboard: 1, total Success: 1.
