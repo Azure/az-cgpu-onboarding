@@ -96,7 +96,7 @@ Note: First time deployment will need subscription owner/administrator to execut
 #	-rg "cgpu-test-rg" `
 #	-publickeypath "E:\cgpu\.ssh\id_rsa.pub" `
 #	-privatekeypath "E:\cgpu\.ssh\id_rsa"  `
-#	-cgpupackagepath "E:\cgpu\cgpu-onboarding-package.tar.gz" `
+#	-cgpupackagepath ".\cgpu-onboarding-package.tar.gz" `
 #	-adminusername "azuretestuser" `
 #	-serviceprincipalid "4082afe7-2bca-4f09-8cd1-a584c0520588" `
 #	-serviceprincipalsecret "FBw8..." `
@@ -128,11 +128,11 @@ Passed: Attestation validation passed. last attestation message: GPU 0 verified 
 Finished cgpu capable validation.
 ******************************************************************************************
 Please execute below command to login to your VM and try attestation:
-ssh -i E:\cgpu\.ssh\id_rsa xiaobwan@20.80.221.83
+ssh -i E:\cgpu\.ssh\id_rsa azuretestuser@20.80.221.83
 cd cgpu-onboarding-package; bash step-2-attestation.sh
 ------------------------------------------------------------------------------------------
 Please execute below command to login to your VM and try a sample workload:
-ssh -i E:\cgpu\.ssh\id_rsa xiaobwan@20.80.221.83
+ssh -i E:\cgpu\.ssh\id_rsa azuretestuser@20.80.221.83
 bash mnist_example.sh pytorch
 ******************************************************************************************
 Total VM to onboard: 1, total Success: 1.
