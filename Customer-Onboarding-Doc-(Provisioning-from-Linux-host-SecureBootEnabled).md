@@ -72,7 +72,7 @@ https://login.microsoftonline.com/<tenant ID>/oauth2/authorize?client_id=<servic
 
 3. Create VM Based on confidential capable VM
 
-(First time deployment will need subscription owner/administrator to execute the script. ([Learn about owner/administrator role](https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-portal-subscription-admin)))
+
 
 - Decompress [cgpu-sb-enable-vmi-onboarding.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V1.0.7/cgpu-sb-enable-vmi-onboarding.tar.gz) and enter the folder.
 ```
@@ -80,8 +80,8 @@ tar -zxvf cgpu-sb-enable-vmi-onboarding.tar.gz
  cd cgpu-sb-enable-vmi-onboarding
 ```
 
-- Execute cgpu onboarding scripts
-
+- Execute cgpu onboarding script.
+Note: First time deployment will need subscription owner/administrator to execute the script. ([Learn about owner/administrator role](https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-portal-subscription-admin))
 ```
 # This script will help to get you authenticated with Microsoft tenant 
 # and get access to a private Canonical-signed confidential GPU-capable image with an Nvidia GPU driver already installed.
@@ -134,11 +134,11 @@ bash secureboot-enable-onboarding-from-vmi.sh  \
 Sample output:
 ******************************************************************************************
 Please execute below command to login to your VM and try attestation:
-ssh -i /home/azuretestuser/.ssh/id_rsa azuretestuser@172.177.164.26
+ssh -i /home/xiaobwan/.ssh/id_rsa xiaobwan@172.177.164.26
 cd cgpu-onboarding-package; bash step-2-attestation.sh
 ------------------------------------------------------------------------------------------
 Please execute below command to login to your VM and try a sample workload:
-ssh -i /home/azuretestuser/.ssh/id_rsa azuretestuser@172.177.164.26
+ssh -i /home/xiaobwan/.ssh/id_rsa xiaobwan@172.177.164.26
 bash mnist_example.sh pytorch
 ******************************************************************************************
 Validate Confidential GPU capability.
@@ -153,7 +153,7 @@ Total VM to onboard: 1, total Success: 1.
 ------------------------------------------------------------------------------------------
 # Optional: Clean up Contributor Role in your ResourceGroup.
 # az login --tenant 72f988bf-86f1-41af-91ab-2d7cd011db47
-# az role assignment delete --assignee 4082afe7-2bca-4f09-8cd1-a584c0520588 --role "Contributor" --resource-group confidential-gpu-rg
+# az role assignment delete --assignee 4082afe7-2bca-4f09-8cd1-a584c0520588 --role "Contributor" --resource-group xiaobo-gpu-test-13
 ```
 
 ### Attestation
@@ -173,3 +173,6 @@ bash step-2-attestation.sh
 bash mnist_example.sh pytorch
 
 ```
+
+
+
