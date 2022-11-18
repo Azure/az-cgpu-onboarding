@@ -72,7 +72,7 @@ https://login.microsoftonline.com/<tenant ID>/oauth2/authorize?client_id=<servic
 
 3. Create VM Based on confidential capable VM
 
-- Decompress downloaded [cgpu-sb-enable-vmi-onboarding.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V1.0.7/cgpu-sb-enable-vmi-onboarding.tar.gz) and enter the folder.
+- Decompress downloaded [cgpu-sb-enable-vmi-onboarding.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V1.0.7/cgpu-sb-enable-vmi-onboarding.tar.gz) and enter the folder through bash window.
 ```
 tar -zxvf cgpu-sb-enable-vmi-onboarding.tar.gz
 cd cgpu-sb-enable-vmi-onboarding
