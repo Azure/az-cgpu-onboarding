@@ -1,6 +1,6 @@
 ## Introduction
 
-The following steps help create a [Azure Secure Boot](https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-portal-subscription-admin) enabled Confidential GPU Virtual Machine with a Windows operating system.
+The following steps help create a [Azure Secure Boot](https://learn.microsoft.com/en-us/azure/virtual-machines/trusted-launch) enabled Confidential GPU Virtual Machine with a Windows operating system.
 
 
 -----------------------------------------------
