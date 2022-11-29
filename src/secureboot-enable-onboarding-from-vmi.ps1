@@ -26,7 +26,7 @@
 #Auto-Onboard-CGPU-Multi-VM `
 #-tenantid "8af6653d-c9c0-4957-ab01-615c7212a40b" `
 #-subscriptionid "9269f664-5a68-4aee-9498-40a701230eb2" `
-#-rg "xiaobotest2" `
+#-rg "cgpu-test-rg" `
 #-publickeypath "E:\cgpu\.ssh\id_rsa.pub" `
 #-privatekeypath "E:\cgpu\.ssh\id_rsa"  `
 #-cgpupackagepath "E:\cgpu\cgpu-onboarding-package.tar.gz" `
@@ -93,6 +93,8 @@ function Prepare-Subscription-And-Rg {
 	echo "Prepare subscription and resource group. ${subscriptionid}"
 	if ( "$(az account show | Select-String $subscriptionid)" -eq "" ) 
 	{
+		echo "Could't set to the correct subscription, please confirm and re-login with your azure account."
+
 		az account clear
 		az login
 		az account set --subscription $subscriptionid

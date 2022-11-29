@@ -67,6 +67,7 @@ auto_onboard_cgpu_multi_vm() {
 	echo "clear previous acocunt info."
 	az account clear
 	az login --tenant ${tenant_id}
+	az account set --subscription $subscription_id
 
 	prepare_subscription_and_rg
 	if [ "$is_success" == "failed" ]; then
@@ -123,6 +124,7 @@ auto_onboard_cgpu_multi_vm() {
 # It will create an resource group if it doesn't exist.
 prepare_subscription_and_rg() {
 	if [ "$(az account show | grep $subscription_id)" == "" ]; then
+		echo "Could't set to the correct subscription, please confirm and re-login with your azure account."
 		az account clear
 		az login
 		az account set --subscription $subscription_id
