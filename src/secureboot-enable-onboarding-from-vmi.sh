@@ -75,6 +75,12 @@ auto_onboard_cgpu_multi_vm() {
 	fi
 
 	prepare_access_token
+	
+	if [ "$is_success" == "more_action_need" ]; then
+		echo "Please retry secureboot-eanble-onboarding-from-vmi.sh after finishing above steps."
+		return
+	fi
+
 	if [ "$is_success" == "failed" ]; then
 		echo "failed to prepare_access_token.."
 		return
@@ -146,13 +152,29 @@ prepare_subscription_and_rg() {
 }
 
 prepare_access_token() {
+	# check if service prinicipal has been provisioned to customer's tenant.
+	if [ "$(az ad sp list  --display-name "cgpu" | grep $service_principal_id)" == "" ]; then 
+		echo "Can not find service principal: ${service_principal_id} in tenant: ${tenant_id}."
+		echo "First time access Confidential Compute GPU Image needs to provision ${service_principal_id} to tenant: ${tenant_id}. "
+
+		echo "Please try below URL to import service principal and then retry the operation."
+		echo "------------------------------------------------------------------------------------------"
+		echo "https://login.microsoftonline.com/${tenant_id}/oauth2/authorize?client_id=${service_principal_id}&response_type=code&redirect_uri=https%3A%2F%2Fwww.microsoft.com%2F"
+		echo "------------------------------------------------------------------------------------------"
+
+		is_success="more_action_need"
+		return
+	fi
+
+	echo "Validated Service prinicipal ${service_principal_id} has already been provisioned into ${tenant_id} "
+
 	# check contributor role for service principal
 	if [ "$(az role assignment list --assignee $service_principal_id --resource-group $rg --role "Contributor" | grep "Contributor")" == "" ]; then
 		echo "Contributor role dosen't exist for resource group ${rg}."	
 		echo "Start creating Contributor role in target resource group ${rg} for service principal ${service_principal_id}."	
 		
 		# assign contributor role for service pricipal
-		echo "Assign service pricipal Contributor role."
+		echo "Assign service principal Contributor role."
 		az role assignment create --assignee $service_principal_id --role "Contributor" --resource-group $rg
 	else 
 		echo "Service principal ${service_principal_id} contributor role has already been provisioned to target ${rg}"
@@ -161,16 +183,29 @@ prepare_access_token() {
 	if [ "$(az role assignment list --assignee $service_principal_id --resource-group $rg --role "Contributor" | grep "Contributor")" == "" ]; then
 		echo "Create and Validate Contributor role failed in resource group: ${rg}."
 		is_success="failed"
+		return
 	fi
 
 	# get access token for image in Microsoft tenant.
 	az account clear
 	az login --service-principal -u $service_principal_id -p $service_principal_secret --tenant "72f988bf-86f1-41af-91ab-2d7cd011db47"
-	az account get-access-token 
+	if [ "$(az account get-access-token | grep "Bearer")" == "" ]; then
+		echo "Failed to get token from microsoft tenant. Please make sure the service principal id and service principal serect are correct."
+		echo "If it is continue failing, please contact Microsoft CGPU team for more information."
+		is_success="failed"
+		return
+	fi
 
 	# get access token for customer's resource group.
 	az login --service-principal -u $service_principal_id -p $service_principal_secret --tenant $tenant_id
-	az account get-access-token 
+	if [ "$(az account get-access-token | grep "Bearer")" == "" ]; then
+		echo "Failed to get token from microsoft tenant. Please make sure the service principal id and service principal serect are correct."
+		echo "If it is continue failing, please contact Microsoft CGPU team for more information."
+		is_success="failed"
+		return
+	fi
+	
+	echo "Get access token success."
 }
 
 # Create a single VM and onboard confidential gpu.
