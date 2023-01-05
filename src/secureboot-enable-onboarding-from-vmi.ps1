@@ -12,7 +12,7 @@
 # 5: Attestation.
 # 6: Install GPU docker tools.
 # 7: Output connection ssh info and tensorflow execution command.
-# 
+#
 # required paramter:
 # 	rg: name of your resource group. (please do az login to your subscription and create a resource group)
 #	adminusername: your adminusername
@@ -23,25 +23,25 @@
 #	totalvmnumber: the number of retry we want to perform.
 #
 # EG:
-#Auto-Onboard-CGPU-Multi-VM `
-#-tenantid "8af6653d-c9c0-4957-ab01-615c7212a40b" `
-#-subscriptionid "9269f664-5a68-4aee-9498-40a701230eb2" `
-#-rg "xiaobotest2" `
-#-publickeypath "E:\cgpu\.ssh\id_rsa.pub" `
-#-privatekeypath "E:\cgpu\.ssh\id_rsa"  `
-#-cgpupackagepath "E:\cgpu\cgpu-onboarding-package.tar.gz" `
-#-adminusername "admin" `
-#-serviceprincipalid "4082afe7-2bca-4f09-8cd1-a584c0520588" `
-#-serviceprincipalsecret "FBw8..." `
-#-vmnameprefix "cgpu-test" `
-#-totalvmnumber 2
+# Auto-Onboard-CGPU-Multi-VM `
+# -tenantid "72f988bf-86f1-41af-91ab-2d7cd011db47" `
+# -subscriptionid "85c61f94-8912-4e82-900e-6ab44de9bdf8" `
+# -rg "jeremyweiss-script-test-2" `
+# -publickeypath "C:\Users\jeremyweiss\.ssh\id_rsa.pub" `
+# -privatekeypath "C:\Users\jeremyweiss\.ssh\id_rsa"  `
+# -cgpupackagepath "C:\Users\jeremyweiss\Downloads\cgpu-onboarding-package.tar.gz" `
+# -adminusername "jeremyweiss" `
+# -serviceprincipalid "89863e5a-5aa0-45f0-94e7-52f72de93935" `
+# -serviceprincipalsecret "bK48Q~4ptomC_GQM75QU4HhNSbAB2tj.7m4W3djF" `
+# -vmnameprefix "jeremyweiss-script" `
+# -totalvmnumber 2
 
 # Auto Create and Onboard Multiple CGPU VM for customer.
 function Auto-Onboard-CGPU-Multi-VM {
 	param(
 		$tenantid,
 		$subscriptionid,
-		$rg, 
+		$rg,
 		$publickeypath,
 		$privatekeypath,
 		$cgpupackagepath,
@@ -52,9 +52,9 @@ function Auto-Onboard-CGPU-Multi-VM {
 		$totalvmnumber)
 
 
-	echo "Tenant id: ${tenantid}" 
-	echo "subscription id: ${subscriptionid}" 
-	echo "Resource group: ${rg}" 
+	echo "Tenant id: ${tenantid}"
+	echo "subscription id: ${subscriptionid}"
+	echo "Resource group: ${rg}"
 	echo "Public key path:  ${publickeypath}"
 	echo "Private key path:  ${privatekeypath}"
 	echo "Cgpu onboarding package path:  ${cgpupackagepath}"
@@ -63,55 +63,83 @@ function Auto-Onboard-CGPU-Multi-VM {
 	echo "Service principal secret:  Hided"
 	echo "Vm Name prefix:  ${vmnameprefix}"
 	echo "Total VM number:  ${totalvmnumber}"
-	
+
 	echo "clear previous account info."
 	az account clear
 	az login --tenant $tenantid
 	az account set --subscription $subscriptionid
 	az account show
 
-	Prepare-Subscription-And-Rg;
+	$global:issuccess = "succeeded"
+	Prepare-Subscription-And-Rg
+	if ($global:issuccess -eq "failed") {
+		echo "failed to Prepare-Subscription-And-Rg.."
+		return
+	}
 
-	Prepare-Access-Token;
+	Prepare-Access-Token
+	if ($global:issuccess -eq "failed") {
+		echo "failed to Prepare-Access-Token.."
+		return
+	}
 
 	$successcount = 0
+	$vmlogincommands = New-Object "String[]" ($totalvmnumber+1)
 	for($i=1; $i -le $totalvmnumber; $i++) {
 		$vmname=${vmnameprefix}+"-"+${i}
-		
+
 		echo "Start creating VM: '${vmname}'"
 
 		Auto-Onboard-CGPU-Single-VM `
 		-vmname $vmname
 
 		$successcount=$successcount + 1
+
+		echo "Finished creating VM: '${vmname}'"
 	}
+	echo "******************************************************************************************"
+	echo "Please execute below commands to login to your VM(s)"
+	for($i=1; $i -le $totalvmnumber; $i++) {
+		echo $vmlogincommands[$i]
+	}
+	echo "Please execute the below command to try attestation:"
+	echo "cd cgpu-onboarding-package; bash step-2-attestation.sh";
+	echo "Please execute the below command to try a sample workload:"
+	echo "cd; bash mnist_example.sh pytorch";
+	echo "******************************************************************************************"
 
 	echo "Total VM to onboard: ${totalvmnumber}, total Success: ${successcount}."
+
+	az account clear
+	echo "------------------------------------------------------------------------------------------"
+	echo "# Optional: Clean up Contributor Role in your ResourceGroup."
+	echo "# az login --tenant ${tenant_id}"
+	echo "# az role assignment delete --assignee ${serviceprincipalid} --role \"Contributor\" --resource-group ${rg}"
 }
 
 function Prepare-Subscription-And-Rg {
 	echo "Prepare subscription and resource group. ${subscriptionid}"
-	if ( "$(az account show | Select-String $subscriptionid)" -eq "" ) 
+	if ( "$(az account show | Select-String $subscriptionid)" -eq "" )
 	{
 		az account clear
 		az login
 		az account set --subscription $subscriptionid
 
-		if( "$(az account show | Select-String $subscriptionid)" -eq "") 
+		if( "$(az account show | Select-String $subscriptionid)" -eq "")
 		{
-			echo "the logged in azure account don't belongs to subsciprtion: ${subscription_id}. Please check subscriptionId or contact subscription owner to add your account."	
-			$issuccess="failed"
+			echo "the logged in azure account don't belongs to subsciprtion: ${subscription_id}. Please check subscriptionId or contact subscription owner to add your account."
+			$global:issuccess = "failed"
 			return
 		}
-	} 
-	
+	}
+
 	echo "SubscriptionId validation success."
 	echo "Checking reource group...."
-	if ($(az group exists --name $rg) -eq $false ) 
+	if ($(az group exists --name $rg) -eq $false )
 	{
     	echo "Resource group ${rg} does not exits, start creating resource group ${rg}"
     	az group create --name ${rg} --location eastus2
-		if ( $(az group exists --name $rg) -eq $false ) 
+		if ( $(az group exists --name $rg) -eq $false )
 		{
 			echo "rg creation failed, please check if your subscription is correct."
 			$issuccess="failed"
@@ -127,11 +155,11 @@ function Prepare-Access-Token {
 	echo "Prepare access token. ${subscriptionid}"
 
 	# check contributor role for service principal
-	if ( "$(az role assignment list --assignee $serviceprincipalid --resource-group $rg --role "Contributor" | Select-String "Contributor")" -eq "" ) 
+	if ( "$(az role assignment list --assignee $serviceprincipalid --resource-group $rg --role "Contributor" | Select-String "Contributor")" -eq "" )
 	{
-		echo "Contributor role dosen't exist for resource group ${rg}."	
-		echo "Start creating Contributor role in target resource group ${rg} for service principal ${serviceprincipalid}."	
-		
+		echo "Contributor role dosen't exist for resource group ${rg}."
+		echo "Start creating Contributor role in target resource group ${rg} for service principal ${serviceprincipalid}."
+
 		# assign contributor role for service principal
 		echo "Assign service pricipal Contributor role."
 		az role assignment create --assignee $serviceprincipalid --role "Contributor" --resource-group $rg
@@ -143,17 +171,17 @@ function Prepare-Access-Token {
 
 	if("$(az role assignment list --assignee $serviceprincipalid --resource-group $rg --role "Contributor" | Select-String "Contributor")" -eq "") {
 		echo "Create and Validate Contributor role failed in resource group: ${rg}."
-		$issuccess="failed"
+		$global:issuccess="failed"
 	}
 
 	# get access token for image in Microsoft tenant.
 	az account clear
 	az login --service-principal -u $serviceprincipalid -p $serviceprincipalsecret --tenant "72f988bf-86f1-41af-91ab-2d7cd011db47"
-	az account get-access-token 
+	az account get-access-token
 
 	# get access token for customer's resource group.
 	az login --service-principal -u $serviceprincipalid -p $serviceprincipalsecret --tenant $tenantid
-	az account get-access-token 
+	az account get-access-token
 }
 
 # Auto Create and Onboard Single CGPU VM for customer.
@@ -165,37 +193,43 @@ function Auto-Onboard-CGPU-Single-VM{
  	$vmsshinfo=VM-Creation -rg $rg `
  	 -publickeypath $publickeypath `
  	 -vmname $vmname `
- 	 -adminusername $adminusername  
+ 	 -adminusername $adminusername
 
 	# Upload package to VM and extract it.
 	Package-Upload -vmsshinfo $vmsshinfo `
 	 -privatekeypath $privatekeypath `
 	 -cgpupackagepath $cgpupackagepath `
 	 -adminusername $adminusername
+	if ($global:issuccess -eq "failed") {
+		echo "failed to Package-Upload.."
+		return
+	}
 
 	# Attestation
 	Attestation -vmsshinfo $vmsshinfo `
 	 -privatekeypath $privatekeypath
+	if ($global:issuccess -eq "failed") {
+		echo "failed to Attestation.."
+		return
+	}
 
 	# Validation
 	Validation -vmsshinfo $vmsshinfo `
 	 -privatekeypath $privatekeypath
+	if ($global:issuccess -eq "failed") {
+		echo "failed to Validation.."
+		return
+	}
 
-	echo "******************************************************************************************"
-	echo "Please execute below command to login to your VM and try attestation:"
-	echo "ssh -i ${privatekeypath} ${vmsshinfo}" 
-	echo "cd cgpu-onboarding-package; bash step-2-attestation.sh";
-	echo "------------------------------------------------------------------------------------------"
-	echo "Please execute below command to login to your VM and try a sample workload:"
-	echo "ssh -i ${privatekeypath} ${vmsshinfo}" 
-	echo "bash mnist_example.sh pytorch";
-	echo "******************************************************************************************"
+	# Variables inherited from the calling function - could use $successcount instead of $i
+	$vmlogincommands[$i] = "ssh -i ${privatekeypath} ${vmsshinfo}"
+
 	return
 }
 
 # Create VM With given information.
 function VM-Creation {
-	param($rg, 
+	param($rg,
 		$vmname,
 		$adminusername,
 		$publickeypath)
@@ -214,12 +248,12 @@ function VM-Creation {
 		--size Standard_NCC24ads_A100_v4 `
 		--os-disk-size-gb 100 `
 		--verbose
- 
-		$resultjson = $result | ConvertFrom-Json
-		$vmip= $resultjson.publicIpAddress
-		$vmsshinfo=$adminusername+"@"+$vmip
-		echo $vmsshinfo
-		return
+
+	$resultjson = $result | ConvertFrom-Json
+	$vmip= $resultjson.publicIpAddress
+	$vmsshinfo=$adminusername+"@"+$vmip
+	echo $vmsshinfo
+	return
 }
 
 #Upload cgpu-onboarding-package.tar.gz  to VM and extract it.
@@ -231,13 +265,13 @@ function Package-Upload {
 
 	# Test VM connnection.
  	$isConnected=Try-Connect -vmsshinfo $vmsshinfo `
-		-privatekeypath $privatekeypath 
+		-privatekeypath $privatekeypath
 
 	if ($isConnected -eq $false) {
 		echo "VM connection failed after 50 times retry."
-		
-		return $false
-	} 
+		$global:issuccess = "failed"
+		return
+	}
 
 	echo "VM connection success."
 
@@ -247,6 +281,7 @@ function Package-Upload {
 	echo "start extract."
 	ssh -i ${privatekeypath} ${vmsshinfo} "tar -zxvf cgpu-onboarding-package.tar.gz;"
 	echo "finish extract."
+	$global:issuccess = "succeeded"
 }
 
 # Attestation GPU.
@@ -256,17 +291,19 @@ function Attestation {
 
 	# Test VM connnection.
  	$isConnected=Try-Connect -vmsshinfo $vmsshinfo `
-		-privatekeypath $privatekeypath 
+		-privatekeypath $privatekeypath
 
 	if ($isConnected -eq $false) {
 		echo "VM connection failed after 50 times retry."
-		return $false
-	} 
+		$global:issuccess = "failed"
+		return
+	}
 	echo "VM connection success."
 
 	echo "Start attestation."
 	ssh  -i ${privatekeypath} ${vmsshinfo} "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh;"
 	echo "Finished attestation."
+	$global:issuccess = "succeeded"
 }
 
 
@@ -288,72 +325,73 @@ function Try-Connect {
 		echo "try to connect:";
 		$connectionoutput=ssh -i ${privatekeypath} -o "StrictHostKeyChecking no" ${vmsshinfo} "sudo echo 'connected'; "
 		echo $connectionoutput
-		if($connectionoutput -eq "connected") {
-			return $true
+		if ($connectionoutput -eq "connected") {
+			$global:issuccess = "succeeded"
+			return
 		}
 
 		$currentRetry++
 	}
-
-	return $false
+	$global:issuccess = "failed"
+	return
 }
 
 function Validation {
 	param($vmsshinfo,
 		  $privatekeypath)
-
+	$global:issuccess = "succeeded"
 	echo "Started cgpu capable validation."
 	$kernelversion=$(ssh -i $privatekeypath $vmsshinfo "sudo uname -r;")
-	if ($kernelversion -ne "5.15.0-1019-azure") 
+	if ($kernelversion -ne "5.15.0-1019-azure")
 	{
-		$issuccess="failed"
+		$global:issuccess="failed"
 		echo "Failed: kernel version validation. Current kernel: ${kernelversion}"
 	}
-	else 
+	else
 	{
 		echo "Passed: kernel validation. Current kernel: ${kernelversion}"
 	}
 
 	$securebootstate=$(ssh -i $privatekeypath $vmsshinfo "mokutil --sb-state;")
-	if ($securebootstate -ne "SecureBoot enabled") 
+	if ($securebootstate -ne "SecureBoot enabled")
 	{
-		$issuccess="failed"
+		$global:issuccess="failed"
 		echo "Failed: secure boot state validation. Current secure boot state: ${securebootstate}"
 	}
-	else 
+	else
 	{
 		echo "Passed: secure boot state validation. Current secure boot state: ${securebootstate}"
 	}
 
 	$ccretrieve=$(ssh -i $privatekeypath $vmsshinfo "nvidia-smi conf-compute -f;")
-	if ($ccretrieve -ne "CC status: ON") 
+	if ($ccretrieve -ne "CC status: ON")
 	{
-		$issuccess="failed"
+		$global:issuccess="failed"
 		echo "Failed: Confidential Compute retrieve validation. current Confidential Compute retrieve state: ${ccretrieve}"
 	}
-	else 
+	else
 	{
 		echo "Passed: Confidential Compute mode validation passed. Current Confidential Compute retrieve state: ${ccretrieve}"
 	}
 
 	$ccenvironment=$(ssh -i $privatekeypath $vmsshinfo "nvidia-smi conf-compute -e;")
-	if ($ccenvironment -ne "CC Environment: INTERNAL") 
+	if ($ccenvironment -ne "CC Environment: INTERNAL")
 	{
-		$issuccess="failed"
+		$global:issuccess="failed"
 		echo "Failed: Confidential Compute environment validation. current Confidential Compute environment state: ${ccenvironment}"
 	}
-	else 
+	else
 	{
 		echo "Passed: Confidential Compute environment validation. current Confidential Compute environment: ${ccenvironment}"
 	}
 
 	$attestationresult=$(ssh -i $privatekeypath $vmsshinfo "cd cgpu-onboarding-package; bash step-2-attestation.sh | tail -1| sed -e 's/^[[:space:]]*//'")
-	if ($attestationresult -ne "GPU 0 verified successfully.") 
+	if ($attestationresult -ne "GPU 0 verified successfully.")
 	{
-		$issuccess="failed"
+		$global:issuccess="failed"
 		echo "Failed: Attestation validation failed. last attestation message: ${attestationresult}"
 	}
-	else 
+	else
 	{
 		echo "Passed: Attestation validation passed. last attestation message: ${attestationresult}"
 	}
