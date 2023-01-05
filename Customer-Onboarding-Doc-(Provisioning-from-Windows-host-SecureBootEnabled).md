@@ -18,6 +18,7 @@ The following steps help create a [Azure Secure Boot](https://learn.microsoft.co
 - Windows
 - Powershell: version 5.1.19041.1682 and above (please run windows powershell as administrator)
 - [Azure Subscription](https://docs.microsoft.com/en-us/azure/cost-management-billing/manage/create-subscription)
+- [Admin of Azure Subscription](https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-portal-subscription-admin)
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
 - Download [cgpu-sb-enable-vmi-onboarding.zip](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V1.0.7/cgpu-sb-enable-vmi-onboarding.zip) from [Azure-Confidential-Computing-CGPUPrivatePreview-V1.0.7](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V1.0.7)
 
@@ -81,7 +82,8 @@ cd cgpu-sb-enable-vmi-onboarding
 ```
 
 - Execute cgpu onboarding script.
-Note: First time deployment will need subscription owner/administrator to execute the script. ([Learn about owner/administrator role](https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-portal-subscription-admin))
+Note: First time deployment will need subscription owner/administrator to execute the script to set up access to shared image. ([Learn about owner/administrator role](https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-portal-subscription-admin))
+If re-use the same resource group that has already been set up, no specific role required as the Service Principal already have associated access. 
 ```
 # This script will help to get you authenticated with Microsoft tenant 
 # and get access to a private Canonical-signed confidential GPU-capable image with an Nvidia GPU driver already installed.

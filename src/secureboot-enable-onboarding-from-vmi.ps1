@@ -23,18 +23,18 @@
 #	totalvmnumber: the number of retry we want to perform.
 #
 # EG:
-# Auto-Onboard-CGPU-Multi-VM `
-# -tenantid "72f988bf-86f1-41af-91ab-2d7cd011db47" `
-# -subscriptionid "85c61f94-8912-4e82-900e-6ab44de9bdf8" `
-# -rg "jeremyweiss-script-test-2" `
-# -publickeypath "C:\Users\jeremyweiss\.ssh\id_rsa.pub" `
-# -privatekeypath "C:\Users\jeremyweiss\.ssh\id_rsa"  `
-# -cgpupackagepath "C:\Users\jeremyweiss\Downloads\cgpu-onboarding-package.tar.gz" `
-# -adminusername "jeremyweiss" `
-# -serviceprincipalid "89863e5a-5aa0-45f0-94e7-52f72de93935" `
-# -serviceprincipalsecret "bK48Q~4ptomC_GQM75QU4HhNSbAB2tj.7m4W3djF" `
-# -vmnameprefix "jeremyweiss-script" `
-# -totalvmnumber 2
+#Auto-Onboard-CGPU-Multi-VM `
+#-tenantid "8af6653d-c9c0-4957-ab01-615c7212a40b" `
+#-subscriptionid "9269f664-5a68-4aee-9498-40a701230eb2" `
+#-rg "cgpu-test-rg" `
+#-publickeypath "E:\cgpu\.ssh\id_rsa.pub" `
+#-privatekeypath "E:\cgpu\.ssh\id_rsa"  `
+#-cgpupackagepath "E:\cgpu\cgpu-onboarding-package.tar.gz" `
+#-adminusername "admin" `
+#-serviceprincipalid "4082afe7-2bca-4f09-8cd1-a584c0520588" `
+#-serviceprincipalsecret "FBw8..." `
+#-vmnameprefix "cgpu-test" `
+#-totalvmnumber 2
 
 # Auto Create and Onboard Multiple CGPU VM for customer.
 function Auto-Onboard-CGPU-Multi-VM {
@@ -121,6 +121,8 @@ function Prepare-Subscription-And-Rg {
 	echo "Prepare subscription and resource group. ${subscriptionid}"
 	if ( "$(az account show | Select-String $subscriptionid)" -eq "" )
 	{
+		echo "Could't set to the correct subscription, please confirm and re-login with your azure account."
+
 		az account clear
 		az login
 		az account set --subscription $subscriptionid
