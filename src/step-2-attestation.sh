@@ -2,7 +2,7 @@
 ##
 ## Requirements:
 ##      nvdia driver:       APM_470.10.12_5.15.0-1014.17.tar
-##      kenrel version:     5.15.0-1014-azure
+##      kernel version:     5.15.0-1014-azure
 ##      verifier:           verifier_apm_pid3_5_1.tar
 ##
 ## Example:
