@@ -20,7 +20,7 @@ The following steps help create a [Azure Secure Boot](https://learn.microsoft.co
 - [Azure Subscription](https://docs.microsoft.com/en-us/azure/cost-management-billing/manage/create-subscription)
 - [Admin of Azure Subscription](https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-portal-subscription-admin)
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
-- Download [cgpu-sb-enable-vmi-onboarding.zip](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V1.0.7/cgpu-sb-enable-vmi-onboarding.zip) from [Azure-Confidential-Computing-CGPUPrivatePreview-V1.0.7](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V1.0.7)
+- Download [cgpu-sb-enable-vmi-onboarding.zip](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V2.0.1/cgpu-sb-enable-vmi-onboarding.zip) from [Azure-Confidential-Computing-CGPUPrivatePreview-V2.0.1](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V2.0.1)
 
 ----------------------------------------------------
 
@@ -76,7 +76,7 @@ https://login.microsoftonline.com/<tenant ID>/oauth2/authorize?client_id=<servic
 
 3. Create VM Based on confidential capable VM
 
-- Decompress downloaded [cgpu-sb-enable-vmi-onboarding.zip](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V1.0.7/cgpu-sb-enable-vmi-onboarding.zip) and enter the folder through powershell.
+- Decompress downloaded [cgpu-sb-enable-vmi-onboarding.zip](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V2.0.1/cgpu-sb-enable-vmi-onboarding.zip) and enter the folder through powershell.
 ```
 cd cgpu-sb-enable-vmi-onboarding
 ```

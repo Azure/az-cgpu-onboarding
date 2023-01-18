@@ -18,7 +18,7 @@ The following steps help create a Confidential GPU Virtual Machine with a Linux 
 - Linux
 - [Azure Subscription](https://docs.microsoft.com/en-us/azure/cost-management-billing/manage/create-subscription)
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
-- Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V1.0.7/cgpu-onboarding-package.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-V1.0.7](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V1.0.7)
+- Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V2.0.1/cgpu-onboarding-package.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-V2.0.1](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V2.0.1)
 
 ----------------------------------------------------
 
@@ -116,7 +116,7 @@ ssh -i <private key path> [adminusername]@[IP] -v
 
 ### Install-GPU-Driver
 
-Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V1.0.7/cgpu-onboarding-package.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-V1.0.7](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V1.0.7) if you haven't.
+Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V2.0.1/cgpu-onboarding-package.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-V2.0.1](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V2.0.1) if you haven't.
 
 ```
 # In a separate local terminal not connected to your vm, upload cgpu-onboarding-package.tar.gz to your VM.   
