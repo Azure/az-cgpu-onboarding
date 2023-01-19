@@ -2,7 +2,7 @@
 ##
 ## Requirements: 
 ##      nvdia driver:       APM_470.10.12_5.15.0-1014.17.tar
-##      kenrel version:     5.15.0-1014-azure
+##      kernel version:     5.15.0-1014-azure
 ##
 ## Example:
 ##      bash step-1-install-gpu-driver.sh
@@ -74,6 +74,9 @@ install_gpu_driver(){
 }
 
 if [[ "${#BASH_SOURCE[@]}" -eq 1 ]]; then
-    mkdir logs
+    if [ ! -d "logs" ];
+    then
+        mkdir logs
+    fi
     install_gpu_driver "$@" 2>&1 | tee logs/current-operation.log | tee -a logs/all-operation.log
 fi

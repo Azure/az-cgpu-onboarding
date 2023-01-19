@@ -2,8 +2,8 @@
 ##
 ## Requirements:
 ##      nvdia driver:       APM_470.10.12_5.15.0-1014.17.tar
-##      kenrel version:     5.15.0-1014-azure
-##      verifier:           verifier_apm_pid3.tar
+##      kernel version:     5.15.0-1014-azure
+##      verifier:           verifier_apm_pid3_5_1.tar
 ##
 ## Example:
 ##      bash step-2-attestation.sh
@@ -21,8 +21,8 @@ attestation(){
         echo "Please retry step-1-install-gpu-driver."
     else 
         echo "Driver verified successfully, start attestation."
-        tar -xvf verifier_apm_pid3_5.tar
-        cd verifier_apm_pid3_5
+        tar -xvf verifier_apm_pid3_5_1.tar
+        cd verifier_apm_pid3_5_1
         sudo apt install python3-pip
         sudo pip3 install -r requirements.txt
         sudo pip3 install -e pynvml_src/
@@ -46,6 +46,9 @@ attestation(){
 
 
 if [[ "${#BASH_SOURCE[@]}" -eq 1 ]]; then
-    mkdir logs
+    if [ ! -d "logs" ];
+    then
+        mkdir logs
+    fi    
     attestation "$@" 2>&1 | tee logs/current-operation.log | tee -a logs/all-operation.log
 fi

@@ -2,20 +2,20 @@
 ##
 ## Requirements: 
 ##      nvdia driver:       APM_470.10.12_5.15.0-1014.17.tar
-##      kenrel version:     5.15.0-1014-azure
+##      kernel version:     5.15.0-1014-azure
 ##
 ## Example:
 ##      bash step-3-install-gpu-tools.sh
 ##
 
-ATEESTATION_SUCCESS_MESSAGE="GPU 0 verified successfully."
+ATTESTATION_SUCCESS_MESSAGE="GPU 0 verified successfully."
 MAX_RETRY=3
 
 ## install dockder dependency.
 install_gpu_tools(){
     # verify attestation is given the correct result.
     attestation_result=$(bash step-2-attestation.sh | tail -1| sed -e 's/^[[:space:]]*//')
-    if [ "$attestation_result" != "$ATEESTATION_SUCCESS_MESSAGE" ]; 
+    if [ "$attestation_result" != "$ATTESTATION_SUCCESS_MESSAGE" ]; 
     then
       echo "Current gpu attestation failed: ${attestation_result}, expected: GPU 0 verified successfully."
       echo "Please verify previous steps and retry step-2-attestation."
@@ -70,5 +70,9 @@ install_gpu_tools(){
 }
 
 if [[ "${#BASH_SOURCE[@]}" -eq 1 ]]; then
+    if [ ! -d "logs" ];
+    then
+        mkdir logs
+    fi  
     install_gpu_tools "$@" 2>&1 | tee logs/current-operation.log | tee -a logs/all-operation.log
 fi
