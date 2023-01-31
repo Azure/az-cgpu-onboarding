@@ -68,7 +68,7 @@ function Auto-Onboard-CGPU-Multi-VM {
 	az account clear
 	az login --tenant $tenantid
 	az account set --subscription $subscriptionid
-	az account show
+	az account show > log.txt
 
 	$global:issuccess = "succeeded"
 	Prepare-Subscription-And-Rg
@@ -240,7 +240,7 @@ function VM-Creation {
 	$result=az vm create `
 		--resource-group $rg `
 		--name $vmname `
-	    --image "/subscriptions/85c61f94-8912-4e82-900e-6ab44de9bdf8/resourceGroups/cgpu-image-gallary/providers/Microsoft.Compute/galleries/cgpuimagegallary/images/xiaobotestimage/versions/0.0.3" `
+	    --image "/subscriptions/85c61f94-8912-4e82-900e-6ab44de9bdf8/resourceGroups/cgpu-image-gallary/providers/Microsoft.Compute/galleries/cgpunvidiaimagegallery/images/cgpunvidiaimage/versions/0.0.1" `
 		--public-ip-sku Standard `
 		--admin-username $adminusername `
 		--ssh-key-values $publickeypath `
