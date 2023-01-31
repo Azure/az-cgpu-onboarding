@@ -68,7 +68,7 @@ function Auto-Onboard-CGPU-Multi-VM {
 	az account clear
 	az login --tenant $tenantid
 	az account set --subscription $subscriptionid
-	az account show > log.txt
+	az account show
 
 	$global:issuccess = "succeeded"
 	Prepare-Subscription-And-Rg

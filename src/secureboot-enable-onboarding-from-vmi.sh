@@ -277,7 +277,7 @@ create_vm() {
 	az vm create \
 	--resource-group $rg \
 	--name $vmname \
-	--image "/subscriptions/85c61f94-8912-4e82-900e-6ab44de9bdf8/resourceGroups/cgpu-image-gallary/providers/Microsoft.Compute/galleries/cgpuimagegallary/images/xiaobotestimage/versions/0.0.3" \
+	--image "/subscriptions/85c61f94-8912-4e82-900e-6ab44de9bdf8/resourceGroups/cgpu-image-gallary/providers/Microsoft.Compute/galleries/cgpunvidiaimagegallery/images/cgpunvidiaimage/versions/0.0.1" \
 	--public-ip-sku Standard \
 	--admin-username $adminuser_name \
 	--ssh-key-values $public_key_path_with_at \
