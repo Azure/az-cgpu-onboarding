@@ -78,7 +78,7 @@ auto_onboard_cgpu_multi_vm() {
 	prepare_access_token
 	
 	if [ "$is_success" == "more_action_need" ]; then
-		echo "Please retry secureboot-eanble-onboarding-from-vmi.sh after finishing above steps."
+		echo "Please retry secureboot-enable-onboarding-from-vmi.sh after finishing above steps."
 		return
 	fi
 
@@ -130,7 +130,7 @@ prepare_subscription_and_rg() {
 		az account set --subscription $subscription_id
 
 		if [ "$(az account show | grep $subscription_id)" == "" ]; then
-			echo "the logged in azure account don't belongs to subsciprtion: ${subscription_id}. Please check subscriptionId or contact subscription owner to add your account."	
+			echo "the logged in azure account doesn't belong to subscription: ${subscription_id}. Please check subscriptionId or contact subscription owner to add your account."	
 			is_success="failed"
 			return
 		fi 

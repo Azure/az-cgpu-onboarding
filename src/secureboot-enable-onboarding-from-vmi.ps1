@@ -98,7 +98,7 @@ function Auto-Onboard-CGPU-Multi-VM {
 		echo "Finished creating VM: '${vmname}'"
 	}
 	echo "******************************************************************************************"
-	echo "Please execute below commands to login to your VM(s)"
+	echo "Please execute below commands to login to your VM(s):"
 	for($i=1; $i -le $totalvmnumber; $i++) {
 		echo $vmlogincommands[$i]
 	}
