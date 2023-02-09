@@ -156,7 +156,7 @@ prepare_subscription_and_rg() {
 	fi 
 	
 	echo "SubscriptionId validation success."
-	echo "Checking reource group...."
+	echo "Checking resource group...."
 	if [ $(az group exists --name $rg) == false ]; then
     	echo "Resource group ${rg} does not exits, start creating resource group ${rg}"
     	az group create --name ${rg} --location eastus2
