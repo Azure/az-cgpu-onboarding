@@ -55,9 +55,25 @@ function Auto-Onboard-CGPU-Multi-VM {
 	echo "Tenant id: ${tenantid}"
 	echo "subscription id: ${subscriptionid}"
 	echo "Resource group: ${rg}"
+
 	echo "Public key path:  ${publickeypath}"
+	if (-not(Test-Path -Path $publickeypath -PathType Leaf)) {
+		echo "${public_key_path} does not exist, please verify file path"
+    	return
+	}
+
 	echo "Private key path:  ${privatekeypath}"
+	if (-not(Test-Path -Path $privatekeypath -PathType Leaf)) {
+		echo "${privatekeypath} does not exist, please verify file path"
+    	return
+	}
+
 	echo "Cgpu onboarding package path:  ${cgpupackagepath}"
+	if (-not(Test-Path -Path $cgpupackagepath -PathType Leaf)) {
+		echo "${privatekeypath} does not exist, please verify file path"
+    	return
+	}
+
 	echo "Admin user name:  ${adminusername}"
 	echo "Service principal id:  ${serviceprincipalid}"
 	echo "Service principal secret:  Hided"

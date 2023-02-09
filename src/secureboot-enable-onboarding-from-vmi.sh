@@ -52,12 +52,29 @@ auto_onboard_cgpu_multi_vm() {
 	    esac
 	done
 
+	# Log out input information.
 	echo "Tenant id: ${tenant_id}" 
 	echo "subscription id: ${subscription_id}" 
 	echo "Resource group: ${rg}" 
-	echo "Public key path:  ${public_key_path}"
+
+	echo "Public key path: ${public_key_path}" 
+	if [ ! -f "${public_key_path}" ]; then
+    	echo "${public_key_path} does not exist, please verify file path"
+    	return
+	fi
+
 	echo "Private key path:  ${private_key_path}"
+	if [ ! -f "${private_key_path}" ]; then
+    	echo "${private_key_path} does not exist, please verify file path"
+    	return
+	fi
+
 	echo "Cgpu onboarding package path:  ${cgpu_package_path}"
+	if [ ! -f "${cgpu_package_path}" ]; then
+    	echo "${cgpu_package_path} does not exist, please verify file path"
+    	return
+	fi
+
 	echo "Admin user name:  ${adminuser_name}"
 	echo "Service principal id:  ${service_principal_id}"
 	echo "Service principal secret:  Hided"
