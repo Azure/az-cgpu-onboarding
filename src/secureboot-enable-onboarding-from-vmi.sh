@@ -56,6 +56,7 @@ auto_onboard_cgpu_multi_vm() {
 	echo "Tenant id: ${tenant_id}" 
 	echo "subscription id: ${subscription_id}" 
 	echo "Resource group: ${rg}" 
+
 	echo "Public key path: ${public_key_path}" 
 
 	if [ ! -f "${public_key_path}" ]; then
@@ -80,9 +81,8 @@ auto_onboard_cgpu_multi_vm() {
 	echo "Service principal secret:  Hided"
 	echo "Vm Name prefix:  ${vmname_prefix}"
 	echo "Total VM number:  ${total_vm_number}"
+	
 	echo "clear previous acocunt info."
-
-	# clean previous login info.
 	az account clear
 	az login --tenant ${tenant_id}
 	az account set --subscription $subscription_id
@@ -93,7 +93,7 @@ auto_onboard_cgpu_multi_vm() {
 		return
 	fi
 
-	prepare_access_token
+	prepare_access_token "$@" 2>&1 | tee -a logs/all-operation.log
 	
 	if [ "$is_success" == "more_action_need" ]; then
 		echo "Please retry secureboot-enable-onboarding-from-vmi.sh after finishing above steps."
@@ -139,16 +139,16 @@ auto_onboard_cgpu_multi_vm() {
 }
 
 # login to subscription and check resource group. 
-# It will create an resource group if it doesn't exist.
+# It will create a resource group if it doesn't exist.
 prepare_subscription_and_rg() {
 	if [ "$(az account show | grep $subscription_id)" == "" ]; then
-		echo "Could't set to the correct subscription, please confirm and re-login with your azure account."
+		echo "Couldn't set to the correct subscription, please confirm and re-login with your azure account."
 		az account clear
 		az login
 		az account set --subscription $subscription_id
 
 		if [ "$(az account show | grep $subscription_id)" == "" ]; then
-			echo "the logged in azure account doesn't belong to subscription: ${subscription_id}. Please check subscriptionId or contact subscription owner to add your account."	
+			echo "The logged in azure account doesn't belong to subscription: ${subscription_id}. Please check the subscriptionId or contact your subscription owner to add your account."	
 			is_success="failed"
 			return
 		fi 
@@ -174,10 +174,10 @@ prepare_subscription_and_rg() {
 prepare_access_token() {
 	# check if service prinicipal has been provisioned to customer's tenant.
 	if [ "$(az ad sp list  --display-name "cgpu" | grep $service_principal_id)" == "" ]; then 
-		echo "Can not find service principal: ${service_principal_id} in tenant: ${tenant_id}."
+		echo "Cannot find service principal: ${service_principal_id} in tenant: ${tenant_id}."
 		echo "First time access Confidential Compute GPU Image needs to provision ${service_principal_id} to tenant: ${tenant_id}. "
 
-		echo "Please try below URL to import service principal and then retry the operation."
+		echo "Please try the below URL to import service principal and then retry the operation."
 		echo "------------------------------------------------------------------------------------------"
 		echo "https://login.microsoftonline.com/${tenant_id}/oauth2/authorize?client_id=${service_principal_id}&response_type=code&redirect_uri=https%3A%2F%2Fwww.microsoft.com%2F"
 		echo "------------------------------------------------------------------------------------------"
@@ -359,5 +359,9 @@ validation() {
 }
 
 if [[ "${#BASH_SOURCE[@]}" -eq 1 ]]; then
+    if [ ! -d "logs" ];
+    then
+        mkdir logs
+    fi
     auto_onboard_cgpu_multi_vm "$@"
 fi
