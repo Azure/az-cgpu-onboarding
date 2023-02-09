@@ -209,19 +209,17 @@ prepare_access_token() {
 	# get access token for image in Microsoft tenant.
 	az account clear
 	az login --service-principal -u $service_principal_id -p $service_principal_secret --tenant "72f988bf-86f1-41af-91ab-2d7cd011db47"
-	image_access_token=$(az account get-access-token)
-	if [ "$($image_access_token | grep "Bearer")" == "" ]; then
-		echo "Failed to get token from microsoft tenant. Please make sure the service principal id and service principal serect are correct."
-		echo "If it is continue failing, please contact Microsoft CGPU team for more information."
+	if [ "$(az account get-access-token | grep "Bearer")" == "" ]; then
+		echo "Failed to get token from microsoft tenant. Please make sure the service principal id and service principal secret are correct."
+		echo "If it continues to fail, please contact Microsoft CGPU team for more information."
 		is_success="failed"
 		return
 	fi
 
 	# get access token for customer's resource group.
 	az login --service-principal -u $service_principal_id -p $service_principal_secret --tenant $tenant_id
-	rg_access_token=$(az account get-access-token)
-	if [ "$($rg_access_token | grep "Bearer")" == "" ]; then
-		echo "Failed to get token from microsoft tenant. Please make sure the service principal id and service principal serect are correct."
+	if [ "$(az account get-access-token | grep "Bearer")" == "" ]; then
+		echo "Failed to get token from microsoft tenant. Please make sure the service principal id and service principal secret are correct."
 		echo "If it continues to fail, please contact Microsoft CGPU team for more information."
 		is_success="failed"
 		return
