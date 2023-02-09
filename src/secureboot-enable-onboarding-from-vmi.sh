@@ -60,11 +60,12 @@ auto_onboard_cgpu_multi_vm() {
 	echo "Cgpu onboarding package path:  ${cgpu_package_path}"
 	echo "Admin user name:  ${adminuser_name}"
 	echo "Service principal id:  ${service_principal_id}"
-	echo "Service principal secret:  Hided"
+	echo "Service principal secret:  Hidden"
 	echo "Vm Name prefix:  ${vmname_prefix}"
 	echo "Total VM number:  ${total_vm_number}"
+	echo ""
 
-	echo "clear previous acocunt info."
+	echo "Clear previous account info."
 	az account clear
 	az login --tenant ${tenant_id}
 	az account set --subscription $subscription_id
@@ -75,7 +76,7 @@ auto_onboard_cgpu_multi_vm() {
 		return
 	fi
 
-	prepare_access_token
+	prepare_access_token 2>&1 | tee -a logs/current-operation.log
 	
 	if [ "$is_success" == "more_action_need" ]; then
 		echo "Please retry secureboot-enable-onboarding-from-vmi.sh after finishing above steps."
@@ -124,7 +125,7 @@ auto_onboard_cgpu_multi_vm() {
 # It will create an resource group if it doesn't exist.
 prepare_subscription_and_rg() {
 	if [ "$(az account show | grep $subscription_id)" == "" ]; then
-		echo "Could't set to the correct subscription, please confirm and re-login with your azure account."
+		echo "Couldn't set to the correct subscription, please confirm and re-login with your azure account."
 		az account clear
 		az login
 		az account set --subscription $subscription_id
@@ -172,7 +173,7 @@ prepare_access_token() {
 
 	# check contributor role for service principal
 	if [ "$(az role assignment list --assignee $service_principal_id --resource-group $rg --role "Contributor" | grep "Contributor")" == "" ]; then
-		echo "Contributor role dosen't exist for resource group ${rg}."	
+		echo "Contributor role doesn't exist for resource group ${rg}."	
 		echo "Start creating Contributor role in target resource group ${rg} for service principal ${service_principal_id}."	
 		
 		# assign contributor role for service pricipal
@@ -182,7 +183,8 @@ prepare_access_token() {
 		echo "Service principal ${service_principal_id} contributor role has already been provisioned to target ${rg}"
 	fi 
 
-	if [ "$(az role assignment list --assignee $service_principal_id --resource-group $rg --role "Contributor" | grep "Contributor")" == "" ]; then
+	roles=$(az role assignment list --assignee $service_principal_id --resource-group $rg --role "Contributor")
+	if [ "$($roles | grep "Contributor")" == "" ]; then
 		echo "Create and Validate Contributor role failed in resource group: ${rg}."
 		is_success="failed"
 		return
@@ -191,7 +193,8 @@ prepare_access_token() {
 	# get access token for image in Microsoft tenant.
 	az account clear
 	az login --service-principal -u $service_principal_id -p $service_principal_secret --tenant "72f988bf-86f1-41af-91ab-2d7cd011db47"
-	if [ "$(az account get-access-token | grep "Bearer")" == "" ]; then
+	image_access_token=$(az account get-access-token)
+	if [ "$($image_access_token | grep "Bearer")" == "" ]; then
 		echo "Failed to get token from microsoft tenant. Please make sure the service principal id and service principal serect are correct."
 		echo "If it is continue failing, please contact Microsoft CGPU team for more information."
 		is_success="failed"
@@ -200,9 +203,10 @@ prepare_access_token() {
 
 	# get access token for customer's resource group.
 	az login --service-principal -u $service_principal_id -p $service_principal_secret --tenant $tenant_id
-	if [ "$(az account get-access-token | grep "Bearer")" == "" ]; then
+	rg_access_token=$(az account get-access-token)
+	if [ "$($rg_access_token | grep "Bearer")" == "" ]; then
 		echo "Failed to get token from microsoft tenant. Please make sure the service principal id and service principal serect are correct."
-		echo "If it is continue failing, please contact Microsoft CGPU team for more information."
+		echo "If it continues to fail, please contact Microsoft CGPU team for more information."
 		is_success="failed"
 		return
 	fi
@@ -217,7 +221,7 @@ auto_onboard_cgpu_single_vm() {
 	ip=$(az vm show -d -g $rg -n $vmname --query publicIps -o tsv)
 	vm_ssh_info=$adminuser_name@$ip
 	
-	echo "vm creation finished"
+	echo "VM creation finished"
 	echo $vm_ssh_info
 
 	# Upload customer onboarding package.
@@ -341,5 +345,10 @@ validation() {
 }
 
 if [[ "${#BASH_SOURCE[@]}" -eq 1 ]]; then
+    if [ ! -d "logs" ];
+    then
+        mkdir logs
+    fi
+
     auto_onboard_cgpu_multi_vm "$@"
 fi
