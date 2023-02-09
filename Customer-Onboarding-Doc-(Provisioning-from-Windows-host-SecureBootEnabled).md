@@ -110,7 +110,6 @@ If re-use the same resource group that has already been set up, no specific role
 #	-vmnameprefix "cgpu-test-vm" `
 #	-totalvmnumber 1
 
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 Import-Module .\secureboot-enable-onboarding-from-vmi.ps1
 Auto-Onboard-CGPU-Multi-VM `
 -tenantid "<tenant id>" `
