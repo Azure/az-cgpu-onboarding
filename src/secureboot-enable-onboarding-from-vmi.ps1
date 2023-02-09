@@ -60,7 +60,7 @@ function Auto-Onboard-CGPU-Multi-VM {
 	echo "Cgpu onboarding package path:  ${cgpupackagepath}"
 	echo "Admin user name:  ${adminusername}"
 	echo "Service principal id:  ${serviceprincipalid}"
-	echo "Service principal secret:  Hided"
+	echo "Service principal secret:  Hidden"
 	echo "Vm Name prefix:  ${vmnameprefix}"
 	echo "Total VM number:  ${totalvmnumber}"
 	echo ""
