@@ -183,8 +183,7 @@ prepare_access_token() {
 		echo "Service principal ${service_principal_id} contributor role has already been provisioned to target ${rg}"
 	fi 
 
-	roles=$(az role assignment list --assignee $service_principal_id --resource-group $rg --role "Contributor")
-	if [ "$($roles | grep "Contributor")" == "" ]; then
+	if [ "$(az role assignment list --assignee $service_principal_id --resource-group $rg --role "Contributor" | grep "Contributor")" == "" ]; then
 		echo "Create and Validate Contributor role failed in resource group: ${rg}."
 		is_success="failed"
 		return
