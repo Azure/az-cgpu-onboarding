@@ -53,7 +53,7 @@ function Auto-Onboard-CGPU-Multi-VM {
 
 
 	echo "Tenant id: ${tenantid}"
-	echo "subscription id: ${subscriptionid}"
+	echo "Subscription id: ${subscriptionid}"
 	echo "Resource group: ${rg}"
 
 	echo "Public key path:  ${publickeypath}"
@@ -76,19 +76,19 @@ function Auto-Onboard-CGPU-Multi-VM {
 
 	echo "Admin user name:  ${adminusername}"
 	echo "Service principal id:  ${serviceprincipalid}"
-	echo "Service principal secret:  Hided"
+	echo "Service principal secret:  Hidden"
 	echo "Vm Name prefix:  ${vmnameprefix}"
 	echo "Total VM number:  ${totalvmnumber}"
 	echo ""
 
 	echo "Clear previous account info."
 	az account clear
-	az login --tenant $tenantid
+	az login --tenant $tenantid 2>&1 | Out-File -filepath "$HOME\logs\login-operation.log"
 	az account set --subscription $subscriptionid
 	az account show
 
 	$global:issuccess = "succeeded"
-	Prepare-Subscription-And-Rg
+	Prepare-Subscription-And-Rg 2>&1 | Out-File -filepath "$HOME\logs\login-operation.log"
 	if ($global:issuccess -eq "failed") {
 		echo "Failed to Prepare-Subscription-And-Rg.."
 		return
@@ -159,7 +159,7 @@ function Prepare-Subscription-And-Rg {
 		}
 	}
 
-	echo "SubscriptionId validation success."
+	echo "SubscriptionId validation succeeded."
 	echo "Checking resource group...."
 	if ($(az group exists --name $rg) -eq $false )
 	{
@@ -171,10 +171,10 @@ function Prepare-Subscription-And-Rg {
 			$issuccess="failed"
 			return
 		}
-		echo "Resource group ${rg} create success."
+		echo "Resource group ${rg} creation succeeded."
 	}
 
-	echo "Resource group ${rg} validation Succeeded."
+	echo "Resource group ${rg} validation succeeded."
 }
 
 function Prepare-Access-Token {
@@ -227,7 +227,7 @@ function Auto-Onboard-CGPU-Single-VM{
 	 -cgpupackagepath $cgpupackagepath `
 	 -adminusername $adminusername
 	if ($global:issuccess -eq "failed") {
-		echo "failed to Package-Upload.."
+		echo "Failed to Package-Upload.."
 		return
 	}
 
@@ -235,15 +235,19 @@ function Auto-Onboard-CGPU-Single-VM{
 	Attestation -vmsshinfo $vmsshinfo `
 	 -privatekeypath $privatekeypath
 	if ($global:issuccess -eq "failed") {
-		echo "failed to Attestation.."
+		echo "Failed attestation.."
 		return
+	} 
+	else
+	{
+		echo "Passed attestation"
 	}
 
 	# Validation
 	Validation -vmsshinfo $vmsshinfo `
 	 -privatekeypath $privatekeypath
 	if ($global:issuccess -eq "failed") {
-		echo "failed to Validation.."
+		echo "Failed validation.."
 		return
 	}
 
@@ -326,8 +330,8 @@ function Attestation {
 	}
 	echo "VM connection success."
 
-	echo "Start attestation."
-	ssh  -i ${privatekeypath} ${vmsshinfo} "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh;"
+	echo "Starting attestation process - this may take up to 2 minutes."
+	echo $(ssh  -i ${privatekeypath} ${vmsshinfo} "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh;") 2>&1 | Out-File -filepath "$HOME\logs\attestation.log"
 	echo "Finished attestation."
 	$global:issuccess = "succeeded"
 }
@@ -415,11 +419,11 @@ function Validation {
 	if ($attestationresult -ne "GPU 0 verified successfully.")
 	{
 		$global:issuccess="failed"
-		echo "Failed: Attestation validation failed. Last attestation message: ${attestationresult}"
+		echo "Failed: Attestation validation failed. last attestation message: ${attestationresult}"
 	}
 	else
 	{
-		echo "Passed: Attestation validation passed. Last attestation message: ${attestationresult}"
+		echo "Passed: Attestation validation passed. last attestation message: ${attestationresult}"
 	}
 
 	echo "Finished cgpu capable validation."
