@@ -419,11 +419,11 @@ function Validation {
 	if ($attestationresult -ne "GPU 0 verified successfully.")
 	{
 		$global:issuccess="failed"
-		echo "Failed: Attestation validation failed. last attestation message: ${attestationresult}"
+		echo "Failed: Attestation validation failed. Last attestation message: ${attestationresult}"
 	}
 	else
 	{
-		echo "Passed: Attestation validation passed. last attestation message: ${attestationresult}"
+		echo "Passed: Attestation validation passed. Last attestation message: ${attestationresult}"
 	}
 
 	echo "Finished cgpu capable validation."
