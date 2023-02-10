@@ -51,6 +51,11 @@ function Auto-Onboard-CGPU-Multi-VM {
 		$vmnameprefix,
 		$totalvmnumber)
 
+	if (!(Test-Path "$HOME\logs\"))
+	{
+		New-Item -ItemType Directory -Force -Path "$HOME\logs\"
+		Write-Host "Created log file directory"
+	}
 
 	echo "Tenant id: ${tenantid}"
 	echo "Subscription id: ${subscriptionid}"
@@ -82,12 +87,6 @@ function Auto-Onboard-CGPU-Multi-VM {
 	echo ""
 
 	echo "Clear previous account info."
-
-	if (!(Test-Path "$HOME\logs\"))
-	{
-   		New-Item -ItemType Directory -Force -Path "$HOME\logs\"
-   		Write-Host "Created log file directory"
-	}
 	
 	az account clear
 	az login --tenant $tenantid 2>&1 | Out-File -filepath "$HOME\logs\login-operation.log"
@@ -101,7 +100,7 @@ function Auto-Onboard-CGPU-Multi-VM {
 		return
 	}
 
-	Prepare-Access-Token 2>&1 | Out-File -filepath "$HOME\logs\current-operation.log"
+	Prepare-Access-Token 2>&1 | Out-File -filepath "$HOME\logs\prepare-token.log"
 	
 	if ($global:issuccess -eq "failed") {
 		echo "Failed to Prepare-Access-Token.."
