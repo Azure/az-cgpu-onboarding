@@ -82,6 +82,13 @@ function Auto-Onboard-CGPU-Multi-VM {
 	echo ""
 
 	echo "Clear previous account info."
+
+	if (!(Test-Path "$HOME\logs\"))
+	{
+   		New-Item -ItemType Directory -Force -Path "$HOME\logs\"
+   		Write-Host "Created log file directory"
+	}
+	
 	az account clear
 	az login --tenant $tenantid 2>&1 | Out-File -filepath "$HOME\logs\login-operation.log"
 	az account set --subscription $subscriptionid
@@ -92,12 +99,6 @@ function Auto-Onboard-CGPU-Multi-VM {
 	if ($global:issuccess -eq "failed") {
 		echo "Failed to Prepare-Subscription-And-Rg.."
 		return
-	}
-	
-	if (!(Test-Path "$HOME\logs\"))
-	{
-   		New-Item -ItemType Directory -Force -Path "$HOME\logs\"
-   		Write-Host "Created log file directory"
 	}
 
 	Prepare-Access-Token 2>&1 | Out-File -filepath "$HOME\logs\current-operation.log"
