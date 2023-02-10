@@ -84,10 +84,10 @@ auto_onboard_cgpu_multi_vm() {
 
 	echo "Clear previous account info."
 	az account clear
-	az login --tenant ${tenant_id}
+	az login --tenant ${tenant_id} | tee -a logs/login-operation.log
 	az account set --subscription $subscription_id
 
-	prepare_subscription_and_rg
+	prepare_subscription_and_rg | tee -a logs/login-operation.log
 	if [ "$is_success" == "failed" ]; then
 		echo "failed to prepare_subscription_and_rg.."
 		return
@@ -269,7 +269,7 @@ upload_package() {
 attestation() {
 	echo "start attestation..."
 	try_connect
-	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh;"
+	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh;" | tee -a logs/attestation.log
 
 }
 
