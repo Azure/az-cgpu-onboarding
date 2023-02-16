@@ -104,6 +104,9 @@ auto_onboard_cgpu_multi_vm() {
 		echo "failed to prepare_access_token.."
 		return
 	fi
+
+	return
+	
 	# start Vm creation with number of specified VMs.
 	current_vm_count=1
 	successCount=0
