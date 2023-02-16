@@ -80,20 +80,20 @@ auto_onboard_cgpu_multi_vm() {
 	echo "Service principal secret:  Hidden"
 	echo "Vm Name prefix:  ${vmname_prefix}"
 	echo "Total VM number:  ${total_vm_number}"
-	echo ""
 
 	echo "Clear previous account info."
-	az account clear
-	az login --tenant ${tenant_id} | tee -a logs/login-operation.log
-	az account set --subscription $subscription_id
+	#az account clear
+	az login --tenant ${tenant_id} > logs/login-operation.log
+	az account set --subscription $subscription_id >>  logs/login-operation.log
 
-	prepare_subscription_and_rg | tee -a logs/login-operation.log
+	prepare_subscription_and_rg >> logs/login-operation.log
 	if [ "$is_success" == "failed" ]; then
-		echo "failed to prepare_subscription_and_rg.."
+		echo "failed to prepare_subscription_and_rg." 
 		return
 	fi
+	echo "prepare subscription and resource group success."
 
-	prepare_access_token 2>&1 | tee -a logs/current-operation.log
+	prepare_access_token | tee logs/prepare-token.log
 	
 	if [ "$is_success" == "more_action_need" ]; then
 		echo "Please retry secureboot-enable-onboarding-from-vmi.sh after finishing above steps."
@@ -101,11 +101,9 @@ auto_onboard_cgpu_multi_vm() {
 	fi
 
 	if [ "$is_success" == "failed" ]; then
-		echo "failed to prepare_access_token.."
+		echo "failed to prepare_access_token."
 		return
 	fi
-
-	return
 	
 	# start Vm creation with number of specified VMs.
 	current_vm_count=1
@@ -273,7 +271,6 @@ attestation() {
 	echo "start attestation..."
 	try_connect
 	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh;" | tee -a logs/attestation.log
-
 }
 
 # Try to connect to VM with 50 maximum retry.
@@ -367,5 +364,5 @@ if [[ "${#BASH_SOURCE[@]}" -eq 1 ]]; then
         mkdir logs
     fi
 
-    auto_onboard_cgpu_multi_vm "$@"
+    auto_onboard_cgpu_multi_vm "$@" | tee logs/current-operation.log
 fi
