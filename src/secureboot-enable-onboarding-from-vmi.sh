@@ -94,6 +94,7 @@ auto_onboard_cgpu_multi_vm() {
 	echo "prepare subscription and resource group success."
 
 	prepare_access_token | tee logs/prepare-token.log
+	echo "READ IS_SUCCESS=$is_success"
 	
 	if [ "$is_success" == "more_action_need" ]; then
 		echo "Please retry secureboot-enable-onboarding-from-vmi.sh after finishing above steps."
@@ -131,6 +132,18 @@ auto_onboard_cgpu_multi_vm() {
 	done
 
 	echo "Total VM to onboard: ${total_vm_number}, total Success: ${successCount}."
+	echo "******************************************************************************************"
+	echo "Please execute below commands to login to your VM:"
+	for ((i=1; i <= total_vm_number; i++))
+	do
+		echo "ssh -i $private_key_path ${vm_ssh_info_arr[i]}" 
+	done
+
+	echo "Please execute the below command to try attestation:"
+	echo "cd cgpu-onboarding-package; bash step-2-attestation.sh";
+	echo "Please execute the below command to try a sample workload:"
+	echo "cd; bash mnist_example.sh pytorch";
+	echo "******************************************************************************************"
 
 	az account clear
 	echo "------------------------------------------------------------------------------------------"
@@ -184,6 +197,7 @@ prepare_access_token() {
 		echo "------------------------------------------------------------------------------------------"
 
 		is_success="more_action_need"
+		echo "SET IS_SUCCESS=$is_success"
 		return
 	fi
 
@@ -209,7 +223,7 @@ prepare_access_token() {
 
 	# get access token for image in Microsoft tenant.
 	az account clear
-	az login --service-principal -u $service_principal_id -p $service_principal_secret --tenant "72f988bf-86f1-41af-91ab-2d7cd011db47"
+	az login --service-principal -u $service_principal_id -p $service_principal_secret --tenant "72f988bf-86f1-41af-91ab-2d7cd011db47" >> logs/prepare_token.log
 	if [ "$(az account get-access-token | grep "Bearer")" == "" ]; then
 		echo "Failed to get token from microsoft tenant. Please make sure the service principal id and service principal secret are correct."
 		echo "If it continues to fail, please contact Microsoft CGPU team for more information."
@@ -218,7 +232,7 @@ prepare_access_token() {
 	fi
 
 	# get access token for customer's resource group.
-	az login --service-principal -u $service_principal_id -p $service_principal_secret --tenant $tenant_id
+	az login --service-principal -u $service_principal_id -p $service_principal_secret --tenant $tenant_id >> logs/prepare_token.log
 	if [ "$(az account get-access-token | grep "Bearer")" == "" ]; then
 		echo "Failed to get token from microsoft tenant. Please make sure the service principal id and service principal secret are correct."
 		echo "If it continues to fail, please contact Microsoft CGPU team for more information."
@@ -233,6 +247,10 @@ prepare_access_token() {
 auto_onboard_cgpu_single_vm() {
 	local vmname=$1
 	create_vm $vmname
+	if [[ $is_success == "failed" ]]; then
+		echo "VM creation failed"
+		return
+	fi
 	ip=$(az vm show -d -g $rg -n $vmname --query publicIps -o tsv)
 	vm_ssh_info=$adminuser_name@$ip
 	
@@ -245,15 +263,9 @@ auto_onboard_cgpu_single_vm() {
 	# Attestation.
 	attestation
 
-	echo "******************************************************************************************"
-	echo "Please execute below command to login to your VM and try attestation:"
-	echo "ssh -i $private_key_path $vm_ssh_info" 
-	echo "cd cgpu-onboarding-package; bash step-2-attestation.sh";
-	echo "------------------------------------------------------------------------------------------"
-	echo "Please execute below command to login to your VM and try a sample workload:"
-	echo "ssh -i $private_key_path $vm_ssh_info" 
-	echo "bash mnist_example.sh pytorch";
-	echo "******************************************************************************************"
+	vm_ssh_info_arr[$current_vm_count]=$vm_ssh_info
+
+
 }
 
 # Upload_package to VM.
@@ -263,14 +275,15 @@ upload_package() {
 	scp -i $private_key_path $cgpu_package_path $vm_ssh_info:/home/$adminuser_name
 
 	echo "start extract package..."
-	ssh -i $private_key_path $vm_ssh_info "tar -zxvf cgpu-onboarding-package.tar.gz;"
+	ssh -i $private_key_path $vm_ssh_info "tar -zxvf cgpu-onboarding-package.tar.gz;" > /dev/null
 }
 
 # Do attestation in the created VMs.
 attestation() {
-	echo "start attestation..."
+	echo "start verifier installation and attestation..."
 	try_connect
-	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh;" | tee -a logs/attestation.log
+	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh;" > logs/attestation.log
+	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; cd $(ls -1 | grep verifier | head -1); python cc_admin.py"
 }
 
 # Try to connect to VM with 50 maximum retry.
@@ -305,6 +318,10 @@ create_vm() {
 	--size Standard_NCC24ads_A100_v4 \
 	--os-disk-size-gb 100 \
 	--verbose
+
+	if [[ $? -ne 0 ]]; then
+		is_success="failed"
+	fi
 }
 
 validation() {
@@ -366,3 +383,5 @@ if [[ "${#BASH_SOURCE[@]}" -eq 1 ]]; then
 
     auto_onboard_cgpu_multi_vm "$@" | tee logs/current-operation.log
 fi
+
+
