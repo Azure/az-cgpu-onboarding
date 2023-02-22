@@ -83,7 +83,7 @@ auto_onboard_cgpu_multi_vm() {
 
 	echo "Clear previous account info."
 	#az account clear
-	if [[ $(az account show | grep \"tenantId\": \"$tenant_id\") == "" ]] || [[ $(az account show | grep \"id\": \"$subscription_id\") == "" ]]; then
+	if [[ $(az account show | grep "\"tenantId\": \"$tenant_id\"") == "" ]] || [[ $(az account show | grep "\"id\": \"$subscription_id\"") == "" ]]; then
 		az login --tenant ${tenant_id} > logs/login-operation.log
 		az account set --subscription $subscription_id >>  logs/login-operation.log
 	fi
