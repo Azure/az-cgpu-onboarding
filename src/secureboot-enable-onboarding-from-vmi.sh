@@ -108,9 +108,8 @@ auto_onboard_cgpu_multi_vm() {
 	fi
 	
 	# start Vm creation with number of specified VMs.
-	current_vm_count=1
 	successCount=0
-	while [ $current_vm_count -le $total_vm_number ]
+	for ((current_vm_count=1; current_vm_count <= total_vm_number; current_vm_count++))
 	do
 		is_success="Succeeded"
 		if [ $current_vm_count == 1 ];
@@ -123,18 +122,15 @@ auto_onboard_cgpu_multi_vm() {
 
 		echo "vmname: ${vmname}";
 		auto_onboard_cgpu_single_vm $vmname
-		if [[ $is_success == "failed" ]];
+		if [[ $is_success != "failed" ]]
 		then
-			continue
+			validation
+			if [[ "$is_success" == "Succeeded" ]];
+			then 
+				successCount=$(($successCount+1))
+			fi
+			echo "Current number of VM finished: ${current_vm_count}, total Success: ${successCount}."
 		fi
-
-		validation
-		if [[ "$is_success" == "Succeeded" ]];
-		then 
-			successCount=$(($successCount+1))
-		fi
-		echo "Current number of VM finished: ${current_vm_count}, total Success: ${successCount}."
-		current_vm_count=$(($current_vm_count + 1))
 	done
 
 	echo "Total VM to onboard: ${total_vm_number}, total Success: ${successCount}."
@@ -163,20 +159,19 @@ auto_onboard_cgpu_multi_vm() {
 prepare_subscription_and_rg() {
 	if [ "$(az account show | grep $subscription_id)" == "" ]; then
 		print_error "Couldn't set to the correct subscription, please confirm and re-login with your azure account."
-		az account clear
-		az login
-		az account set --subscription $subscription_id
+		# az account clear
+		# az login
+		# az account set --subscription $subscription_id
 
-		if [ "$(az account show | grep $subscription_id)" == "" ]; then
-			print_error "The logged in azure account doesn't belong to subscription: ${subscription_id}. Please check subscriptionId or contact subscription owner to add your account."	
+		# if [ "$(az account show | grep $subscription_id)" == "" ]; then
+		# 	print_error "The logged in azure account doesn't belong to subscription: ${subscription_id}. Please check subscriptionId or contact subscription owner to add your account."	
 			is_success="failed"
 			return
-		fi 
-		
+		# fi 	
 	fi 
 	
-	echo "SubscriptionId validation success."
-	echo "Checking resource group...."
+	print_error "SubscriptionId validation success."
+	print_error "Checking resource group...."
 	if [ $(az group exists --name $rg) == false ]; then
     	print_error "Resource group ${rg} does not exits, start creating resource group ${rg}"
     	az group create --name ${rg} --location eastus2
@@ -185,10 +180,10 @@ prepare_subscription_and_rg() {
 			is_success="failed"
 			return
 		fi
-		echo "Resource group ${rg} create success."
+		print_error "Resource group ${rg} create success."
 	fi
 
-	echo "Resource group ${rg} validation Succeeded."
+	print_error "Resource group ${rg} validation Succeeded."
 }
 
 prepare_access_token() {
@@ -206,7 +201,7 @@ prepare_access_token() {
 		return
 	fi
 
-	echo "Validated Service prinicipal ${service_principal_id} has already been provisioned into ${tenant_id} "
+	print_error "Validated Service prinicipal ${service_principal_id} has already been provisioned into ${tenant_id} "
 
 	# check contributor role for service principal
 	if [ "$(az role assignment list --assignee $service_principal_id --resource-group $rg --role "Contributor" | grep "Contributor")" == "" ]; then
@@ -214,14 +209,14 @@ prepare_access_token() {
 		print_error "Start creating Contributor role in target resource group ${rg} for service principal ${service_principal_id}."	
 		
 		# assign contributor role for service pricipal
-		echo "Assign service principal Contributor role."
+		print_error "Assign service principal Contributor role."
 		az role assignment create --assignee $service_principal_id --role "Contributor" --resource-group $rg
 	else 
-		echo "Service principal ${service_principal_id} contributor role has already been provisioned to target ${rg}"
+		print_error "Service principal ${service_principal_id} contributor role has already been provisioned to target ${rg}"
 	fi 
 
 	if [ "$(az role assignment list --assignee $service_principal_id --resource-group $rg --role "Contributor" | grep "Contributor")" == "" ]; then
-		echo "Create and Validate Contributor role failed in resource group: ${rg}."
+		print_error "Create and Validate Contributor role failed in resource group: ${rg}."
 		is_success="failed"
 		return
 	fi
@@ -230,8 +225,8 @@ prepare_access_token() {
 	az account clear
 	az login --service-principal -u $service_principal_id -p $service_principal_secret --tenant "72f988bf-86f1-41af-91ab-2d7cd011db47" >> "$log_dir/prepare_token.log"
 	if [ "$(az account get-access-token | grep "Bearer")" == "" ]; then
-		echo "Failed to get token from microsoft tenant. Please make sure the service principal id and service principal secret are correct."
-		echo "If it continues to fail, please contact Microsoft CGPU team for more information."
+		print_error "Failed to get token from microsoft tenant. Please make sure the service principal id and service principal secret are correct."
+		print_error "If it continues to fail, please contact Microsoft CGPU team for more information."
 		is_success="failed"
 		return
 	fi
@@ -239,13 +234,13 @@ prepare_access_token() {
 	# get access token for customer's resource group.
 	az login --service-principal -u $service_principal_id -p $service_principal_secret --tenant $tenant_id >> "$log_dir/prepare_token.log"
 	if [ "$(az account get-access-token | grep "Bearer")" == "" ]; then
-		echo "Failed to get token from microsoft tenant. Please make sure the service principal id and service principal secret are correct."
-		echo "If it continues to fail, please contact Microsoft CGPU team for more information."
+		print_error "Failed to get token from microsoft tenant. Please make sure the service principal id and service principal secret are correct."
+		print_error "If it continues to fail, please contact Microsoft CGPU team for more information."
 		is_success="failed"
 		return
 	fi
 	
-	echo "Get access token success."
+	print_error "Get access token success."
 }
 
 # Create a single VM and onboard confidential gpu.
@@ -334,8 +329,8 @@ create_vm() {
 validation() {
 	echo "Validate Confidential GPU capability."	
 	try_connect
+
 	kernel_version=$(ssh -i $private_key_path $vm_ssh_info "sudo uname -r;")
-	
 	if [ "$kernel_version" != "5.15.0-1019-azure" ];
 	then
 		is_success="failed"
@@ -373,6 +368,8 @@ validation() {
 	fi
 
 	attestation_result=$(ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; bash step-2-attestation.sh | tail -1| sed -e 's/^[[:space:]]*//'")
+	# attestation_result=$(ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; cd $(ls -1 | grep verifier | head -1); python cc_admin.py")
+	# if [ echo "$attestation_result" | grep "GPU 0 verified successfully." == "" ];
 	if [ "$attestation_result" != "GPU 0 verified successfully." ];
 	then
 		is_success="failed"
