@@ -83,27 +83,26 @@ auto_onboard_cgpu_multi_vm() {
 
 	echo "Clear previous account info."
 	#az account clear
-	if [[ $(az account show | grep "\"tenantId\": \"$tenant_id\"") == "" ]] || [[ $(az account show | grep "\"id\": \"$subscription_id\"") == "" ]]; then
-		az login --tenant ${tenant_id} > logs/login-operation.log
-		az account set --subscription $subscription_id >>  logs/login-operation.log
-	fi
+	# if [[ $(az account show | grep "\"tenantId\": \"$tenant_id\"") == "" ]] || [[ $(az account show | grep "$subscription_id") == "" ]]; then
+	az login --tenant ${tenant_id} > "$log_dir/login-operation.log"
+	az account set --subscription $subscription_id >> "$log_dir/login-operation.log"
+	# fi
 
-	prepare_subscription_and_rg >> logs/login-operation.log
+	current_log_file="$log_dir/login-operation.log"
+	prepare_subscription_and_rg >> "$log_dir/login-operation.log"
 	if [ "$is_success" == "failed" ]; then
 		echo "failed to prepare_subscription_and_rg." 
 		return
 	fi
 	echo "prepare subscription and resource group success."
 
-	prepare_access_token | tee logs/prepare-token.log
-	echo "READ IS_SUCCESS=$is_success"
+	current_log_file="$log_dir/prepare-token.log"
+	prepare_access_token > "$log_dir/prepare-token.log"
 	
 	if [ "$is_success" == "more_action_need" ]; then
 		echo "Please retry secureboot-enable-onboarding-from-vmi.sh after finishing above steps."
 		return
-	fi
-
-	if [ "$is_success" == "failed" ]; then
+	elif [ "$is_success" == "failed" ]; then
 		echo "failed to prepare_access_token."
 		return
 	fi
@@ -124,8 +123,13 @@ auto_onboard_cgpu_multi_vm() {
 
 		echo "vmname: ${vmname}";
 		auto_onboard_cgpu_single_vm $vmname
+		if [[ $is_success == "failed" ]];
+		then
+			continue
+		fi
+
 		validation
-		if [ "$is_success" == "Succeeded" ];
+		if [[ "$is_success" == "Succeeded" ]];
 		then 
 			successCount=$(($successCount+1))
 		fi
@@ -158,13 +162,13 @@ auto_onboard_cgpu_multi_vm() {
 # It will create an resource group if it doesn't exist.
 prepare_subscription_and_rg() {
 	if [ "$(az account show | grep $subscription_id)" == "" ]; then
-		echo "Couldn't set to the correct subscription, please confirm and re-login with your azure account."
+		print_error "Couldn't set to the correct subscription, please confirm and re-login with your azure account."
 		az account clear
 		az login
 		az account set --subscription $subscription_id
 
 		if [ "$(az account show | grep $subscription_id)" == "" ]; then
-			echo "the logged in azure account doesn't belong to subscription: ${subscription_id}. Please check subscriptionId or contact subscription owner to add your account."	
+			print_error "The logged in azure account doesn't belong to subscription: ${subscription_id}. Please check subscriptionId or contact subscription owner to add your account."	
 			is_success="failed"
 			return
 		fi 
@@ -174,10 +178,10 @@ prepare_subscription_and_rg() {
 	echo "SubscriptionId validation success."
 	echo "Checking resource group...."
 	if [ $(az group exists --name $rg) == false ]; then
-    	echo "Resource group ${rg} does not exits, start creating resource group ${rg}"
+    	print_error "Resource group ${rg} does not exits, start creating resource group ${rg}"
     	az group create --name ${rg} --location eastus2
 		if [ $(az group exists --name $rg) == false ]; then
-			echo "rg creation failed, please check if your subscription is correct."
+			print_error "rg creation failed, please check if your subscription is correct."
 			is_success="failed"
 			return
 		fi
@@ -190,16 +194,15 @@ prepare_subscription_and_rg() {
 prepare_access_token() {
 	# check if service prinicipal has been provisioned to customer's tenant.
 	if [ "$(az ad sp list  --display-name "cgpu" | grep $service_principal_id)" == "" ]; then 
-		echo "Can not find service principal: ${service_principal_id} in tenant: ${tenant_id}."
-		echo "First time access Confidential Compute GPU Image needs to provision ${service_principal_id} to tenant: ${tenant_id}. "
+		print_error "Can not find service principal: ${service_principal_id} in tenant: ${tenant_id}."
+		print_error "First time access Confidential Compute GPU Image needs to provision ${service_principal_id} to tenant: ${tenant_id}. "
 
-		echo "Please try below URL to import service principal and then retry the operation."
-		echo "------------------------------------------------------------------------------------------"
-		echo "https://login.microsoftonline.com/${tenant_id}/oauth2/authorize?client_id=${service_principal_id}&response_type=code&redirect_uri=https%3A%2F%2Fwww.microsoft.com%2F"
-		echo "------------------------------------------------------------------------------------------"
+		print_error "Please try below URL to import service principal and then retry the operation."
+		print_error "------------------------------------------------------------------------------------------"
+		print_error "https://login.microsoftonline.com/${tenant_id}/oauth2/authorize?client_id=${service_principal_id}&response_type=code&redirect_uri=https%3A%2F%2Fwww.microsoft.com%2F"
+		print_error "------------------------------------------------------------------------------------------"
 
 		is_success="more_action_need"
-		echo "SET IS_SUCCESS=$is_success"
 		return
 	fi
 
@@ -207,8 +210,8 @@ prepare_access_token() {
 
 	# check contributor role for service principal
 	if [ "$(az role assignment list --assignee $service_principal_id --resource-group $rg --role "Contributor" | grep "Contributor")" == "" ]; then
-		echo "Contributor role doesn't exist for resource group ${rg}."	
-		echo "Start creating Contributor role in target resource group ${rg} for service principal ${service_principal_id}."	
+		print_error "Contributor role doesn't exist for resource group ${rg}."	
+		print_error "Start creating Contributor role in target resource group ${rg} for service principal ${service_principal_id}."	
 		
 		# assign contributor role for service pricipal
 		echo "Assign service principal Contributor role."
@@ -225,7 +228,7 @@ prepare_access_token() {
 
 	# get access token for image in Microsoft tenant.
 	az account clear
-	az login --service-principal -u $service_principal_id -p $service_principal_secret --tenant "72f988bf-86f1-41af-91ab-2d7cd011db47" >> logs/prepare_token.log
+	az login --service-principal -u $service_principal_id -p $service_principal_secret --tenant "72f988bf-86f1-41af-91ab-2d7cd011db47" >> "$log_dir/prepare_token.log"
 	if [ "$(az account get-access-token | grep "Bearer")" == "" ]; then
 		echo "Failed to get token from microsoft tenant. Please make sure the service principal id and service principal secret are correct."
 		echo "If it continues to fail, please contact Microsoft CGPU team for more information."
@@ -234,7 +237,7 @@ prepare_access_token() {
 	fi
 
 	# get access token for customer's resource group.
-	az login --service-principal -u $service_principal_id -p $service_principal_secret --tenant $tenant_id >> logs/prepare_token.log
+	az login --service-principal -u $service_principal_id -p $service_principal_secret --tenant $tenant_id >> "$log_dir/prepare_token.log"
 	if [ "$(az account get-access-token | grep "Bearer")" == "" ]; then
 		echo "Failed to get token from microsoft tenant. Please make sure the service principal id and service principal secret are correct."
 		echo "If it continues to fail, please contact Microsoft CGPU team for more information."
@@ -284,7 +287,7 @@ upload_package() {
 attestation() {
 	echo "start verifier installation and attestation..."
 	try_connect
-	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh;" > logs/attestation.log
+	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh;" > "$log_dir/attestation.log"
 	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; cd $(ls -1 | grep verifier | head -1); python cc_admin.py"
 }
 
@@ -292,10 +295,12 @@ attestation() {
 try_connect() {
 	#echo "start try connect"
 	connectionoutput="disconnected"
-	while [ "$connectionoutput" != "connected" ];
+	MAX_RETRY=50
+	retry=0
+	while [[ "$connectionoutput" != "connected" ]] && [[ $retries < $MAX_RETRY ]];
 	do
 		#echo "try to connect:"
-		connectionoutput=$(ssh -i $private_key_path -o "StrictHostKeyChecking no" $vm_ssh_info "sudo echo 'connected';")
+		connectionoutput=$(ssh -i $private_key_path -o "StrictHostKeyChecking no" $vm_ssh_info "echo 'connected';")
 		echo $connectionoutput
 	done
 }
@@ -377,13 +382,17 @@ validation() {
 	fi
 }
 
-if [[ "${#BASH_SOURCE[@]}" -eq 1 ]]; then
-    if [ ! -d "logs" ];
-    then
-        mkdir logs
-    fi
+print_error() {
+	echo $1 1>&2
+	echo $1 >> "$current_log_file"
+}
 
-    auto_onboard_cgpu_multi_vm "$@" | tee logs/current-operation.log
+if [[ "${#BASH_SOURCE[@]}" -eq 1 ]]; then
+	log_time=$(date '+%Y-%m-%d-%H%M%S')
+	log_dir="logs/$log_time"
+	mkdir -p "$log_dir"
+
+    auto_onboard_cgpu_multi_vm "$@" 2>&1 | tee "$log_dir/current-operation.log"
 fi
 
 
