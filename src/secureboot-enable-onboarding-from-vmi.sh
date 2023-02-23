@@ -283,7 +283,7 @@ attestation() {
 	echo "start verifier installation and attestation..."
 	try_connect
 	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh;" > "$log_dir/attestation.log"
-	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; cd $(ls -1 | grep verifier | head -1); python cc_admin.py"
+	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; cd $(ls -1 | grep verifier | head -1); python3 cc_admin.py"
 }
 
 # Try to connect to VM with 50 maximum retry.
