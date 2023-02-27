@@ -95,7 +95,7 @@ auto_onboard_cgpu_multi_vm() {
 	echo "prepare subscription and resource group success."
 
 	current_log_file="$log_dir/prepare-token.log"
-	prepare_access_token > "$log_dir/prepare-token.log"
+	# prepare_access_token > "$log_dir/prepare-token.log"
 	
 	if [ "$is_success" == "more_action_need" ]; then
 		echo "Please retry secureboot-enable-onboarding-from-vmi.sh after finishing above steps."
@@ -243,7 +243,7 @@ auto_onboard_cgpu_single_vm() {
 		return
 	fi
 	# ip=$(az vm show -d -g $rg -n $vmname --query publicIps -o tsv)
-	ip="10.0.0.5"
+	ip=$(az vm show -d -g $rg -n $vmname --query privateIps -o tsv)
 	vm_ssh_info=$adminuser_name@$ip
 	
 	echo "VM creation finished"
