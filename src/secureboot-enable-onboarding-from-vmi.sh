@@ -82,7 +82,7 @@ auto_onboard_cgpu_multi_vm() {
 	echo "Total VM number:  ${total_vm_number}"
 
 	echo "Clear previous account info."
-	#az account clear
+	# az account clear
 	az login --tenant ${tenant_id} > "$log_dir/login-operation.log"
 	az account set --subscription $subscription_id >> "$log_dir/login-operation.log"
 
@@ -95,7 +95,7 @@ auto_onboard_cgpu_multi_vm() {
 	echo "prepare subscription and resource group success."
 
 	current_log_file="$log_dir/prepare-token.log"
-	# prepare_access_token > "$log_dir/prepare-token.log"
+	prepare_access_token > "$log_dir/prepare-token.log"
 	
 	if [ "$is_success" == "more_action_need" ]; then
 		echo "Please retry secureboot-enable-onboarding-from-vmi.sh after finishing above steps."
@@ -359,10 +359,8 @@ validation() {
 
 	fi
 
-	# attestation_result=$(ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; bash step-2-attestation.sh | tail -1| sed -e 's/^[[:space:]]*//'")
-	attestation_result=$(ssh -i $private_key_path $vm_ssh_info 'cd cgpu-onboarding-package/$(ls -1 cgpu-onboarding-package | grep verifier | head -1); sudo python3 cc_admin.py')
-	if [[ $(echo "$attestation_result" | grep "GPU 0 verified successfully.") == "" ]];
-	# if [ "$attestation_result" != "GPU 0 verified successfully." ];
+	attestation_result=$(ssh -i $private_key_path $vm_ssh_info 'cd cgpu-onboarding-package/$(ls -1 cgpu-onboarding-package | grep verifier | head -1); sudo python3 cc_admin.py' | tail -1 | sed -e 's/^[[:space:]]*//')
+	if [ "$attestation_result" != "GPU 0 verified successfully." ];
 	then
 		is_success="failed"
 		echo "Failed: Attestation validation failed. last attestation message: ${attestation_result}"
