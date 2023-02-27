@@ -83,10 +83,6 @@ cd cgpu-sb-enable-vmi-onboarding
 
 - Execute cgpu onboarding script.
 Note: First time deployment will need subscription owner/administrator to execute the script to set up access to shared image. ([Learn about owner/administrator role](https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-portal-subscription-admin))
-You may also have to enable permissions on your system to run this script the first time around: 
-```
-Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy Unrestricted
-```
 If re-use the same resource group that has already been set up, no specific role required as the Service Principal already have associated access. 
 ```
 # This script will help to get you authenticated with Microsoft tenant 
@@ -110,6 +106,7 @@ If re-use the same resource group that has already been set up, no specific role
 #	-vmnameprefix "cgpu-test-vm" `
 #	-totalvmnumber 1
 
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 Import-Module .\secureboot-enable-onboarding-from-vmi.ps1
 Auto-Onboard-CGPU-Multi-VM `
 -tenantid "<tenant id>" `
