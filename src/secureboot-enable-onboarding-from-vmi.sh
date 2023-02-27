@@ -83,10 +83,8 @@ auto_onboard_cgpu_multi_vm() {
 
 	echo "Clear previous account info."
 	#az account clear
-	# if [[ $(az account show | grep "\"tenantId\": \"$tenant_id\"") == "" ]] || [[ $(az account show | grep "$subscription_id") == "" ]]; then
 	az login --tenant ${tenant_id} > "$log_dir/login-operation.log"
 	az account set --subscription $subscription_id >> "$log_dir/login-operation.log"
-	# fi
 
 	current_log_file="$log_dir/login-operation.log"
 	prepare_subscription_and_rg >> "$log_dir/login-operation.log"
@@ -159,15 +157,8 @@ auto_onboard_cgpu_multi_vm() {
 prepare_subscription_and_rg() {
 	if [ "$(az account show | grep $subscription_id)" == "" ]; then
 		print_error "Couldn't set to the correct subscription, please confirm and re-login with your azure account."
-		# az account clear
-		# az login
-		# az account set --subscription $subscription_id
-
-		# if [ "$(az account show | grep $subscription_id)" == "" ]; then
-		# 	print_error "The logged in azure account doesn't belong to subscription: ${subscription_id}. Please check subscriptionId or contact subscription owner to add your account."	
-			is_success="failed"
-			return
-		# fi 	
+		is_success="failed"
+		return
 	fi 
 	
 	print_error "SubscriptionId validation success."
@@ -283,7 +274,7 @@ attestation() {
 	echo "start verifier installation and attestation..."
 	try_connect
 	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh;" > "$log_dir/attestation.log"
-	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; cd $(ls -1 | grep verifier | head -1); python3 cc_admin.py"
+	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package/$(ls -1 cgpu-onboarding-package | grep verifier | head -1); python3 cc_admin.py"
 }
 
 # Try to connect to VM with 50 maximum retry.
@@ -367,10 +358,10 @@ validation() {
 
 	fi
 
-	attestation_result=$(ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; bash step-2-attestation.sh | tail -1| sed -e 's/^[[:space:]]*//'")
-	# attestation_result=$(ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; cd $(ls -1 | grep verifier | head -1); python cc_admin.py")
-	# if [ echo "$attestation_result" | grep "GPU 0 verified successfully." == "" ];
-	if [ "$attestation_result" != "GPU 0 verified successfully." ];
+	# attestation_result=$(ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; bash step-2-attestation.sh | tail -1| sed -e 's/^[[:space:]]*//'")
+	attestation_result=$(ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package/$(ls -1 cgpu-onboarding-package | grep verifier | head -1); python3 cc_admin.py")
+	if [ echo "$attestation_result" | grep "GPU 0 verified successfully." == "" ];
+	# if [ "$attestation_result" != "GPU 0 verified successfully." ];
 	then
 		is_success="failed"
 		echo "Failed: Attestation validation failed. last attestation message: ${attestation_result}"
