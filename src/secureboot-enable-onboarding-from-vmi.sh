@@ -242,8 +242,8 @@ auto_onboard_cgpu_single_vm() {
 		echo "VM creation failed"
 		return
 	fi
-	# ip=$(az vm show -d -g $rg -n $vmname --query publicIps -o tsv)
-	ip=$(az vm show -d -g $rg -n $vmname --query privateIps -o tsv)
+	ip=$(az vm show -d -g $rg -n $vmname --query publicIps -o tsv)
+	# ip=$(az vm show -d -g $rg -n $vmname --query privateIps -o tsv)
 	vm_ssh_info=$adminuser_name@$ip
 	
 	echo "VM creation finished"
