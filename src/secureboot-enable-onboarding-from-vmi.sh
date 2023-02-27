@@ -281,10 +281,10 @@ attestation() {
 # Try to connect to VM with 50 maximum retry.
 try_connect() {
 	#echo "start try connect"
-	connectionoutput="disconnected"
 	MAX_RETRY=50
 	retry=0
-	while [[ "$connectionoutput" != "connected" ]] && [[ $retries < $MAX_RETRY ]];
+	false
+	while [[ "$?" != "0" ]] && [[ $retries < $MAX_RETRY ]];
 	do
 		#echo "try to connect:"
 		connectionoutput=$(ssh -i $private_key_path -o "StrictHostKeyChecking no" $vm_ssh_info "echo 'Connected to VM';")
