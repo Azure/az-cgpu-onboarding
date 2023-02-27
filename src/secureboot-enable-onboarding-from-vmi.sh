@@ -275,7 +275,7 @@ attestation() {
 	echo "start verifier installation and attestation..."
 	try_connect
 	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh;" > "$log_dir/attestation.log"
-	ssh -i $private_key_path $vm_ssh_info 'cd cgpu-onboarding-package/$(ls -1 cgpu-onboarding-package | grep verifier | head -1); python3 cc_admin.py'
+	ssh -i $private_key_path $vm_ssh_info 'cd cgpu-onboarding-package/$(ls -1 cgpu-onboarding-package | grep verifier | head -1); sudo python3 cc_admin.py'
 }
 
 # Try to connect to VM with 50 maximum retry.
@@ -360,8 +360,8 @@ validation() {
 	fi
 
 	# attestation_result=$(ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; bash step-2-attestation.sh | tail -1| sed -e 's/^[[:space:]]*//'")
-	attestation_result=$(ssh -i $private_key_path $vm_ssh_info 'cd cgpu-onboarding-package/$(ls -1 cgpu-onboarding-package | grep verifier | head -1); python3 cc_admin.py')
-	if [ echo "$attestation_result" | grep "GPU 0 verified successfully." == "" ];
+	attestation_result=$(ssh -i $private_key_path $vm_ssh_info 'cd cgpu-onboarding-package/$(ls -1 cgpu-onboarding-package | grep verifier | head -1); sudo python3 cc_admin.py')
+	if [[ $(echo "$attestation_result" | grep "GPU 0 verified successfully.") == "" ]];
 	# if [ "$attestation_result" != "GPU 0 verified successfully." ];
 	then
 		is_success="failed"
