@@ -286,7 +286,7 @@ try_connect() {
 	while [[ "$connectionoutput" != "connected" ]] && [[ $retries < $MAX_RETRY ]];
 	do
 		#echo "try to connect:"
-		connectionoutput=$(ssh -i $private_key_path -o "StrictHostKeyChecking no" $vm_ssh_info "echo 'connected';")
+		connectionoutput=$(ssh -i $private_key_path -o "StrictHostKeyChecking no" $vm_ssh_info "echo 'Connected to VM';")
 		echo $connectionoutput
 	done
 }
