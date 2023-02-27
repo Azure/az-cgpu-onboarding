@@ -51,7 +51,6 @@ function Auto-Onboard-CGPU-Multi-VM {
 		$vmnameprefix,
 		$totalvmnumber)
 
-			 if ($vmssinfo.Contains('D'))
 
 
 	if (!(Test-Path "$HOME\logs\"))
