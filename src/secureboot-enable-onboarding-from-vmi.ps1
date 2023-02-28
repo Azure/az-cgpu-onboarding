@@ -52,8 +52,15 @@ function Auto-Onboard-CGPU-Multi-VM {
 		$totalvmnumber)
 
 
+
+	if (!(Test-Path "$HOME\logs\"))
+	{
+		New-Item -ItemType Directory -Force -Path "$HOME\logs\"
+		Write-Host "Created log file directory"
+	}
+
 	echo "Tenant id: ${tenantid}"
-	echo "subscription id: ${subscriptionid}"
+	echo "Subscription id: ${subscriptionid}"
 	echo "Resource group: ${rg}"
 
 	echo "Public key path:  ${publickeypath}"
@@ -76,26 +83,29 @@ function Auto-Onboard-CGPU-Multi-VM {
 
 	echo "Admin user name:  ${adminusername}"
 	echo "Service principal id:  ${serviceprincipalid}"
-	echo "Service principal secret:  Hided"
+	echo "Service principal secret:  Hidden"
 	echo "Vm Name prefix:  ${vmnameprefix}"
 	echo "Total VM number:  ${totalvmnumber}"
+	echo ""
 
-	echo "clear previous account info."
+	echo "Clear previous account info."
+	
 	az account clear
-	az login --tenant $tenantid
+	az login --tenant $tenantid 2>&1 | Out-File -filepath "$HOME\logs\login-operation.log"
 	az account set --subscription $subscriptionid
 	az account show
 
 	$global:issuccess = "succeeded"
-	Prepare-Subscription-And-Rg
+	Prepare-Subscription-And-Rg 2>&1 | Out-File -filepath "$HOME\logs\login-operation.log"
 	if ($global:issuccess -eq "failed") {
-		echo "failed to Prepare-Subscription-And-Rg.."
+		echo "Failed to Prepare-Subscription-And-Rg.."
 		return
 	}
 
-	Prepare-Access-Token
+	Prepare-Access-Token 2>&1 | Out-File -filepath "$HOME\logs\prepare-token.log"
+	
 	if ($global:issuccess -eq "failed") {
-		echo "failed to Prepare-Access-Token.."
+		echo "Failed to Prepare-Access-Token.."
 		return
 	}
 
@@ -134,10 +144,10 @@ function Auto-Onboard-CGPU-Multi-VM {
 }
 
 function Prepare-Subscription-And-Rg {
-	echo "Prepare subscription and resource group. ${subscriptionid}"
+	echo "Prepare subscription and resource group: ${subscriptionid}"
 	if ( "$(az account show | Select-String $subscriptionid)" -eq "" )
 	{
-		echo "Could't set to the correct subscription, please confirm and re-login with your azure account."
+		echo "Couldn't set to the correct subscription, please confirm and re-login with your azure account."
 
 		az account clear
 		az login
@@ -145,17 +155,17 @@ function Prepare-Subscription-And-Rg {
 
 		if( "$(az account show | Select-String $subscriptionid)" -eq "")
 		{
-			echo "the logged in azure account don't belongs to subsciprtion: ${subscription_id}. Please check subscriptionId or contact subscription owner to add your account."
+			echo "The logged in azure account doesn't belongs to the subscription: ${subscription_id}. Please check subscriptionId or contact subscription owner to add your account."
 			$global:issuccess = "failed"
 			return
 		}
 	}
 
-	echo "SubscriptionId validation success."
-	echo "Checking reource group...."
+	echo "SubscriptionId validation succeeded."
+	echo "Checking resource group...."
 	if ($(az group exists --name $rg) -eq $false )
 	{
-    	echo "Resource group ${rg} does not exits, start creating resource group ${rg}"
+    	echo "Resource group ${rg} does not exist, start creating resource group ${rg}"
     	az group create --name ${rg} --location eastus2
 		if ( $(az group exists --name $rg) -eq $false )
 		{
@@ -163,10 +173,10 @@ function Prepare-Subscription-And-Rg {
 			$issuccess="failed"
 			return
 		}
-		echo "Resource group ${rg} create success."
+		echo "Resource group ${rg} creation succeeded."
 	}
 
-	echo "Resource group ${rg} validation Succeeded."
+	echo "Resource group ${rg} validation succeeded."
 }
 
 function Prepare-Access-Token {
@@ -175,7 +185,7 @@ function Prepare-Access-Token {
 	# check contributor role for service principal
 	if ( "$(az role assignment list --assignee $serviceprincipalid --resource-group $rg --role "Contributor" | Select-String "Contributor")" -eq "" )
 	{
-		echo "Contributor role dosen't exist for resource group ${rg}."
+		echo "Contributor role doesn't exist for resource group ${rg}."
 		echo "Start creating Contributor role in target resource group ${rg} for service principal ${serviceprincipalid}."
 
 		# assign contributor role for service principal
@@ -219,7 +229,7 @@ function Auto-Onboard-CGPU-Single-VM{
 	 -cgpupackagepath $cgpupackagepath `
 	 -adminusername $adminusername
 	if ($global:issuccess -eq "failed") {
-		echo "failed to Package-Upload.."
+		echo "Failed to Package-Upload.."
 		return
 	}
 
@@ -227,15 +237,19 @@ function Auto-Onboard-CGPU-Single-VM{
 	Attestation -vmsshinfo $vmsshinfo `
 	 -privatekeypath $privatekeypath
 	if ($global:issuccess -eq "failed") {
-		echo "failed to Attestation.."
+		echo "Failed attestation.."
 		return
+	} 
+	else
+	{
+		echo "Passed attestation"
 	}
 
 	# Validation
 	Validation -vmsshinfo $vmsshinfo `
 	 -privatekeypath $privatekeypath
 	if ($global:issuccess -eq "failed") {
-		echo "failed to Validation.."
+		echo "Failed validation.."
 		return
 	}
 
@@ -274,7 +288,7 @@ function VM-Creation {
 	return
 }
 
-#Upload cgpu-onboarding-package.tar.gz  to VM and extract it.
+#Upload cgpu-onboarding-package.tar.gz to VM and extract it.
 function Package-Upload {
 	param($vmsshinfo,
 		$adminusername,
@@ -318,8 +332,10 @@ function Attestation {
 	}
 	echo "VM connection success."
 
-	echo "Start attestation."
-	ssh  -i ${privatekeypath} ${vmsshinfo} "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh;"
+	echo "Starting attestation process - this may take up to 2 minutes."
+	echo $(ssh  -i ${privatekeypath} ${vmsshinfo} "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh;") 2>&1 | Out-File -filepath "$HOME\logs\attestation.log"
+	$attestationmessage=(Get-content -tail 20 $HOME\logs\attestation.log)
+	echo $attestationmessage
 	echo "Finished attestation."
 	$global:issuccess = "succeeded"
 }
@@ -385,7 +401,7 @@ function Validation {
 	if ($ccretrieve -ne "CC status: ON")
 	{
 		$global:issuccess="failed"
-		echo "Failed: Confidential Compute retrieve validation. current Confidential Compute retrieve state: ${ccretrieve}"
+		echo "Failed: Confidential Compute retrieve validation. Current Confidential Compute retrieve state: ${ccretrieve}"
 	}
 	else
 	{
@@ -396,22 +412,22 @@ function Validation {
 	if ($ccenvironment -ne "CC Environment: INTERNAL")
 	{
 		$global:issuccess="failed"
-		echo "Failed: Confidential Compute environment validation. current Confidential Compute environment state: ${ccenvironment}"
+		echo "Failed: Confidential Compute environment validation. Current Confidential Compute environment state: ${ccenvironment}"
 	}
 	else
 	{
-		echo "Passed: Confidential Compute environment validation. current Confidential Compute environment: ${ccenvironment}"
+		echo "Passed: Confidential Compute environment validation. Current Confidential Compute environment: ${ccenvironment}"
 	}
 
 	$attestationresult=$(ssh -i $privatekeypath $vmsshinfo "cd cgpu-onboarding-package; bash step-2-attestation.sh | tail -1| sed -e 's/^[[:space:]]*//'")
 	if ($attestationresult -ne "GPU 0 verified successfully.")
 	{
 		$global:issuccess="failed"
-		echo "Failed: Attestation validation failed. last attestation message: ${attestationresult}"
+		echo "Failed: Attestation validation failed. Last attestation message: ${attestationresult}"
 	}
 	else
 	{
-		echo "Passed: Attestation validation passed. last attestation message: ${attestationresult}"
+		echo "Passed: Attestation validation passed. Last attestation message: ${attestationresult}"
 	}
 
 	echo "Finished cgpu capable validation."
