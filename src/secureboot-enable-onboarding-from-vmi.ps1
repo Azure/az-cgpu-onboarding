@@ -334,6 +334,8 @@ function Attestation {
 
 	echo "Starting attestation process - this may take up to 2 minutes."
 	echo $(ssh  -i ${privatekeypath} ${vmsshinfo} "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh;") 2>&1 | Out-File -filepath "$HOME\logs\attestation.log"
+	$attestationmessage=(Get-content -tail 20 $HOME\logs\attestation.log)
+	echo $attestationmessage
 	echo "Finished attestation."
 	$global:issuccess = "succeeded"
 }
