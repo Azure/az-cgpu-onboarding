@@ -3,7 +3,7 @@
 ##
 ## Requirements: 
 ##      nvdia driver:       APM_470.10.07_5.11.0-1028.31.tar
-##      kenrel version:     5.15.0-1014-azure
+##      kernel version:     5.15.0-1014-azure
 ##
 ## Example: 
 ##      bash utilities-update-kernel.sh 
