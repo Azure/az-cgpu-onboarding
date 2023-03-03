@@ -16,10 +16,10 @@ Please make sure to follow all steps exactly as detailed. If you run into issues
 
 - [Onboarding Docs (Provisioning from Linux host)](Customer-Onboarding-Doc-(Provisioning-from-Linux-host-SecureBootDisabled).md)
 
+- [Onboarding Docs (Provisioning from Linux host secure-boot enabled)](Customer-Onboarding-Doc-(Provisioning-from-Linux-host-SecureBootEnabled).md)
+
 - [Onboarding Docs (Provisioning from Windows host)](Customer-Onboarding-Doc-(Provisioning-from-Windows-host-SecureBootDisabled).md)
 
 - [Onboarding Docs (Provisioning from Windows host secure-boot enabled)](Customer-Onboarding-Doc-(Provisioning-from-Windows-host-SecureBootEnabled).md)
-
-- [Onboarding Docs (Provisioning from Linux host secure-boot enabled)](Customer-Onboarding-Doc-(Provisioning-from-Linux-host-SecureBootEnabled).md)
 
 ## Contact Information
