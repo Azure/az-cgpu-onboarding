@@ -109,7 +109,7 @@ If re-use the same resource group that has already been set up, no specific role
 # -r "confidential-gpu-rg" \
 # -p "/home/username/.ssh/id_rsa.pub" \
 # -i "/home/username/.ssh/id_rsa"  \
-# -c "/cgpu-onboarding-package.tar.gz" \
+# -c "./cgpu-onboarding-package.tar.gz" \
 # -a "azuretestuser" \
 # -d "4082afe7-2bca-4f09-8cd1-a584c0520589" \
 # -x "FBw8......." \
