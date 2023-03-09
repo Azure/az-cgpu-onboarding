@@ -63,6 +63,7 @@ The key's randomart image is:
 # Please contact Azure Confidential Computing Team to get your <service principal ID> and <secret> for the Image Access.
 # Giving tenant access to the image requires provisioning a Service Principal into your tenant by requesting a sign-in using a browser. 
 # In the below link, replace <tenant ID> with your tenant ID for the tenant that you would like to create the VM with. 
+# If you do not know your tenant ID, it can be found in your Azure account, within the 'Switch Directory' option, under the 'Directory ID' column.
 # Replace <service principal ID> with the service principal ID that Microsoft shared with you. 
 # When done making the replacements, paste the URL into a browser and follow the sign-in prompts to sign into your tenant.
 
