@@ -108,7 +108,7 @@ If re-use the same resource group that has already been set up, no specific role
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 Import-Module .\secureboot-enable-onboarding-from-vmi.ps1
-Auto-Onboard-CGPU-Multi-VM `
+Secureboot-Enable-Onboarding-From-VMI `
 -tenantid "<tenant id>" `
 -subscriptionid "<subscription id>" `
 -rg "<resource group name>" `
