@@ -155,7 +155,7 @@ auto_onboard_cgpu_multi_vm() {
 	echo "# Optional: Clean up Contributor Role in your ResourceGroup."
 	echo "# az login --tenant ${tenant_id}"
 	echo "# az role assignment delete --assignee ${service_principal_id} --role \"Contributor\" --resource-group ${rg}"
-	echo "Detailed logs can be found at: ./logs/"
+	echo "Detailed logs can be found at: $log_dir"
 }
 
 # login to subscription and check resource group. 
