@@ -50,7 +50,6 @@ function Secureboot-Enable-Onboarding-From-VMI {
 		$vmnameprefix,
 		$totalvmnumber)
 
-
 		$logpath=$(Get-Date -Format "MM-dd-yyyy_HH-mm-ss")
 		if (!(Test-Path ".\logs\$logpath\"))
 		{
@@ -97,7 +96,6 @@ function Auto-Onboard-CGPU-Multi-VM {
 	echo "Service principal secret:  Hidden"
 	echo "Vm Name prefix:  ${vmnameprefix}"
 	echo "Total VM number:  ${totalvmnumber}"
-	echo ""
 
 	echo "Clear previous account info."
 	
@@ -112,8 +110,7 @@ function Auto-Onboard-CGPU-Multi-VM {
 		echo "Prepare-Subscription-And-Rg Failed"
 		return
 	}
-	else
-	{
+	else {
 		echo "Prepare-Subscription-And-Rg Succeeded"
 	}
 
@@ -123,8 +120,7 @@ function Auto-Onboard-CGPU-Multi-VM {
 		echo "Prepare-Access-Token Failed."
 		return
 	}
-	else
-	{
+	else {
 		echo "Prepare-Access-Token Succeeded"
 	}
 
@@ -161,7 +157,7 @@ function Auto-Onboard-CGPU-Multi-VM {
 	echo "# Optional: Clean up Contributor Role in your ResourceGroup."
 	echo "# az login --tenant ${tenant_id}"
 	echo "# az role assignment delete --assignee ${serviceprincipalid} --role \"Contributor\" --resource-group ${rg}"
-	echo "Logs can be found at: .\logs\$logpath"
+	echo "Detailed logs can be found at: .\logs\$logpath"
 }
 
 function Prepare-Subscription-And-Rg {
@@ -235,8 +231,7 @@ function Prepare-Access-Token {
 
 # Auto Create and Onboard Single CGPU VM for customer.
 function Auto-Onboard-CGPU-Single-VM{
-	param(
-		$vmname)
+	param($vmname)
 
 	# Create VM
  	$vmsshinfo=VM-Creation -rg $rg `
@@ -261,8 +256,7 @@ function Auto-Onboard-CGPU-Single-VM{
 		echo "Failed attestation.."
 		return
 	} 
-	else
-	{
+	else {
 		echo "Passed attestation"
 	}
 
