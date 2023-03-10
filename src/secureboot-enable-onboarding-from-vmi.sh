@@ -56,6 +56,11 @@ auto_onboard_cgpu_multi_vm() {
 	echo "Tenant id: ${tenant_id}" 
 	echo "subscription id: ${subscription_id}" 
 	echo "Resource group: ${rg}" 
+	
+	if [ "$(az --version | grep azure-cli)" == "" ]; then
+        echo "Azure CLI is not installed, please try install Azure CLI first: curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash"
+        return
+    	fi
 
 	echo "Public key path: ${public_key_path}" 
 	if [ ! -f "${public_key_path}" ]; then
