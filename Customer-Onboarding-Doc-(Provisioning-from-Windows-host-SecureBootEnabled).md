@@ -138,6 +138,14 @@ Please execute the below command to try attestation:
 cd cgpu-onboarding-package; bash step-2-attestation.sh
 Please execute the below command to try a sample workload:
 cd; bash mnist_example.sh pytorch
+******************************************************************************************
+Total VM to onboard: 2, total Success: 2.
+------------------------------------------------------------------------------------------
+# Optional: Clean up Contributor Role in your ResourceGroup.
+# az login --tenant
+# az role assignment delete --assignee ca75afe3-e329-4f2f-b845-e5de2534e5be --role \
+Contributor\ --resource-group <resource group name>
+Detailed logs can be found at: .\logs\<date time>
 ```
 
 ### Attestation
