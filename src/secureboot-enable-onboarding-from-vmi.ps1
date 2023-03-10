@@ -57,6 +57,12 @@ function Secureboot-Enable-Onboarding-From-VMI {
 			New-Item -ItemType Directory -Force -Path ".\logs\$logpath\"
 			Write-Host "Created log file directory"
 		}
+		
+		if ( "$(az --version | Select-String 'azure-cli')" -eq "" ) {
+			echo "Azure CLI is not installed, please try install Azure CLI first: https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-windows?tabs=powershell"
+			echo "Note: you might need to restart powershell after install."
+			return
+    		}
 
 		Auto-Onboard-CGPU-Multi-VM | Tee-Object -File .\logs\$logpath\current-operation
 	}
