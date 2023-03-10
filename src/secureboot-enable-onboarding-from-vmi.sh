@@ -295,7 +295,8 @@ try_connect() {
 # Create a single VM.
 create_vm() {
 	local vmname=$1
-	echo "start creating VM: '${vmname}'"
+	echo "Start creating VM: '${vmname}'"
+	echo "This process can take up to 10 minutes.
 
 	public_key_path_with_at="@$public_key_path"
 	
