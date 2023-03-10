@@ -127,20 +127,17 @@ Started cgpu capable validation.
 Passed: kernel validation. Current kernel: 5.15.0-1019-azure
 Passed: secure boot state validation. Current secure boot state: SecureBoot enabled
 Passed: Confidential Compute mode validation passed. Current Confidential Compute retrieve state: CC status: ON
-Passed: Confidential Compute environment validation. current Confidential Compute environment: CC Environment: INTERNAL
-Passed: Attestation validation passed. last attestation message: GPU 0 verified successfully.
+Passed: Confidential Compute environment validation. Current Confidential Compute environment: CC Environment: INTERNAL
+Passed: Attestation validation passed. Last attestation message: GPU 0 verified successfully.
 Finished cgpu capable validation.
+Finished creating VM: '<vm name>'
 ******************************************************************************************
-Please execute below command to login to your VM and try attestation:
-ssh -i E:\cgpu\.ssh\id_rsa azuretestuser@20.80.221.83
+Please execute below commands to login to your VM(s):
+ssh -i E:\cgpu\.ssh\id_rsa azuretestuser@IP
+Please execute the below command to try attestation:
 cd cgpu-onboarding-package; bash step-2-attestation.sh
-------------------------------------------------------------------------------------------
-Please execute below command to login to your VM and try a sample workload:
-ssh -i E:\cgpu\.ssh\id_rsa azuretestuser@20.80.221.83
-bash mnist_example.sh pytorch
-******************************************************************************************
-Total VM to onboard: 1, total Success: 1.
-
+Please execute the below command to try a sample workload:
+cd; bash mnist_example.sh pytorch
 ```
 
 ### Attestation
