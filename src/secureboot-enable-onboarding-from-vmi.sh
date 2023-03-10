@@ -272,7 +272,7 @@ upload_package() {
 
 # Do attestation in the created VMs.
 attestation() {
-	echo "start verifier installation and attestation..."
+	echo "Start verifier installation and attestation. This process can take up to 2 minutes."
 	try_connect
 	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh;" > "$log_dir/attestation.log"
 	ssh -i $private_key_path $vm_ssh_info 'cd cgpu-onboarding-package/$(ls -1 cgpu-onboarding-package | grep verifier | head -1); sudo python3 cc_admin.py'
