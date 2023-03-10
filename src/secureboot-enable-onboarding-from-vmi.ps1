@@ -265,6 +265,8 @@ function VM-Creation {
 		$vmname,
 		$adminusername,
 		$publickeypath)
+		
+	echo "Creating the VM can take up to 10 minutes."
 
 	$publickeypath="@${publickeypath}"
 	$result=az vm create `
