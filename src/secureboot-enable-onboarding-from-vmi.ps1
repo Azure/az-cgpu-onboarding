@@ -23,7 +23,7 @@
 #	totalvmnumber: the number of retry we want to perform.
 #
 # EG:
-#Auto-Onboard-CGPU-Multi-VM `
+#Secureboot-Enable-Onboarding-From-VMI `
 #-tenantid "8af6653d-c9c0-4957-ab01-615c7212a40b" `
 #-subscriptionid "9269f664-5a68-4aee-9498-40a701230eb2" `
 #-rg "cgpu-test-rg" `
