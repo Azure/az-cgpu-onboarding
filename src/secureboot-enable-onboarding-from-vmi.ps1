@@ -266,7 +266,7 @@ function VM-Creation {
 		$adminusername,
 		$publickeypath)
 		
-	echo "Creating the VM can take up to 10 minutes."
+	echo "Please wait, creating the VM can take up to 10 minutes."
 
 	$publickeypath="@${publickeypath}"
 	$result=az vm create `
@@ -334,7 +334,7 @@ function Attestation {
 	}
 	echo "VM connection success."
 
-	echo "Starting attestation process - this may take up to 2 minutes."
+	echo "Starting attestation process. Please wait, this may take up to 2 minutes."
 	echo $(ssh  -i ${privatekeypath} ${vmsshinfo} "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh;") 2>&1 | Out-File -filepath "$HOME\logs\attestation.log"
 	$attestationmessage=(Get-content -tail 20 $HOME\logs\attestation.log)
 	echo $attestationmessage
