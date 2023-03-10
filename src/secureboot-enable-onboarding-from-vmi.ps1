@@ -102,13 +102,13 @@ function Auto-Onboard-CGPU-Multi-VM {
 	az account show
 
 	$global:issuccess = "succeeded"
-	Prepare-Subscription-And-Rg 2>&1 | Out-File -filepath "$HOME\logs\login-operation.log"
+	Prepare-Subscription-And-Rg
 	if ($global:issuccess -eq "failed") {
 		echo "Failed to Prepare-Subscription-And-Rg.."
 		return
 	}
 
-	Prepare-Access-Token 2>&1 | Out-File -filepath "$HOME\logs\prepare-token.log"
+	Prepare-Access-Token
 	
 	if ($global:issuccess -eq "failed") {
 		echo "Failed to Prepare-Access-Token.."
@@ -155,9 +155,9 @@ function Prepare-Subscription-And-Rg {
 	{
 		echo "Couldn't set to the correct subscription, please confirm and re-login with your azure account."
 
-		az account clear
+		az account clear 2>&1 | Out-File -filepath "$HOME\logs\login-operation.log"
 		az login
-		az account set --subscription $subscriptionid
+		az account set --subscription $subscriptionid 2>&1 | Out-File -filepath "$HOME\logs\login-operation.log"
 
 		if( "$(az account show | Select-String $subscriptionid)" -eq "")
 		{
@@ -172,7 +172,7 @@ function Prepare-Subscription-And-Rg {
 	if ($(az group exists --name $rg) -eq $false )
 	{
     	echo "Resource group ${rg} does not exist, start creating resource group ${rg}"
-    	az group create --name ${rg} --location eastus2
+    	az group create --name ${rg} --location eastus2 2>&1 | Out-File -filepath "$HOME\logs\login-operation.log" 
 		if ( $(az group exists --name $rg) -eq $false )
 		{
 			echo "rg creation failed, please check if your subscription is correct."
@@ -196,7 +196,7 @@ function Prepare-Access-Token {
 
 		# assign contributor role for service principal
 		echo "Assign service pricipal Contributor role."
-		az role assignment create --assignee $serviceprincipalid --role "Contributor" --resource-group $rg
+		az role assignment create --assignee $serviceprincipalid --role "Contributor" --resource-group $rg 2>&1 | Out-File -filepath "$HOME\logs\prepare-token.log"
 
 	} else {
 		echo "Service principal ${serviceprincipalid} contributor role has already been provisioned to target ${rg}"
@@ -209,13 +209,13 @@ function Prepare-Access-Token {
 	}
 
 	# get access token for image in Microsoft tenant.
-	az account clear
-	az login --service-principal -u $serviceprincipalid -p $serviceprincipalsecret --tenant "72f988bf-86f1-41af-91ab-2d7cd011db47"
+	az account clear 2>&1 | Out-File -filepath "$HOME\logs\prepare-token.log"
+	az login --service-principal -u $serviceprincipalid -p $serviceprincipalsecret --tenant "72f988bf-86f1-41af-91ab-2d7cd011db47" 2>&1 | Out-File -filepath "$HOME\logs\prepare-token.log"
 	az account get-access-token
 
 	# get access token for customer's resource group.
-	az login --service-principal -u $serviceprincipalid -p $serviceprincipalsecret --tenant $tenantid
-	az account get-access-token
+	az login --service-principal -u $serviceprincipalid -p $serviceprincipalsecret --tenant $tenantid 2>&1 | Out-File -filepath "$HOME\logs\prepare-token.log"
+	az account get-access-token 2>&1 | Out-File -filepath "$HOME\logs\prepare-token.log"
 }
 
 # Auto Create and Onboard Single CGPU VM for customer.
