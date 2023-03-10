@@ -36,9 +36,8 @@
 #-vmnameprefix "cgpu-test" `
 #-totalvmnumber 2
 
-# Auto Create and Onboard Multiple CGPU VM for customer.
-function Auto-Onboard-CGPU-Multi-VM {
-	param(
+function Secureboot-Enable-Onboarding-From-VMI {
+		param(
 		$tenantid,
 		$subscriptionid,
 		$rg,
@@ -52,19 +51,19 @@ function Auto-Onboard-CGPU-Multi-VM {
 		$totalvmnumber)
 
 
+		$logpath=$(Get-Date -Format "MM-dd-yyyy_HH-mm-ss")
+		if (!(Test-Path ".\logs\$logpath\"))
+		{
+			New-Item -ItemType Directory -Force -Path ".\logs\$logpath\"
+			Write-Host "Created log file directory"
+		}
 
-	if (!(Test-Path ".\logs\"))
-	{
-		New-Item -ItemType Directory -Force -Path ".\logs\"
-		Write-Host "Created log file directory"
+		Auto-Onboard-CGPU-Multi-VM | Tee-Object -File .\logs\$logpath\current-operation
 	}
 
-	if ( "$(az --version | Select-String 'azure-cli')" -eq "" ) {
-        	echo "Azure CLI is not installed, please try install Azure CLI first: https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-windows?tabs=powershell"
-        	echo "Note: you might need to restart powershell after install."
-        return
-    	}
 
+# Auto Create and Onboard Multiple CGPU VM for customer.
+function Auto-Onboard-CGPU-Multi-VM {
 	echo "Tenant id: ${tenantid}"
 	echo "Subscription id: ${subscriptionid}"
 	echo "Resource group: ${rg}"
@@ -97,22 +96,30 @@ function Auto-Onboard-CGPU-Multi-VM {
 	echo "Clear previous account info."
 	
 	az account clear
-	az login --tenant $tenantid 2>&1 | Out-File -filepath ".\logs\login-operation.log"
+	az login --tenant $tenantid 2>&1 | Out-File -filepath ".\logs\$logpath\login-operation.log"
 	az account set --subscription $subscriptionid
 	az account show
 
 	$global:issuccess = "succeeded"
-	Prepare-Subscription-And-Rg
+	Prepare-Subscription-And-Rg 2>&1 | Out-File -filepath ".\logs\$logpath\login-operation.log"
 	if ($global:issuccess -eq "failed") {
-		echo "Failed to Prepare-Subscription-And-Rg.."
+		echo "Prepare-Subscription-And-Rg Failed"
 		return
 	}
+	else
+	{
+		echo "Prepare-Subscription-And-Rg Succeeded"
+	}
 
-	Prepare-Access-Token
+	Prepare-Access-Token 2>&1 | Out-File -filepath ".\logs\$logpath\prepare-token.log"
 	
 	if ($global:issuccess -eq "failed") {
-		echo "Failed to Prepare-Access-Token.."
+		echo "Prepare-Access-Token Failed."
 		return
+	}
+	else
+	{
+		echo "Prepare-Access-Token Succeeded"
 	}
 
 	$successcount = 0
@@ -129,6 +136,7 @@ function Auto-Onboard-CGPU-Multi-VM {
 
 		echo "Finished creating VM: '${vmname}'"
 	}
+
 	echo "******************************************************************************************"
 	echo "Please execute below commands to login to your VM(s):"
 	for($i=1; $i -le $totalvmnumber; $i++) {
@@ -147,6 +155,7 @@ function Auto-Onboard-CGPU-Multi-VM {
 	echo "# Optional: Clean up Contributor Role in your ResourceGroup."
 	echo "# az login --tenant ${tenant_id}"
 	echo "# az role assignment delete --assignee ${serviceprincipalid} --role \"Contributor\" --resource-group ${rg}"
+	echo "Logs can be found at: .\logs\$logpath"
 }
 
 function Prepare-Subscription-And-Rg {
@@ -155,9 +164,9 @@ function Prepare-Subscription-And-Rg {
 	{
 		echo "Couldn't set to the correct subscription, please confirm and re-login with your azure account."
 
-		az account clear 2>&1 | Out-File -filepath ".\logs\login-operation.log"
+		az account clear
 		az login
-		az account set --subscription $subscriptionid 2>&1 | Out-File -filepath ".\logs\login-operation.log"
+		az account set --subscription $subscriptionid
 
 		if( "$(az account show | Select-String $subscriptionid)" -eq "")
 		{
@@ -172,7 +181,7 @@ function Prepare-Subscription-And-Rg {
 	if ($(az group exists --name $rg) -eq $false )
 	{
     	echo "Resource group ${rg} does not exist, start creating resource group ${rg}"
-    	az group create --name ${rg} --location eastus2 2>&1 | Out-File -filepath ".\logs\login-operation.log" 
+    	az group create --name ${rg} --location eastus2
 		if ( $(az group exists --name $rg) -eq $false )
 		{
 			echo "rg creation failed, please check if your subscription is correct."
@@ -196,7 +205,7 @@ function Prepare-Access-Token {
 
 		# assign contributor role for service principal
 		echo "Assign service pricipal Contributor role."
-		az role assignment create --assignee $serviceprincipalid --role "Contributor" --resource-group $rg 2>&1 | Out-File -filepath ".\logs\prepare-token.log"
+		az role assignment create --assignee $serviceprincipalid --role "Contributor" --resource-group $rg
 
 	} else {
 		echo "Service principal ${serviceprincipalid} contributor role has already been provisioned to target ${rg}"
@@ -209,13 +218,13 @@ function Prepare-Access-Token {
 	}
 
 	# get access token for image in Microsoft tenant.
-	az account clear 2>&1 | Out-File -filepath ".\logs\prepare-token.log"
-	az login --service-principal -u $serviceprincipalid -p $serviceprincipalsecret --tenant "72f988bf-86f1-41af-91ab-2d7cd011db47" 2>&1 | Out-File -filepath ".\logs\prepare-token.log"
+	az account clear
+	az login --service-principal -u $serviceprincipalid -p $serviceprincipalsecret --tenant "72f988bf-86f1-41af-91ab-2d7cd011db47"
 	az account get-access-token
 
 	# get access token for customer's resource group.
-	az login --service-principal -u $serviceprincipalid -p $serviceprincipalsecret --tenant $tenantid 2>&1 | Out-File -filepath ".\logs\prepare-token.log"
-	az account get-access-token 2>&1 | Out-File -filepath ".\logs\prepare-token.log"
+	az login --service-principal -u $serviceprincipalid -p $serviceprincipalsecret --tenant $tenantid
+	az account get-access-token
 }
 
 # Auto Create and Onboard Single CGPU VM for customer.
@@ -271,8 +280,6 @@ function VM-Creation {
 		$vmname,
 		$adminusername,
 		$publickeypath)
-		
-	echo "Please wait, creating the VM can take up to 10 minutes."
 
 	$publickeypath="@${publickeypath}"
 	$result=az vm create `
@@ -340,9 +347,10 @@ function Attestation {
 	}
 	echo "VM connection success."
 
-	echo "Starting attestation process. Please wait, this may take up to 2 minutes."
-	echo $(ssh  -i ${privatekeypath} ${vmsshinfo} "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh;") 2>&1 | Out-File -filepath ".\logs\attestation.log"
-	$attestationmessage=(Get-content -tail 20 .\logs\attestation.log)
+	echo "Starting installing attestation package - this may take up to 5 minutes."
+	echo $(ssh  -i ${privatekeypath} ${vmsshinfo} "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh;") 2>&1 | Out-File -filepath ".\logs\$logpath\attestation.log"
+
+	$attestationmessage=(Get-content -tail 20 .\logs\$logpath\attestation.log)
 	echo $attestationmessage
 	echo "Finished attestation."
 	$global:issuccess = "succeeded"
