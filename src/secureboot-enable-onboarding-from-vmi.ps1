@@ -59,15 +59,15 @@ function Auto-Onboard-CGPU-Multi-VM {
 		Write-Host "Created log file directory"
 	}
 
-	echo "Tenant id: ${tenantid}"
-	echo "Subscription id: ${subscriptionid}"
-	echo "Resource group: ${rg}"
-	
 	if ( "$(az --version | Select-String 'azure-cli')" -eq "" ) {
         	echo "Azure CLI is not installed, please try install Azure CLI first: https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-windows?tabs=powershell"
         	echo "Note: you might need to restart powershell after install."
         return
     	}
+
+	echo "Tenant id: ${tenantid}"
+	echo "Subscription id: ${subscriptionid}"
+	echo "Resource group: ${rg}"
 
 	echo "Public key path:  ${publickeypath}"
 	if (-not(Test-Path -Path $publickeypath -PathType Leaf)) {
