@@ -38,8 +38,8 @@ auto_onboard_cgpu_multi_vm() {
 	while getopts t:s:r:p:i:c:a:v:d:x:n: flag
 	do
 	    case "${flag}" in
-			t) tenant_id=${OPTARG};;
-			s) subscription_id=${OPTARG};;
+		t) tenant_id=${OPTARG};;
+		s) subscription_id=${OPTARG};;
 	        r) rg=${OPTARG};;
 	        p) public_key_path=${OPTARG};;
 	        i) private_key_path=${OPTARG};;
@@ -97,7 +97,7 @@ auto_onboard_cgpu_multi_vm() {
 		echo "failed to prepare_subscription_and_rg." 
 		return
 	fi
-	echo "prepare subscription and resource group success."
+	echo "Prepared subscription and resource group successfully."
 
 	current_log_file="$log_dir/prepare-token.log"
 	prepare_access_token > "$log_dir/prepare-token.log"
@@ -106,7 +106,7 @@ auto_onboard_cgpu_multi_vm() {
 		echo "Please retry secureboot-enable-onboarding-from-vmi.sh after finishing above steps."
 		return
 	elif [ "$is_success" == "failed" ]; then
-		echo "failed to prepare_access_token."
+		echo "Failed to prepare_access_token."
 		return
 	fi
 	
@@ -155,6 +155,7 @@ auto_onboard_cgpu_multi_vm() {
 	echo "# Optional: Clean up Contributor Role in your ResourceGroup."
 	echo "# az login --tenant ${tenant_id}"
 	echo "# az role assignment delete --assignee ${service_principal_id} --role \"Contributor\" --resource-group ${rg}"
+	echo "Detailed logs can be found at: ./logs/"
 }
 
 # login to subscription and check resource group. 
