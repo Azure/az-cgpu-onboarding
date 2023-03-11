@@ -133,26 +133,18 @@ bash secureboot-enable-onboarding-from-vmi.sh  \
 Sample output:
 ******************************************************************************************
 Please execute below command to login to your VM and try attestation:
-ssh -i /home/xiaobwan/.ssh/id_rsa xiaobwan@172.177.164.26
+Please execute below commands to login to your VM:
+ssh -i /home/username/.ssh/id_rsa azuretestuser@IP
+Please execute the below command to try attestation:
 cd cgpu-onboarding-package; bash step-2-attestation.sh
-------------------------------------------------------------------------------------------
-Please execute below command to login to your VM and try a sample workload:
-ssh -i /home/xiaobwan/.ssh/id_rsa xiaobwan@172.177.164.26
-bash mnist_example.sh pytorch
+Please execute the below command to try a sample workload:
+cd; bash mnist_example.sh pytorch
 ******************************************************************************************
-Validate Confidential GPU capability.
-connected
-Passed: kernel validation. Current kernel: 5.15.0-1019-azure
-Passed: secure boot state validation. Current secure boot state: SecureBoot enabled
-Passed: Confidential Compute mode validation passed. Current Confidential Compute retrieve is CC status: ON
-Passed: Confidential Compute environment validation. current Confidential Compute environment is CC Environment: INTERNAL
-Passed: Attestation validation passed. last attestation message: GPU 0 verified successfully.
-Current number of VM finished: 1, total Success: 1.
-Total VM to onboard: 1, total Success: 1.
 ------------------------------------------------------------------------------------------
 # Optional: Clean up Contributor Role in your ResourceGroup.
-# az login --tenant 72f988bf-86f1-41af-91ab-2d7cd011db47
-# az role assignment delete --assignee 4082afe7-2bca-4f09-8cd1-a584c0520588 --role "Contributor" --resource-group confidential-gpu-rg
+# az login --tenant 8af6653d-c9c0-4957-ab01-615c7212a40b
+# az role assignment delete --assignee ca75afe3-e329-4f2f-b845-e5de2534e5be --role "Contributor" --resource-group confidential-gpu-rg
+# Detail Log can be found logs/<date time>
 ```
 
 ### Attestation
