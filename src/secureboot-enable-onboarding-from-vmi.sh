@@ -38,8 +38,8 @@ auto_onboard_cgpu_multi_vm() {
 	while getopts t:s:r:p:i:c:a:v:d:x:n: flag
 	do
 	    case "${flag}" in
-		t) tenant_id=${OPTARG};;
-		s) subscription_id=${OPTARG};;
+			t) tenant_id=${OPTARG};;
+			s) subscription_id=${OPTARG};;
 	        r) rg=${OPTARG};;
 	        p) public_key_path=${OPTARG};;
 	        i) private_key_path=${OPTARG};;
@@ -51,16 +51,16 @@ auto_onboard_cgpu_multi_vm() {
 	        n) total_vm_number=${OPTARG};;
 	    esac
 	done
-
+	
+	if [ "$(az --version | grep azure-cli)" == "" ]; then
+    	echo "Azure CLI is not installed, please try install Azure CLI first: curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash"
+    	return
+	fi
+	
 	# Log out input information.
 	echo "Tenant id: ${tenant_id}" 
 	echo "subscription id: ${subscription_id}" 
 	echo "Resource group: ${rg}" 
-	
-	if [ "$(az --version | grep azure-cli)" == "" ]; then
-        echo "Azure CLI is not installed, please try install Azure CLI first: curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash"
-        return
-    	fi
 
 	echo "Public key path: ${public_key_path}" 
 	if [ ! -f "${public_key_path}" ]; then
@@ -97,7 +97,7 @@ auto_onboard_cgpu_multi_vm() {
 		echo "failed to prepare_subscription_and_rg." 
 		return
 	fi
-	echo "Prepared subscription and resource group successfully."
+	echo "prepare subscription and resource group success."
 
 	current_log_file="$log_dir/prepare-token.log"
 	prepare_access_token > "$log_dir/prepare-token.log"
@@ -106,7 +106,7 @@ auto_onboard_cgpu_multi_vm() {
 		echo "Please retry secureboot-enable-onboarding-from-vmi.sh after finishing above steps."
 		return
 	elif [ "$is_success" == "failed" ]; then
-		echo "Failed to prepare_access_token."
+		echo "failed to prepare_access_token."
 		return
 	fi
 	
@@ -155,7 +155,7 @@ auto_onboard_cgpu_multi_vm() {
 	echo "# Optional: Clean up Contributor Role in your ResourceGroup."
 	echo "# az login --tenant ${tenant_id}"
 	echo "# az role assignment delete --assignee ${service_principal_id} --role \"Contributor\" --resource-group ${rg}"
-	echo "Detailed logs can be found at: ${log_dir}"
+	echo "# Detail Log can be found ${log_dir}"
 }
 
 # login to subscription and check resource group. 
@@ -278,7 +278,7 @@ upload_package() {
 
 # Do attestation in the created VMs.
 attestation() {
-	echo "Starting installing attestation package - this may take up to 5 minutes."
+	echo "Start verifier installation and attestation. Please wait, this process can take up to 2 minutes."
 	try_connect
 	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh;" > "$log_dir/attestation.log"
 	ssh -i $private_key_path $vm_ssh_info 'cd cgpu-onboarding-package/$(ls -1 cgpu-onboarding-package | grep verifier | head -1); sudo python3 cc_admin.py'
@@ -387,5 +387,3 @@ if [[ "${#BASH_SOURCE[@]}" -eq 1 ]]; then
 
     auto_onboard_cgpu_multi_vm "$@" 2>&1 | tee "$log_dir/current-operation.log"
 fi
-
-
