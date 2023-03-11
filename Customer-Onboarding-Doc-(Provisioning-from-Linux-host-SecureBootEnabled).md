@@ -63,6 +63,7 @@ The key's randomart image is:
 # Please contact Azure Confidential Computing Team to get your <service principal ID> and <secret> for the Image Access.
 # Giving tenant access to the image requires provisioning a Service Principal into your tenant by requesting a sign-in using a browser. 
 # In the below link, replace <tenant ID> with your tenant ID for the tenant that you would like to create the VM with. 
+# If you do not know your tenant ID, it can be found in your Azure account, within the 'Switch Directory' option, under the 'Directory ID' column.
 # Replace <service principal ID> with the service principal ID that Microsoft shared with you. 
 # When done making the replacements, paste the URL into a browser and follow the sign-in prompts to sign into your tenant.
 
@@ -109,7 +110,7 @@ If re-use the same resource group that has already been set up, no specific role
 # -r "confidential-gpu-rg" \
 # -p "/home/username/.ssh/id_rsa.pub" \
 # -i "/home/username/.ssh/id_rsa"  \
-# -c "/cgpu-onboarding-package.tar.gz" \
+# -c "./cgpu-onboarding-package.tar.gz" \
 # -a "azuretestuser" \
 # -d "4082afe7-2bca-4f09-8cd1-a584c0520589" \
 # -x "FBw8......." \
@@ -132,26 +133,18 @@ bash secureboot-enable-onboarding-from-vmi.sh  \
 Sample output:
 ******************************************************************************************
 Please execute below command to login to your VM and try attestation:
-ssh -i /home/xiaobwan/.ssh/id_rsa xiaobwan@172.177.164.26
+Please execute below commands to login to your VM:
+ssh -i /home/username/.ssh/id_rsa azuretestuser@IP
+Please execute the below command to try attestation:
 cd cgpu-onboarding-package; bash step-2-attestation.sh
-------------------------------------------------------------------------------------------
-Please execute below command to login to your VM and try a sample workload:
-ssh -i /home/xiaobwan/.ssh/id_rsa xiaobwan@172.177.164.26
-bash mnist_example.sh pytorch
+Please execute the below command to try a sample workload:
+cd; bash mnist_example.sh pytorch
 ******************************************************************************************
-Validate Confidential GPU capability.
-connected
-Passed: kernel validation. Current kernel: 5.15.0-1019-azure
-Passed: secure boot state validation. Current secure boot state: SecureBoot enabled
-Passed: Confidential Compute mode validation passed. Current Confidential Compute retrieve is CC status: ON
-Passed: Confidential Compute environment validation. current Confidential Compute environment is CC Environment: INTERNAL
-Passed: Attestation validation passed. last attestation message: GPU 0 verified successfully.
-Current number of VM finished: 1, total Success: 1.
-Total VM to onboard: 1, total Success: 1.
 ------------------------------------------------------------------------------------------
 # Optional: Clean up Contributor Role in your ResourceGroup.
-# az login --tenant 72f988bf-86f1-41af-91ab-2d7cd011db47
-# az role assignment delete --assignee 4082afe7-2bca-4f09-8cd1-a584c0520588 --role "Contributor" --resource-group confidential-gpu-rg
+# az login --tenant 8af6653d-c9c0-4957-ab01-615c7212a40b
+# az role assignment delete --assignee ca75afe3-e329-4f2f-b845-e5de2534e5be --role "Contributor" --resource-group confidential-gpu-rg
+# Detail Log can be found logs/<date time>
 ```
 
 ### Attestation
