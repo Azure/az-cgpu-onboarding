@@ -51,7 +51,12 @@ auto_onboard_cgpu_multi_vm() {
 	        n) total_vm_number=${OPTARG};;
 	    esac
 	done
-
+	
+	if [ "$(az --version | grep azure-cli)" == "" ]; then
+    	echo "Azure CLI is not installed, please try install Azure CLI first: curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash"
+    	return
+	fi
+	
 	# Log out input information.
 	echo "Tenant id: ${tenant_id}" 
 	echo "subscription id: ${subscription_id}" 
@@ -150,6 +155,7 @@ auto_onboard_cgpu_multi_vm() {
 	echo "# Optional: Clean up Contributor Role in your ResourceGroup."
 	echo "# az login --tenant ${tenant_id}"
 	echo "# az role assignment delete --assignee ${service_principal_id} --role \"Contributor\" --resource-group ${rg}"
+	echo "# Detail Log can be found ${log_dir}"
 }
 
 # login to subscription and check resource group. 
@@ -272,7 +278,7 @@ upload_package() {
 
 # Do attestation in the created VMs.
 attestation() {
-	echo "start verifier installation and attestation..."
+	echo "Start verifier installation and attestation. Please wait, this process can take up to 2 minutes."
 	try_connect
 	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh;" > "$log_dir/attestation.log"
 	ssh -i $private_key_path $vm_ssh_info 'cd cgpu-onboarding-package/$(ls -1 cgpu-onboarding-package | grep verifier | head -1); sudo python3 cc_admin.py'
@@ -295,7 +301,7 @@ try_connect() {
 # Create a single VM.
 create_vm() {
 	local vmname=$1
-	echo "start creating VM: '${vmname}'"
+	echo "Start creating VM: '${vmname}'. Please wait, this process can take up to 10 minutes."
 
 	public_key_path_with_at="@$public_key_path"
 	
@@ -381,5 +387,3 @@ if [[ "${#BASH_SOURCE[@]}" -eq 1 ]]; then
 
     auto_onboard_cgpu_multi_vm "$@" 2>&1 | tee "$log_dir/current-operation.log"
 fi
-
-
