@@ -11,7 +11,8 @@
 # 3: cgpu-sb-enable-vmi-onboarding.tar.gz containing linux onboarding script with onboarding package
 
 # Set all locations and paths
-$DropFolder="Drop"
+$DropFolder="..\..\drops"
+$PackageFolder="..\..\packages"
 $CgpuOnboardingPackageFolder="cgpuOnboardingPackage"
 $cgpuOnboardingPackage="cgpu-onboarding-package.tar.gz"
 $SbEnabledPackage="cgpu-sb-enable-vmi-onboarding"
@@ -42,10 +43,10 @@ function Build-Packages {
 
 function Make-Cgpu-Onboarding-Package {
 	# Lists out all files to be included in .tar.gz archive
-	[String[]]$files = "..\src\step-0-enroll-signing-key.sh", "..\src\step-1-install-gpu-driver.sh", 
-		"..\src\step-2-attestation.sh", "..\src\step-3-install-gpu-tools.sh", "..\src\utilities-update-kernel.sh",
-		"..\src\mnist-sample-workload.py", "..\src\nvidia.pref", ".\blobs\APM_470.10.12_5.15.0-1014.17.tar",
-		".\blobs\verifier_apm_pid3_5_1.tar"
+	[String[]]$files = "..\step-0-enroll-signing-key.sh", "..\step-1-install-gpu-driver.sh", 
+		"..\step-2-attestation.sh", "..\step-3-install-gpu-tools.sh", "..\utilities-update-kernel.sh",
+		"..\mnist-sample-workload.py", "..\nvidia.pref", "${PackageFolder}\APM_470.10.12_5.15.0-1014.17.tar",
+		"${PackageFolder}\verifier_apm_pid3_5_1.tar", "${PackageFolder}\linux_kernel_apm_sha256_cert.pem"
 	foreach($file in $files) {
 		Copy-Item $file -Destination $packageDestination -Force
 	}
@@ -62,12 +63,12 @@ function Make-Sb-Enabled-Packages {
 		New-Item -ItemType Directory -Force -Path $SbEnabledPackageDestination
 	}
 	Copy-Item $DropFolder\$cgpuOnboardingPackage -Destination $SbEnabledPackageDestination -Force
-	Copy-Item "..\src\secureboot-enable-onboarding-from-vmi.ps1" -Destination $SbEnabledPackageDestination -Force
+	Copy-Item "..\secureboot-enable-onboarding-from-vmi.ps1" -Destination $SbEnabledPackageDestination -Force
 	Compress-Archive -Path $SbEnabledPackageDestination -DestinationPath $DropFolder\cgpu-sb-enable-vmi-onboarding.zip -Force
 
 	# Generate linux (.tar.gz) secure-boot enabled package
 	"generating linux package"
-	Copy-Item "..\src\secureboot-enable-onboarding-from-vmi.sh" -Destination $SbEnabledPackageDestination
+	Copy-Item "..\secureboot-enable-onboarding-from-vmi.sh" -Destination $SbEnabledPackageDestination
 	Remove-Item ${SbEnabledPackageDestination}\secureboot-enable-onboarding-from-vmi.ps1
 	Set-Location $DropFolder
 	tar -czvf "${SbEnabledPackage}.tar.gz" -C $SbEnabledPackage .

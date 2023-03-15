@@ -7,10 +7,10 @@
 
 # Downloads the GPU driver and Nvidia verifier from given Azure storage location
 function Download-Blobs {
-    $resourceGroup="anjuli-cgpu-rg"
+    $resourceGroup="cgpu-resources"
     $storageAccountName="cgpu"
     $container="cgpucontainer"
-    $destination="./blobs"
+    $destination="..\..\packages"
 
     # Creates destination directory if it doesn't exist
     if (-not (Test-Path -Path $destination -PathType Container)) {
