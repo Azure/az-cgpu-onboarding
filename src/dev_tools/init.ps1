@@ -45,7 +45,10 @@ function Setup {
     # Logs in to Azure account
     Connect-AzAccount
     Set-AzContext -SubscriptionId "85c61f94-8912-4e82-900e-6ab44de9bdf8"
-
-    # Downloads all blobs from storage container
-    Download-Blobs
 }
+
+# Starts with Setup
+Setup
+
+# Then downloads all blobs from storage container
+Download-Blobs

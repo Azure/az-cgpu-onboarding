@@ -6,7 +6,7 @@
 #
 
 # Generates a 'Drop' folder that contains all 3 release packages:
-# 1: cgpu-onboarding-package.tar.gz containing vm bring-up scripts, driver, and verifier
+# 1: cgpu-onboarding-package.tar.gz containing VM bring-up scripts, driver, and verifier
 # 2: cgpu-sb-enable-vmi-onboarding.zip containing windows onboarding script with onboarding package
 # 3: cgpu-sb-enable-vmi-onboarding.tar.gz containing linux onboarding script with onboarding package
 
@@ -73,3 +73,5 @@ function Make-Sb-Enabled-Packages {
 	Set-Location $DropFolder
 	tar -czvf "${SbEnabledPackage}.tar.gz" -C $SbEnabledPackage .
 }
+
+Build-Packages
