@@ -47,7 +47,13 @@ function Make-Cgpu-Onboarding-Package {
 		"..\step-2-attestation.sh", "..\step-3-install-gpu-tools.sh", "..\utilities-update-kernel.sh",
 		"..\mnist-sample-workload.py", "..\nvidia.pref", "${PackageFolder}\APM_470.10.12_5.15.0-1014.17.tar",
 		"${PackageFolder}\verifier_apm_pid3_5_1.tar", "${PackageFolder}\linux_kernel_apm_sha256_cert.pem"
+
+	# Ensures each file will be in correct UNIX format
 	foreach($file in $files) {
+		$extn = [IO.Path]::GetExtension($file)
+		if ($extn -eq ".sh" ){
+			((Get-Content $file) -join "`n") + "`n" | Set-Content -NoNewline $file
+		}
 		Copy-Item $file -Destination $packageDestination -Force
 	}
 
