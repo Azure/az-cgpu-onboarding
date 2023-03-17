@@ -58,6 +58,7 @@ function Make-Cgpu-Onboarding-Package {
 	}
 
 	# Creates main .tar.gz
+	echo "generating customer-onboarding-package.tar.gz"
 	tar -czvf $cgpuOnboardingPackage -C $packageDestination .
 	Move-Item $cgpuOnboardingPackage $DropFolder -Force
 }
@@ -68,14 +69,23 @@ function Make-Sb-Enabled-Packages {
 	if (!(Test-Path $DropFolder\$SbEnabledPackage -PathType Container)) {
 		New-Item -ItemType Directory -Force -Path $SbEnabledPackageDestination
 	}
+	$powershellScript="..\secureboot-enable-onboarding-from-vmi.ps1"
 	Copy-Item $DropFolder\$cgpuOnboardingPackage -Destination $SbEnabledPackageDestination -Force
-	Copy-Item "..\secureboot-enable-onboarding-from-vmi.ps1" -Destination $SbEnabledPackageDestination -Force
+	if (Get-Content $powershellScript -Delimiter "`0" | Select-String "[^`r]`n")
+    {
+        $content = Get-Content $powershellScript
+        $content | Set-Content $powershellScript
+    }
+	Copy-Item "$powershellScript" -Destination $SbEnabledPackageDestination -Force
 	Compress-Archive -Path $SbEnabledPackageDestination -DestinationPath $DropFolder\cgpu-sb-enable-vmi-onboarding.zip -Force
 
 	# Generate linux (.tar.gz) secure-boot enabled package
 	"generating linux package"
-	Copy-Item "..\secureboot-enable-onboarding-from-vmi.sh" -Destination $SbEnabledPackageDestination
 	Remove-Item ${SbEnabledPackageDestination}\secureboot-enable-onboarding-from-vmi.ps1
+	$linuxScript="..\secureboot-enable-onboarding-from-vmi.sh"
+	$extn = [IO.Path]::GetExtension("${SbEnabledPackageDestination}\${linuxScript}")
+	((Get-Content $linuxScript) -join "`n") + "`n" | Set-Content -NoNewline $linuxScript
+	Copy-Item $linuxScript -Destination $SbEnabledPackageDestination
 	Set-Location $DropFolder
 	tar -czvf "${SbEnabledPackage}.tar.gz" -C $SbEnabledPackage .
 }
