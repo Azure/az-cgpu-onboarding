@@ -1,5 +1,13 @@
+import sys
+import subprocess
 import tensorflow as tf
-import tensorflow_datasets as tfds
+
+try:
+    import tensorflow_datasets as tfds
+except:
+    subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'tensorflow_datasets'])
+    import tensorflow_datasets as tfds
+
 
 tf.debugging.set_log_device_placement(True) 
 
