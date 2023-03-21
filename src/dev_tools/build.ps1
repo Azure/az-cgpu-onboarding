@@ -11,8 +11,8 @@
 # 3: cgpu-sb-enable-vmi-onboarding.tar.gz containing linux onboarding script with onboarding package
 
 # Set all locations and paths
-$DropFolder="..\..\drops"
-$PackageFolder="..\..\packages"
+$DropFolder="$PSScriptRoot\..\..\drops"
+$PackageFolder="$PSScriptRoot\..\..\packages"
 $CgpuOnboardingPackageFolder="cgpuOnboardingPackage"
 $cgpuOnboardingPackage="cgpu-onboarding-package.tar.gz"
 $SbEnabledPackage="cgpu-sb-enable-vmi-onboarding"
@@ -43,9 +43,9 @@ function Build-Packages {
 
 function Make-Cgpu-Onboarding-Package {
 	# Lists out all files to be included in .tar.gz archive
-	[String[]]$files = "..\step-0-enroll-signing-key.sh", "..\step-1-install-gpu-driver.sh", 
-		"..\step-2-attestation.sh", "..\step-3-install-gpu-tools.sh", "..\utilities-update-kernel.sh",
-		"..\mnist-sample-workload.py", "..\nvidia.pref", "${PackageFolder}\APM_470.10.12_5.15.0-1014.17.tar",
+	[String[]]$files = "$PSScriptRoot\..\step-0-enroll-signing-key.sh", "$PSScriptRoot\..\step-1-install-gpu-driver.sh", 
+		"$PSScriptRoot\..\step-2-attestation.sh", "$PSScriptRoot\..\step-3-install-gpu-tools.sh", "$PSScriptRoot\..\utilities-update-kernel.sh",
+		"$PSScriptRoot\..\mnist-sample-workload.py", "$PSScriptRoot\..\nvidia.pref", "${PackageFolder}\APM_470.10.12_5.15.0-1014.17.tar",
 		"${PackageFolder}\verifier_apm_pid3_5_1.tar", "${PackageFolder}\linux_kernel_apm_sha256_cert.pem"
 
 	# Ensures each file will be in correct UNIX format
@@ -69,7 +69,7 @@ function Make-Sb-Enabled-Packages {
 	if (!(Test-Path $DropFolder\$SbEnabledPackage -PathType Container)) {
 		New-Item -ItemType Directory -Force -Path $SbEnabledPackageDestination
 	}
-	$powershellScript="..\secureboot-enable-onboarding-from-vmi.ps1"
+	$powershellScript="$PSScriptRoot\..\secureboot-enable-onboarding-from-vmi.ps1"
 	Copy-Item $DropFolder\$cgpuOnboardingPackage -Destination $SbEnabledPackageDestination -Force
 	if (Get-Content $powershellScript -Delimiter "`0" | Select-String "[^`r]`n")
     {
@@ -82,7 +82,7 @@ function Make-Sb-Enabled-Packages {
 	# Generate linux (.tar.gz) secure-boot enabled package
 	"generating linux package"
 	Remove-Item ${SbEnabledPackageDestination}\secureboot-enable-onboarding-from-vmi.ps1
-	$linuxScript="..\secureboot-enable-onboarding-from-vmi.sh"
+	$linuxScript="$PSScriptRoot\..\secureboot-enable-onboarding-from-vmi.sh"
 	$extn = [IO.Path]::GetExtension("${SbEnabledPackageDestination}\${linuxScript}")
 	((Get-Content $linuxScript) -join "`n") + "`n" | Set-Content -NoNewline $linuxScript
 	Copy-Item $linuxScript -Destination $SbEnabledPackageDestination

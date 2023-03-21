@@ -10,7 +10,7 @@ function Download-Blobs {
     $resourceGroup="cgpu-resources"
     $storageAccountName="cgpu"
     $container="cgpucontainer"
-    $destination="..\..\packages"
+    $destination="$PSScriptRoot\..\..\packages"
 
     # Creates destination directory if it doesn't exist
     if (-not (Test-Path -Path $destination -PathType Container)) {
