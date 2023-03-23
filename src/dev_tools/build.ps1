@@ -13,7 +13,7 @@
 # Set all locations and paths
 $DropFolder="$PSScriptRoot\..\..\drops"
 $PackageFolder="$PSScriptRoot\..\..\packages"
-$CgpuOnboardingPackageFolder="cgpuOnboardingPackage"
+$CgpuOnboardingPackageFolder="cgpu-onboarding-package"
 $cgpuOnboardingPackage="cgpu-onboarding-package.tar.gz"
 $SbEnabledPackage="cgpu-sb-enable-vmi-onboarding"
 $packageDestination = "${DropFolder}\${CgpuOnboardingPackageFolder}"
@@ -37,7 +37,7 @@ function Build-Packages {
 	Make-Sb-Enabled-Packages
 
 	# Cleans up folders
-	Remove-Item $CgpuOnboardingPackageFolder -Force -Recurse
+	# Remove-Item $CgpuOnboardingPackageFolder -Force -Recurse
 	Remove-Item $SbEnabledPackage -Force -Recurse
 }
 
@@ -59,7 +59,7 @@ function Make-Cgpu-Onboarding-Package {
 
 	# Creates main .tar.gz
 	echo "generating customer-onboarding-package.tar.gz"
-	tar -czvf $cgpuOnboardingPackage -C $packageDestination .
+	tar -czvf $cgpuOnboardingPackage -C $DropFolder $CgpuOnboardingPackageFolder
 	Move-Item $cgpuOnboardingPackage $DropFolder -Force
 }
 
@@ -87,7 +87,7 @@ function Make-Sb-Enabled-Packages {
 	((Get-Content $linuxScript) -join "`n") + "`n" | Set-Content -NoNewline $linuxScript
 	Copy-Item $linuxScript -Destination $SbEnabledPackageDestination
 	Set-Location $DropFolder
-	tar -czvf "${SbEnabledPackage}.tar.gz" -C $SbEnabledPackage .
+	tar -czvf "${SbEnabledPackage}.tar.gz" -C $DropFolder $SbEnabledPackage
 }
 
 Build-Packages
