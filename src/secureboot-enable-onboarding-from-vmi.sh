@@ -289,6 +289,7 @@ try_connect() {
 	#echo "start try connect"
 	MAX_RETRY=50
 	retries=0
+	connectionoutput=""
 	while [[ "$connectionoutput" != "Connected to VM" ]] && [[ $retries -lt $MAX_RETRY ]];
 	do
 		#echo "try to connect:"
