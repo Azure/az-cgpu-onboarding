@@ -37,7 +37,7 @@ function Build-Packages {
 	Make-Sb-Enabled-Packages
 
 	# Cleans up folders
-	# Remove-Item $CgpuOnboardingPackageFolder -Force -Recurse
+	Remove-Item $CgpuOnboardingPackageFolder -Force -Recurse
 	Remove-Item $SbEnabledPackage -Force -Recurse
 }
 
@@ -76,12 +76,10 @@ function Make-Sb-Enabled-Packages {
         $content = Get-Content $powershellScript
         $content | Set-Content $powershellScript
     }
-	Copy-Item "$powershellScript" -Destination $SbEnabledPackageDestination -Force
-	Compress-Archive -Path $SbEnabledPackageDestination -DestinationPath $DropFolder\cgpu-sb-enable-vmi-onboarding.zip -Force
+	Compress-Archive -Path $powershellScript, $DropFolder\$cgpuOnboardingPackage -DestinationPath $DropFolder\cgpu-sb-enable-vmi-onboarding.zip -Force
 
 	# Generate linux (.tar.gz) secure-boot enabled package
 	"generating linux package"
-	Remove-Item ${SbEnabledPackageDestination}\secureboot-enable-onboarding-from-vmi.ps1
 	$linuxScript="$PSScriptRoot\..\secureboot-enable-onboarding-from-vmi.sh"
 	$extn = [IO.Path]::GetExtension("${SbEnabledPackageDestination}\${linuxScript}")
 	((Get-Content $linuxScript) -join "`n") + "`n" | Set-Content -NoNewline $linuxScript
