@@ -13,11 +13,19 @@
 # Set all locations and paths
 $DropFolder="$PSScriptRoot\..\..\drops"
 $PackageFolder="$PSScriptRoot\..\..\packages"
-$CgpuOnboardingPackageFolder="cgpuOnboardingPackage"
+$CgpuOnboardingPackageFolder="cgpu-onboarding-package"
 $cgpuOnboardingPackage="cgpu-onboarding-package.tar.gz"
 $SbEnabledPackage="cgpu-sb-enable-vmi-onboarding"
 $packageDestination = "${DropFolder}\${CgpuOnboardingPackageFolder}"
 $SbEnabledPackageDestination="${DropFolder}\${SbEnabledPackage}"
+
+function Cleanup {
+	# Removes if there are any old packages before starting
+	echo "Cleaning up"
+	if (Test-Path $DropFolder -PathType Container) {
+		Remove-Item -LiteralPath $DropFolder -Force -Recurse
+	}
+}
 
 function Build-Packages {
 	echo "Building Packages"
@@ -59,7 +67,7 @@ function Make-Cgpu-Onboarding-Package {
 
 	# Creates main .tar.gz
 	echo "generating customer-onboarding-package.tar.gz"
-	tar -czvf $cgpuOnboardingPackage -C $packageDestination .
+	tar -czvf $cgpuOnboardingPackage -C $DropFolder $CgpuOnboardingPackageFolder
 	Move-Item $cgpuOnboardingPackage $DropFolder -Force
 }
 
@@ -76,18 +84,17 @@ function Make-Sb-Enabled-Packages {
         $content = Get-Content $powershellScript
         $content | Set-Content $powershellScript
     }
-	Copy-Item "$powershellScript" -Destination $SbEnabledPackageDestination -Force
-	Compress-Archive -Path $SbEnabledPackageDestination -DestinationPath $DropFolder\cgpu-sb-enable-vmi-onboarding.zip -Force
+	Compress-Archive -Path $powershellScript, $DropFolder\$cgpuOnboardingPackage -DestinationPath $DropFolder\cgpu-sb-enable-vmi-onboarding.zip -Force
 
 	# Generate linux (.tar.gz) secure-boot enabled package
 	"generating linux package"
-	Remove-Item ${SbEnabledPackageDestination}\secureboot-enable-onboarding-from-vmi.ps1
 	$linuxScript="$PSScriptRoot\..\secureboot-enable-onboarding-from-vmi.sh"
 	$extn = [IO.Path]::GetExtension("${SbEnabledPackageDestination}\${linuxScript}")
 	((Get-Content $linuxScript) -join "`n") + "`n" | Set-Content -NoNewline $linuxScript
 	Copy-Item $linuxScript -Destination $SbEnabledPackageDestination
 	Set-Location $DropFolder
-	tar -czvf "${SbEnabledPackage}.tar.gz" -C $SbEnabledPackage .
+	tar -czvf "${SbEnabledPackage}.tar.gz" -C $DropFolder $SbEnabledPackage
 }
 
+Cleanup
 Build-Packages

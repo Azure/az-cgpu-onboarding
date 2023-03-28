@@ -21,8 +21,7 @@ function Download-Blobs {
     $storageAccount = Get-AzStorageAccount -Name $storageAccountName -ResourceGroupName $resourceGroup
 
     # Get all blobs from container
-    $blobs = Get-AzStorageBlob -Container $container -Context $storageAccount.Context 
-        | Where-Object {$_.BlobType -eq "BlockBlob"}
+    $blobs = Get-AzStorageBlob -Container $container -Context $storageAccount.Context | Where-Object {$_.BlobType -eq "BlockBlob"}
 
     # Downloads each blob into given destination
     $blobs | Get-AzStorageBlobContent -Destination $destination -Force
