@@ -19,6 +19,14 @@ $SbEnabledPackage="cgpu-sb-enable-vmi-onboarding"
 $packageDestination = "${DropFolder}\${CgpuOnboardingPackageFolder}"
 $SbEnabledPackageDestination="${DropFolder}\${SbEnabledPackage}"
 
+function Cleanup {
+	# Removes if there are any old packages before starting
+	echo "Cleaning up"
+	if (Test-Path $DropFolder -PathType Container) {
+		Remove-Item -LiteralPath $DropFolder -Force -Recurse
+	}
+}
+
 function Build-Packages {
 	echo "Building Packages"
 	# Creates folder for final packages
@@ -88,4 +96,5 @@ function Make-Sb-Enabled-Packages {
 	tar -czvf "${SbEnabledPackage}.tar.gz" -C $DropFolder $SbEnabledPackage
 }
 
+Cleanup
 Build-Packages
