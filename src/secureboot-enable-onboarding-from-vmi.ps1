@@ -31,8 +31,6 @@
 #-privatekeypath "E:\cgpu\.ssh\id_rsa"  `
 #-cgpupackagepath "E:\cgpu\cgpu-onboarding-package.tar.gz" `
 #-adminusername "admin" `
-#-serviceprincipalid "4082afe7-2bca-4f09-8cd1-a584c0520588" `
-#-serviceprincipalsecret "FBw8..." `
 #-vmnameprefix "cgpu-test" `
 #-totalvmnumber 2
 
@@ -45,8 +43,6 @@ function Secureboot-Enable-Onboarding-From-VMI {
 		$privatekeypath,
 		$cgpupackagepath,
 		$adminusername,
-		$serviceprincipalid,
-		$serviceprincipalsecret,
 		$vmnameprefix,
 		$totalvmnumber)
 
@@ -92,8 +88,6 @@ function Auto-Onboard-CGPU-Multi-VM {
 	}
 
 	echo "Admin user name:  ${adminusername}"
-	echo "Service principal id:  ${serviceprincipalid}"
-	echo "Service principal secret:  Hidden"
 	echo "Vm Name prefix:  ${vmnameprefix}"
 	echo "Total VM number:  ${totalvmnumber}"
 
@@ -114,15 +108,16 @@ function Auto-Onboard-CGPU-Multi-VM {
 		echo "Prepare-Subscription-And-Rg Succeeded"
 	}
 
-	Prepare-Access-Token 2>&1 | Out-File -filepath ".\logs\$logpath\prepare-token.log"
+	### TODO: Add direct-share-image access check
+	# Prepare-Access-Token 2>&1 | Out-File -filepath ".\logs\$logpath\prepare-token.log"
 	
-	if ($global:issuccess -eq "failed") {
-		echo "Prepare-Access-Token Failed."
-		return
-	}
-	else {
-		echo "Prepare-Access-Token Succeeded"
-	}
+	# if ($global:issuccess -eq "failed") {
+	# 	echo "Prepare-Access-Token Failed."
+	# 	return
+	# }
+	# else {
+	# 	echo "Prepare-Access-Token Succeeded"
+	# }
 
 	$successcount = 0
 	$vmlogincommands = New-Object "String[]" ($totalvmnumber+1)
@@ -151,13 +146,9 @@ function Auto-Onboard-CGPU-Multi-VM {
 	echo "******************************************************************************************"
 
 	echo "Total VM to onboard: ${totalvmnumber}, total Success: ${successcount}."
-
-	az account clear
-	echo "------------------------------------------------------------------------------------------"
-	echo "# Optional: Clean up Contributor Role in your ResourceGroup."
-	echo "# az login --tenant ${tenant_id}"
-	echo "# az role assignment delete --assignee ${serviceprincipalid} --role \"Contributor\" --resource-group ${rg}"
 	echo "Detailed logs can be found at: .\logs\$logpath"
+	
+	az account clear
 }
 
 function Prepare-Subscription-And-Rg {
@@ -285,7 +276,7 @@ function VM-Creation {
 	$result=az vm create `
 		--resource-group $rg `
 		--name $vmname `
-	    --image "/subscriptions/85c61f94-8912-4e82-900e-6ab44de9bdf8/resourceGroups/cgpu-image-gallary/providers/Microsoft.Compute/galleries/cgpunvidiaimagegallery/images/cgpunvidiaimage/versions/0.0.1" `
+	    --image "/SharedGalleries/85c61f94-8912-4e82-900e-6ab44de9bdf8-testGalleryDeirectShare/Images/trustedLaunchSupported/Versions/latest" `
 		--public-ip-sku Standard `
 		--admin-username $adminusername `
 		--ssh-key-values $publickeypath `
