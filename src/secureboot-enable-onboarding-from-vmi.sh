@@ -14,8 +14,6 @@
 #	-i <private key path>: your id_rsa path
 #	-c <CustomerOnboardingPackage path>: Customer onboarding package path
 #	-a <admin user name>: administrator username for the VM
-#	-s <service principal id>: your service principal ID you got from Microsoft
-#	-x <secret>: your service principal secrect you got from Microsoft
 #	-v <vm name>: your VM name
 #	-n <vm number>: number of VMs to be generated
 #
@@ -28,14 +26,12 @@
 # -i "/home/username/.ssh/id_rsa"  \
 # -c "/home/username/cgpu-onboarding-package.tar.gz" \
 # -a "azuretestuser" \
-# -d "4082afe7-2bca-4f09-8cd1-a584c0520589" \
-# -x "FBw8......." \
 # -v "confidential-test-vm"  \
 # -n 1
 
 # Auto Create and Onboard Multiple CGPU VM with Nvidia Driver pre-installed image. 
 auto_onboard_cgpu_multi_vm() {
-	while getopts t:s:r:p:i:c:a:v:d:x:n: flag
+	while getopts t:s:r:p:i:c:a:v:n: flag
 	do
 	    case "${flag}" in
 			t) tenant_id=${OPTARG};;
@@ -45,8 +41,6 @@ auto_onboard_cgpu_multi_vm() {
 	        i) private_key_path=${OPTARG};;
 	        c) cgpu_package_path=${OPTARG};;
 	        a) adminuser_name=${OPTARG};;
-	        d) service_principal_id=${OPTARG};;
-	        x) service_principal_secret=${OPTARG};;
 	        v) vmname_prefix=${OPTARG};;
 	        n) total_vm_number=${OPTARG};;
 	    esac
@@ -81,8 +75,6 @@ auto_onboard_cgpu_multi_vm() {
 	fi
 
 	echo "Admin user name:  ${adminuser_name}"
-	echo "Service principal id:  ${service_principal_id}"
-	echo "Service principal secret:  Hidden"
 	echo "Vm Name prefix:  ${vmname_prefix}"
 	echo "Total VM number:  ${total_vm_number}"
 
@@ -99,16 +91,18 @@ auto_onboard_cgpu_multi_vm() {
 	fi
 	echo "prepare subscription and resource group success."
 
-	current_log_file="$log_dir/prepare-token.log"
-	prepare_access_token > "$log_dir/prepare-token.log"
-	
-	if [ "$is_success" == "more_action_need" ]; then
-		echo "Please retry secureboot-enable-onboarding-from-vmi.sh after finishing above steps."
-		return
-	elif [ "$is_success" == "failed" ]; then
-		echo "failed to prepare_access_token."
-		return
-	fi
+	### TODO check for direct share image access
+
+	#current_log_file="$log_dir/prepare-token.log"
+	#prepare_access_token > "$log_dir/prepare-token.log"
+	#
+	#if [ "$is_success" == "more_action_need" ]; then
+	#	echo "Please retry secureboot-enable-onboarding-from-vmi.sh after finishing above steps."
+	#	return
+	#elif [ "$is_success" == "failed" ]; then
+	#	echo "failed to prepare_access_token."
+	#	return
+	#fi
 	
 	# start Vm creation with number of specified VMs.
 	successCount=0
@@ -151,11 +145,6 @@ auto_onboard_cgpu_multi_vm() {
 	echo "******************************************************************************************"
 
 	az account clear
-	echo "------------------------------------------------------------------------------------------"
-	echo "# Optional: Clean up Contributor Role in your ResourceGroup."
-	echo "# az login --tenant ${tenant_id}"
-	echo "# az role assignment delete --assignee ${service_principal_id} --role \"Contributor\" --resource-group ${rg}"
-	echo "# Detail Log can be found ${log_dir}"
 }
 
 # login to subscription and check resource group. 
@@ -288,14 +277,13 @@ attestation() {
 try_connect() {
 	#echo "start try connect"
 	MAX_RETRY=50
-	retries=0
-	connectionoutput=""
-	while [[ "$connectionoutput" != "Connected to VM" ]] && [[ $retries -lt $MAX_RETRY ]];
+	retry=0
+	false
+	while [[ "$?" != "0" ]] && [[ $retries < $MAX_RETRY ]];
 	do
 		#echo "try to connect:"
 		connectionoutput=$(ssh -i $private_key_path -o "StrictHostKeyChecking no" $vm_ssh_info "echo 'Connected to VM';")
 		echo $connectionoutput
-		retries=$((retries+1))
 	done
 }
 
@@ -309,7 +297,7 @@ create_vm() {
 	az vm create \
 	--resource-group $rg \
 	--name $vmname \
-	--image "/subscriptions/85c61f94-8912-4e82-900e-6ab44de9bdf8/resourceGroups/cgpu-image-gallary/providers/Microsoft.Compute/galleries/cgpunvidiaimagegallery/images/cgpunvidiaimage/versions/0.0.1" \
+	--image "/SharedGalleries/85c61f94-8912-4e82-900e-6ab44de9bdf8-testGalleryDeirectShare/Images/trustedLaunchSupported/Versions/latest" \
 	--public-ip-sku Standard \
 	--admin-username $adminuser_name \
 	--ssh-key-values $public_key_path_with_at \
