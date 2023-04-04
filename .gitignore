@@ -1,3 +1,4 @@
 # Ignores downloaded packages and drop folders
 packages/
 drops/
+src/logs/
