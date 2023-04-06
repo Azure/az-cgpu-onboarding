@@ -107,7 +107,7 @@ function Auto-Onboard-CGPU-Multi-VM {
 		echo "Prepare-Subscription-And-Rg Succeeded"
 	}
 
-	### TODO: Add direct-share-image access check
+	### Check for direct share image access
 	Check-Image-Access 2>&1 | Out-File -filepath ".\logs\$logpath\login-operation.log"
 
 	if ($global:issuccess -eq "failed") {
