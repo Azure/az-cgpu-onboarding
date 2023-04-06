@@ -90,7 +90,6 @@ function Auto-Onboard-CGPU-Multi-VM {
 	echo "Admin user name:  ${adminusername}"
 	echo "Vm Name prefix:  ${vmnameprefix}"
 	echo "Total VM number:  ${totalvmnumber}"
-
 	echo "Clear previous account info."
 	
 	az account clear
@@ -201,7 +200,7 @@ function Check-Image-Access {
 }
 
 # Auto Create and Onboard Single CGPU VM for customer.
-function Auto-Onboard-CGPU-Single-VM{
+function Auto-Onboard-CGPU-Single-VM {
 	param($vmname)
 
 	# Create VM
@@ -296,9 +295,9 @@ function Package-Upload {
 	echo "Start Package-Upload."
 	scp -i $privatekeypath $cgpupackagepath ${vmsshinfo}:/home/${adminusername}
 	echo "Finished Package-Upload."
-	echo "start extract."
+	echo "Start extracting package."
 	ssh -i ${privatekeypath} ${vmsshinfo} "tar -zxvf cgpu-onboarding-package.tar.gz;"
-	echo "finish extract."
+	echo "Finished extracting package."
 	$global:issuccess = "succeeded"
 }
 
@@ -318,7 +317,7 @@ function Attestation {
 	}
 	echo "VM connection success."
 
-	echo "Starting installing attestation package - this may take up to 5 minutes."
+	echo "Start installing attestation package - this may take up to 5 minutes."
 	echo $(ssh  -i ${privatekeypath} ${vmsshinfo} "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh;") 2>&1 | Out-File -filepath ".\logs\$logpath\attestation.log"
 
 	$attestationmessage=(Get-content -tail 20 .\logs\$logpath\attestation.log)
@@ -335,15 +334,15 @@ function Try-Connect {
 
 	$connectionoutput="notconnected"
 	$maxretrycount=50
-	echo "vmsshinfo in try connect"
+	echo "Vmsshinfo in try connect"
 	echo $vmsshinfo
-	echo "private key path in try connect"
+	echo "Private key path in try connect"
 	echo $privatekeypath
 
 	$currentRetry=0
 	while ($connectionoutput -ne "connected" -and $currentRetry -lt $maxretrycount)
 	{
-		echo "try to connect:";
+		echo "Try to connect:";
 		$connectionoutput=ssh -i ${privatekeypath} -o "StrictHostKeyChecking no" ${vmsshinfo} "sudo echo 'connected'; "
 		echo $connectionoutput
 		if ($connectionoutput -eq "connected") {

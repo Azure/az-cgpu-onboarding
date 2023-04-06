@@ -76,7 +76,7 @@ auto_onboard_cgpu_multi_vm() {
 	echo "Total VM number:  ${total_vm_number}"
 
 	echo "Clear previous account info."
-	# az account clear
+	az account clear
 	az login --tenant ${tenant_id} > "$log_dir/login-operation.log"
 	az account set --subscription $subscription_id >> "$log_dir/login-operation.log"
 
@@ -88,10 +88,10 @@ auto_onboard_cgpu_multi_vm() {
 	fi
 	echo "prepare subscription and resource group success."
 
-	### TODO check for direct share image access
+	# Check for direct share image access
 	check_image_access >> "$log_dir/login-operation.log"
 	
-	# start Vm creation with number of specified VMs.
+	# Start VM creation with number of specified VMs.
 	successCount=0
 	for ((current_vm_count=1; current_vm_count <= total_vm_number; current_vm_count++))
 	do
@@ -104,7 +104,7 @@ auto_onboard_cgpu_multi_vm() {
 			vmname="${vmname_prefix}-${vmname_ending}"
 		fi
 
-		echo "vmname: ${vmname}";
+		echo "Vm Name: ${vmname}";
 		auto_onboard_cgpu_single_vm $vmname
 		if [[ $is_success != "failed" ]]
 		then
@@ -136,7 +136,7 @@ auto_onboard_cgpu_multi_vm() {
 
 # Checks that user has access to direct share image
 check_image_access() {
-	$region="eastus2"
+	region="eastus2"
 	echo "Checking for direct share image permission access"
 	if [ "$(az sig list-shared --location $region | grep -i "testGalleryDeirectShare")" == "" ]; then
 		print_error "Couldn't access direct share image from your subscription or tenant. Please make sure you have the necessary permissions."
@@ -179,7 +179,6 @@ auto_onboard_cgpu_single_vm() {
 		return
 	fi
 	ip=$(az vm show -d -g $rg -n $vmname --query publicIps -o tsv)
-	# ip=$(az vm show -d -g $rg -n $vmname --query privateIps -o tsv)
 	vm_ssh_info=$adminuser_name@$ip
 	
 	echo "VM creation finished"
@@ -196,13 +195,13 @@ auto_onboard_cgpu_single_vm() {
 
 }
 
-# Upload_package to VM.
+# Upload package to VM.
 upload_package() {
-	echo "start upload package..."
+	echo "Start uploading package..."
 	try_connect
 	scp -i $private_key_path $cgpu_package_path $vm_ssh_info:/home/$adminuser_name
 
-	echo "start extract package..."
+	echo "Start extracting package..."
 	ssh -i $private_key_path $vm_ssh_info "tar -zxvf cgpu-onboarding-package.tar.gz;" > /dev/null
 }
 
