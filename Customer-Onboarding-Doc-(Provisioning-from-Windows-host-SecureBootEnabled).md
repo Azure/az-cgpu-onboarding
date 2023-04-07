@@ -20,7 +20,7 @@ The following steps help create a [Azure Secure Boot](https://learn.microsoft.co
 - [Azure Subscription](https://docs.microsoft.com/en-us/azure/cost-management-billing/manage/create-subscription)
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
 - Download [cgpu-sb-enable-vmi-onboarding.zip](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V2.1.0/cgpu-sb-enable-vmi-onboarding.zip) from [Azure-Confidential-Computing-CGPUPrivatePreview-V2.1.0](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V2.1.0)
-- First time deployment requires access to the VM image, so please contact your microsoft administrator to get all necessary permissions. 
+- Please contact your Microsoft administrator to get access to the VM image
 
 ----------------------------------------------------
 
