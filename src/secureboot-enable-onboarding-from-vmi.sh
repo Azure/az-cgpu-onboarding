@@ -215,16 +215,16 @@ attestation() {
 
 # Try to connect to VM with 50 maximum retry.
 try_connect() {
-	#echo "start try connect"
-	MAX_RETRY=50
-	retry=0
-	false
-	while [[ "$?" != "0" ]] && [[ $retries < $MAX_RETRY ]];
-	do
-		#echo "try to connect:"
-		connectionoutput=$(ssh -i $private_key_path -o "StrictHostKeyChecking no" $vm_ssh_info "echo 'Connected to VM';")
-		echo $connectionoutput
-	done
+   echo "Starting trying to connect to VM"
+   MAX_RETRY=50
+   retries=0
+   connectionoutput=""
+   while [[ "$connectionoutput" != "Connected to VM" ]] && [[ $retries -lt $MAX_RETRY ]];
+   do
+       connectionoutput=$(ssh -i $private_key_path -o "StrictHostKeyChecking no" $vm_ssh_info "echo 'Connected to VM';")
+       echo $connectionoutput
+       retries=$((retries+1))
+   done
 }
 
 # Create a single VM.
