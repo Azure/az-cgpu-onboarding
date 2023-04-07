@@ -70,6 +70,7 @@ cd cgpu-sb-enable-vmi-onboarding
 ```
 
 - Execute cgpu onboarding script.
+Note: First time deployment requires access to the VM image, sp please contact your microsoft administrator to get all necessary permissions. 
 
 ```
 # This script will help to get you get access to a private Canonical-signed confidential GPU-capable image with an Nvidia GPU driver already installed.
