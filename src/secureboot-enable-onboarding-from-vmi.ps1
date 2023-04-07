@@ -57,7 +57,7 @@ function Secureboot-Enable-Onboarding-From-VMI {
 			echo "Azure CLI is not installed, please try install Azure CLI first: https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-windows?tabs=powershell"
 			echo "Note: you might need to restart powershell after install."
 			return
-    		}
+ 		}
 
 		Auto-Onboard-CGPU-Multi-VM | Tee-Object -File .\logs\$logpath\current-operation
 	}
@@ -90,7 +90,6 @@ function Auto-Onboard-CGPU-Multi-VM {
 	echo "Admin user name:  ${adminusername}"
 	echo "Vm Name prefix:  ${vmnameprefix}"
 	echo "Total VM number:  ${totalvmnumber}"
-
 	echo "Clear previous account info."
 	
 	az account clear
@@ -108,16 +107,16 @@ function Auto-Onboard-CGPU-Multi-VM {
 		echo "Prepare-Subscription-And-Rg Succeeded"
 	}
 
-	### TODO: Add direct-share-image access check
-	# Prepare-Access-Token 2>&1 | Out-File -filepath ".\logs\$logpath\prepare-token.log"
-	
-	# if ($global:issuccess -eq "failed") {
-	# 	echo "Prepare-Access-Token Failed."
-	# 	return
-	# }
-	# else {
-	# 	echo "Prepare-Access-Token Succeeded"
-	# }
+	### Check for direct share image access
+	Check-Image-Access 2>&1 | Out-File -filepath ".\logs\$logpath\login-operation.log"
+
+	if ($global:issuccess -eq "failed") {
+		echo "Check-Image-Access Failed."
+		return
+	}
+	else {
+		echo "Check-Image-Access Succeeded"
+	}
 
 	$successcount = 0
 	$vmlogincommands = New-Object "String[]" ($totalvmnumber+1)
@@ -187,41 +186,21 @@ function Prepare-Subscription-And-Rg {
 	echo "Resource group ${rg} validation succeeded."
 }
 
-function Prepare-Access-Token {
-	echo "Prepare access token. ${subscriptionid}"
+# Check that user has access to the direct share image 
+function Check-Image-Access {
+	echo "Check-Image-Access. ${subscriptionid}"
+	$region="eastus2"
 
-	# check contributor role for service principal
-	if ( "$(az role assignment list --assignee $serviceprincipalid --resource-group $rg --role "Contributor" | Select-String "Contributor")" -eq "" )
+	if( "$(az sig list-shared --location $region | Select-String "testGalleryDeirectShare")" -eq "")
 	{
-		echo "Contributor role doesn't exist for resource group ${rg}."
-		echo "Start creating Contributor role in target resource group ${rg} for service principal ${serviceprincipalid}."
-
-		# assign contributor role for service principal
-		echo "Assign service pricipal Contributor role."
-		az role assignment create --assignee $serviceprincipalid --role "Contributor" --resource-group $rg
-
-	} else {
-		echo "Service principal ${serviceprincipalid} contributor role has already been provisioned to target ${rg}"
-
+		echo "Couldn't access direct share image from your subscription or tenant. Please make sure you have the necessary permissions."
+		$global:issuccess = "failed"
+		return
 	}
-
-	if("$(az role assignment list --assignee $serviceprincipalid --resource-group $rg --role "Contributor" | Select-String "Contributor")" -eq "") {
-		echo "Create and Validate Contributor role failed in resource group: ${rg}."
-		$global:issuccess="failed"
-	}
-
-	# get access token for image in Microsoft tenant.
-	az account clear
-	az login --service-principal -u $serviceprincipalid -p $serviceprincipalsecret --tenant "72f988bf-86f1-41af-91ab-2d7cd011db47"
-	az account get-access-token
-
-	# get access token for customer's resource group.
-	az login --service-principal -u $serviceprincipalid -p $serviceprincipalsecret --tenant $tenantid
-	az account get-access-token
 }
 
 # Auto Create and Onboard Single CGPU VM for customer.
-function Auto-Onboard-CGPU-Single-VM{
+function Auto-Onboard-CGPU-Single-VM {
 	param($vmname)
 
 	# Create VM
@@ -316,9 +295,9 @@ function Package-Upload {
 	echo "Start Package-Upload."
 	scp -i $privatekeypath $cgpupackagepath ${vmsshinfo}:/home/${adminusername}
 	echo "Finished Package-Upload."
-	echo "start extract."
+	echo "Start extracting package."
 	ssh -i ${privatekeypath} ${vmsshinfo} "tar -zxvf cgpu-onboarding-package.tar.gz;"
-	echo "finish extract."
+	echo "Finished extracting package."
 	$global:issuccess = "succeeded"
 }
 
@@ -338,7 +317,7 @@ function Attestation {
 	}
 	echo "VM connection success."
 
-	echo "Starting installing attestation package - this may take up to 5 minutes."
+	echo "Start installing attestation package - this may take up to 5 minutes."
 	echo $(ssh  -i ${privatekeypath} ${vmsshinfo} "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh;") 2>&1 | Out-File -filepath ".\logs\$logpath\attestation.log"
 
 	$attestationmessage=(Get-content -tail 20 .\logs\$logpath\attestation.log)
@@ -355,15 +334,15 @@ function Try-Connect {
 
 	$connectionoutput="notconnected"
 	$maxretrycount=50
-	echo "vmsshinfo in try connect"
+	echo "Vmsshinfo in try connect"
 	echo $vmsshinfo
-	echo "private key path in try connect"
+	echo "Private key path in try connect"
 	echo $privatekeypath
 
 	$currentRetry=0
 	while ($connectionoutput -ne "connected" -and $currentRetry -lt $maxretrycount)
 	{
-		echo "try to connect:";
+		echo "Try to connect:";
 		$connectionoutput=ssh -i ${privatekeypath} -o "StrictHostKeyChecking no" ${vmsshinfo} "sudo echo 'connected'; "
 		echo $connectionoutput
 		if ($connectionoutput -eq "connected") {
