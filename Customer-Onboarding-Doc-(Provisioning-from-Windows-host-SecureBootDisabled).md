@@ -74,8 +74,6 @@ $rg="your resource group name"
 # Note: Linux host names cannot exceed 64 characters in length or contain the following characters: ` ~ ! @ # $ % ^ & * ( ) = + _ [ ] { } \\ | ; : ' \" , < > / ?
 $vmname="your VM name"
 
-
-
 # Login in with your azure account.
 az login
 

@@ -18,6 +18,7 @@ The following steps help create a [Azure Secure Boot](https://learn.microsoft.co
 - Windows
 - Powershell: version 5.1.19041.1682 and above (please run windows powershell as administrator)
 - [Azure Subscription](https://docs.microsoft.com/en-us/azure/cost-management-billing/manage/create-subscription)
+- [Azure Tenant ID](https://learn.microsoft.com/en-us/azure/active-directory/fundamentals/active-directory-how-to-find-tenant#find-tenant-id-with-powershell)
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
 - Download [cgpu-sb-enable-vmi-onboarding.zip](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V2.1.0/cgpu-sb-enable-vmi-onboarding.zip) from [Azure-Confidential-Computing-CGPUPrivatePreview-V2.1.0](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V2.1.0)
 - Please contact your Microsoft administrator to get access to the VM image
@@ -62,7 +63,7 @@ The key's randomart image is:
 
 ```
 
-2. Create VM Based on confidential capable VM
+2. Create VM
 
 - Decompress downloaded [cgpu-sb-enable-vmi-onboarding.zip](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V2.1.0/cgpu-sb-enable-vmi-onboarding.zip) and enter the folder through powershell.
 ```
@@ -72,9 +73,9 @@ cd cgpu-sb-enable-vmi-onboarding
 - Execute cgpu onboarding script.
 
 ```
-# This script will help to get you get access to a private Canonical-signed confidential GPU-capable image with an Nvidia GPU driver already installed.
-# Then it will launch VMs with secure boot enabled, based on the provided arguments in your specified resource group.
-# If resource group doesn't exist, it will create the resource group with the specified name in the target subsription.
+# This script will help to get you get access to a private Canonical-signed confidential GPU-capable image with an Nvidia GPU driver 
+# installed. Based on the provided arguments, it will then create VMs with secure boot enabled in your specified resource group.
+# If the resource group doesn't exist, it will create the resource group with the specified name in the target subsription.
 #
 # Example Arguments: 
 #	-tenantid "8af6653d-c9c0-4957-ab01-615c7212a40b" `
@@ -132,14 +133,9 @@ cd cgpu-onboarding-package
 bash step-2-attestation.sh
 ```
 
-
 ### Workload-Running
 
 ```
 # In your VM, execute the below command for a pytorch sample execution. (estimates finish in 10 min) 
 bash mnist_example.sh pytorch
-
 ```
-
-
-

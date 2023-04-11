@@ -17,6 +17,7 @@ The following steps help create a [Azure Secure Boot](https://learn.microsoft.co
 
 - Linux
 - [Azure Subscription](https://docs.microsoft.com/en-us/azure/cost-management-billing/manage/create-subscription)
+- [Azure Tenant ID](https://learn.microsoft.com/en-us/azure/active-directory/fundamentals/active-directory-how-to-find-tenant#find-tenant-id-with-powershell)
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
 - Download [cgpu-sb-enable-vmi-onboarding.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V2.1.0/cgpu-sb-enable-vmi-onboarding.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-V2.1.0](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V2.1.0)
 - Please contact your Microsoft administrator to get access to the VM image
@@ -58,7 +59,7 @@ The key's randomart image is:
 +----[SHA256]-----+
 ```
 
-2. Create VM Based on confidential capable VM
+2. Create VM
 
 - Decompress downloaded [cgpu-sb-enable-vmi-onboarding.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V2.1.0/cgpu-sb-enable-vmi-onboarding.tar.gz) and enter the folder through bash window.
 ```
@@ -69,13 +70,13 @@ cd cgpu-sb-enable-vmi-onboarding
 - Execute cgpu onboarding script.
 
 ```
-# This script will help to get you get access to a private Canonical-signed confidential GPU-capable image with an Nvidia GPU driver already installed.
-# Then it will launch VMs with secure boot enabled, based on the provided arguments in your specified resource group.
+# This script will help to get you get access to a private Canonical-signed confidential GPU-capable image with an Nvidia GPU driver 
+# installed. Based on the provided arguments, it will then create VMs with secure boot enabled in your specified resource group.
 # If the resource group doesn't exist, it will create the resource group with the specified name in the target subsription.
 #
 # Required Arguments: 
 #	-t <tenant ID>: ID of your Tenant/Directory
-#	-s <subscription ID>: ID of your subscription.
+#	-s <subscription ID>: ID of your subscription
 #	-r <resource group name>: The resource group name for VM creation
 #	-p <public key path>: your id_rsa.pub path 
 #	-i <private key path>: your id_rsa path
@@ -109,8 +110,7 @@ bash secureboot-enable-onboarding-from-vmi.sh  \
 
 Sample output:
 ******************************************************************************************
-Please execute below command to login to your VM and try attestation:
-Please execute below commands to login to your VM:
+Please execute below commands to login to your VM(s):
 ssh -i /home/username/.ssh/id_rsa azuretestuser@IP
 Please execute the below command to try attestation:
 cd cgpu-onboarding-package; bash step-2-attestation.sh
@@ -130,13 +130,11 @@ cd cgpu-onboarding-package
 bash step-2-attestation.sh
 ```
 
-
 ### Workload-Running
 
 ```
 # In your VM, execute the below command for a pytorch sample execution. (estimates finish in 10 min) 
 bash mnist_example.sh pytorch
-
 ```
 
 
