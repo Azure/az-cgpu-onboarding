@@ -18,7 +18,7 @@ The following steps help create a [Azure Secure Boot](https://learn.microsoft.co
 - Windows
 - Powershell: version 5.1.19041.1682 and above (please run windows powershell as administrator)
 - [Azure Subscription](https://docs.microsoft.com/en-us/azure/cost-management-billing/manage/create-subscription)
-- [Azure Tenant ID]([https://docs.microsoft.com/en-us/azure/cost-management-billing/manage/create-subscription](https://learn.microsoft.com/en-us/azure/active-directory/fundamentals/active-directory-how-to-find-tenant#find-tenant-id-with-powershell))
+- [Azure Tenant ID](https://learn.microsoft.com/en-us/azure/active-directory/fundamentals/active-directory-how-to-find-tenant#find-tenant-id-with-powershell)
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
 - Download [cgpu-sb-enable-vmi-onboarding.zip](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V2.1.0/cgpu-sb-enable-vmi-onboarding.zip) from [Azure-Confidential-Computing-CGPUPrivatePreview-V2.1.0](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V2.1.0)
 - Please contact your Microsoft administrator to get access to the VM image
