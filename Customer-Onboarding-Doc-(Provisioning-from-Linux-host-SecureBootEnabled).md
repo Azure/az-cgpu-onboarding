@@ -58,7 +58,7 @@ The key's randomart image is:
 +----[SHA256]-----+
 ```
 
-2. Create VM Based on confidential capable VM
+2. Create VM
 
 - Decompress downloaded [cgpu-sb-enable-vmi-onboarding.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V2.1.0/cgpu-sb-enable-vmi-onboarding.tar.gz) and enter the folder through bash window.
 ```
