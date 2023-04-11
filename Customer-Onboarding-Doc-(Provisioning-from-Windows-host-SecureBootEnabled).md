@@ -72,9 +72,9 @@ cd cgpu-sb-enable-vmi-onboarding
 - Execute cgpu onboarding script.
 
 ```
-# This script will help to get you get access to a private Canonical-signed confidential GPU-capable image with an Nvidia GPU driver already installed.
-# Then it will launch VMs with secure boot enabled, based on the provided arguments in your specified resource group.
-# If resource group doesn't exist, it will create the resource group with the specified name in the target subsription.
+# This script will help to get you get access to a private Canonical-signed confidential GPU-capable image with an Nvidia GPU driver 
+# installed. Based on the provided arguments, it will then create VMs with secure boot enabled in your specified resource group.
+# If the resource group doesn't exist, it will create the resource group with the specified name in the target subsription.
 #
 # Example Arguments: 
 #	-tenantid "8af6653d-c9c0-4957-ab01-615c7212a40b" `
