@@ -1,9 +1,6 @@
-# This script will help to get you authenticated with Microsoft tenant 
-# and get access to a private Canonical-signed confidential GPU-capable image with an Nvidia GPU driver already installed.
+# This script will help to get you get access to a private Canonical-signed confidential GPU-capable image with an Nvidia GPU driver already installed.
 # Then it will launch VMs with secure boot enabled, based on the provided arguments in your specified resource group.
 #
-# Note: First time execution will require the administrator role for the target Azure subscription to
-# provision by generating the associated service principal contributor roles in your target resource group. 
 #
 # Required Arguments: 
 #	-t <tenant ID>: ID of your Tenant/Directory
@@ -14,8 +11,6 @@
 #	-i <private key path>: your id_rsa path
 #	-c <CustomerOnboardingPackage path>: Customer onboarding package path
 #	-a <admin user name>: administrator username for the VM
-#	-s <service principal id>: your service principal ID you got from Microsoft
-#	-x <secret>: your service principal secrect you got from Microsoft
 #	-v <vm name>: your VM name
 #	-n <vm number>: number of VMs to be generated
 #
@@ -28,14 +23,12 @@
 # -i "/home/username/.ssh/id_rsa"  \
 # -c "/home/username/cgpu-onboarding-package.tar.gz" \
 # -a "azuretestuser" \
-# -d "4082afe7-2bca-4f09-8cd1-a584c0520589" \
-# -x "FBw8......." \
 # -v "confidential-test-vm"  \
 # -n 1
 
 # Auto Create and Onboard Multiple CGPU VM with Nvidia Driver pre-installed image. 
 auto_onboard_cgpu_multi_vm() {
-	while getopts t:s:r:p:i:c:a:v:d:x:n: flag
+	while getopts t:s:r:p:i:c:a:v:n: flag
 	do
 	    case "${flag}" in
 			t) tenant_id=${OPTARG};;
@@ -45,8 +38,6 @@ auto_onboard_cgpu_multi_vm() {
 	        i) private_key_path=${OPTARG};;
 	        c) cgpu_package_path=${OPTARG};;
 	        a) adminuser_name=${OPTARG};;
-	        d) service_principal_id=${OPTARG};;
-	        x) service_principal_secret=${OPTARG};;
 	        v) vmname_prefix=${OPTARG};;
 	        n) total_vm_number=${OPTARG};;
 	    esac
@@ -81,13 +72,11 @@ auto_onboard_cgpu_multi_vm() {
 	fi
 
 	echo "Admin user name:  ${adminuser_name}"
-	echo "Service principal id:  ${service_principal_id}"
-	echo "Service principal secret:  Hidden"
 	echo "Vm Name prefix:  ${vmname_prefix}"
 	echo "Total VM number:  ${total_vm_number}"
 
 	echo "Clear previous account info."
-	# az account clear
+	az account clear
 	az login --tenant ${tenant_id} > "$log_dir/login-operation.log"
 	az account set --subscription $subscription_id >> "$log_dir/login-operation.log"
 
@@ -99,18 +88,10 @@ auto_onboard_cgpu_multi_vm() {
 	fi
 	echo "prepare subscription and resource group success."
 
-	current_log_file="$log_dir/prepare-token.log"
-	prepare_access_token > "$log_dir/prepare-token.log"
+	# Check for direct share image access
+	check_image_access >> "$log_dir/login-operation.log"
 	
-	if [ "$is_success" == "more_action_need" ]; then
-		echo "Please retry secureboot-enable-onboarding-from-vmi.sh after finishing above steps."
-		return
-	elif [ "$is_success" == "failed" ]; then
-		echo "failed to prepare_access_token."
-		return
-	fi
-	
-	# start Vm creation with number of specified VMs.
+	# Start VM creation with number of specified VMs.
 	successCount=0
 	for ((current_vm_count=1; current_vm_count <= total_vm_number; current_vm_count++))
 	do
@@ -123,7 +104,7 @@ auto_onboard_cgpu_multi_vm() {
 			vmname="${vmname_prefix}-${vmname_ending}"
 		fi
 
-		echo "vmname: ${vmname}";
+		echo "Vm Name: ${vmname}";
 		auto_onboard_cgpu_single_vm $vmname
 		if [[ $is_success != "failed" ]]
 		then
@@ -151,14 +132,20 @@ auto_onboard_cgpu_multi_vm() {
 	echo "******************************************************************************************"
 
 	az account clear
-	echo "------------------------------------------------------------------------------------------"
-	echo "# Optional: Clean up Contributor Role in your ResourceGroup."
-	echo "# az login --tenant ${tenant_id}"
-	echo "# az role assignment delete --assignee ${service_principal_id} --role \"Contributor\" --resource-group ${rg}"
-	echo "# Detail Log can be found ${log_dir}"
 }
 
-# login to subscription and check resource group. 
+# Checks that user has access to direct share image
+check_image_access() {
+	region="eastus2"
+	echo "Checking for direct share image permission access"
+	if [ "$(az sig list-shared --location $region | grep -i "testGalleryDeirectShare")" == "" ]; then
+		print_error "Couldn't access direct share image from your subscription or tenant. Please make sure you have the necessary permissions."
+		is_success="failed"
+		return
+	fi 
+}
+
+# Login to subscription and check resource group. 
 # It will create an resource group if it doesn't exist.
 prepare_subscription_and_rg() {
 	if [ "$(az account show | grep $subscription_id)" == "" ]; then
@@ -183,63 +170,6 @@ prepare_subscription_and_rg() {
 	print_error "Resource group ${rg} validation Succeeded."
 }
 
-prepare_access_token() {
-	# check if service prinicipal has been provisioned to customer's tenant.
-	if [ "$(az ad sp list  --display-name "cgpu" | grep $service_principal_id)" == "" ]; then 
-		print_error "Can not find service principal: ${service_principal_id} in tenant: ${tenant_id}."
-		print_error "First time access Confidential Compute GPU Image needs to provision ${service_principal_id} to tenant: ${tenant_id}. "
-
-		print_error "Please try below URL to import service principal and then retry the operation."
-		print_error "------------------------------------------------------------------------------------------"
-		print_error "https://login.microsoftonline.com/${tenant_id}/oauth2/authorize?client_id=${service_principal_id}&response_type=code&redirect_uri=https%3A%2F%2Fwww.microsoft.com%2F"
-		print_error "------------------------------------------------------------------------------------------"
-
-		is_success="more_action_need"
-		return
-	fi
-
-	print_error "Validated Service prinicipal ${service_principal_id} has already been provisioned into ${tenant_id} "
-
-	# check contributor role for service principal
-	if [ "$(az role assignment list --assignee $service_principal_id --resource-group $rg --role "Contributor" | grep "Contributor")" == "" ]; then
-		print_error "Contributor role doesn't exist for resource group ${rg}."	
-		print_error "Start creating Contributor role in target resource group ${rg} for service principal ${service_principal_id}."	
-		
-		# assign contributor role for service pricipal
-		print_error "Assign service principal Contributor role."
-		az role assignment create --assignee $service_principal_id --role "Contributor" --resource-group $rg
-	else 
-		print_error "Service principal ${service_principal_id} contributor role has already been provisioned to target ${rg}"
-	fi 
-
-	if [ "$(az role assignment list --assignee $service_principal_id --resource-group $rg --role "Contributor" | grep "Contributor")" == "" ]; then
-		print_error "Create and Validate Contributor role failed in resource group: ${rg}."
-		is_success="failed"
-		return
-	fi
-
-	# get access token for image in Microsoft tenant.
-	az account clear
-	az login --service-principal -u $service_principal_id -p $service_principal_secret --tenant "72f988bf-86f1-41af-91ab-2d7cd011db47" >> "$log_dir/prepare_token.log"
-	if [ "$(az account get-access-token | grep "Bearer")" == "" ]; then
-		print_error "Failed to get token from microsoft tenant. Please make sure the service principal id and service principal secret are correct."
-		print_error "If it continues to fail, please contact Microsoft CGPU team for more information."
-		is_success="failed"
-		return
-	fi
-
-	# get access token for customer's resource group.
-	az login --service-principal -u $service_principal_id -p $service_principal_secret --tenant $tenant_id >> "$log_dir/prepare_token.log"
-	if [ "$(az account get-access-token | grep "Bearer")" == "" ]; then
-		print_error "Failed to get token from microsoft tenant. Please make sure the service principal id and service principal secret are correct."
-		print_error "If it continues to fail, please contact Microsoft CGPU team for more information."
-		is_success="failed"
-		return
-	fi
-	
-	print_error "Get access token success."
-}
-
 # Create a single VM and onboard confidential gpu.
 auto_onboard_cgpu_single_vm() {
 	local vmname=$1
@@ -249,7 +179,6 @@ auto_onboard_cgpu_single_vm() {
 		return
 	fi
 	ip=$(az vm show -d -g $rg -n $vmname --query publicIps -o tsv)
-	# ip=$(az vm show -d -g $rg -n $vmname --query privateIps -o tsv)
 	vm_ssh_info=$adminuser_name@$ip
 	
 	echo "VM creation finished"
@@ -266,13 +195,13 @@ auto_onboard_cgpu_single_vm() {
 
 }
 
-# Upload_package to VM.
+# Upload package to VM.
 upload_package() {
-	echo "start upload package..."
+	echo "Start uploading package..."
 	try_connect
 	scp -i $private_key_path $cgpu_package_path $vm_ssh_info:/home/$adminuser_name
 
-	echo "start extract package..."
+	echo "Start extracting package..."
 	ssh -i $private_key_path $vm_ssh_info "tar -zxvf cgpu-onboarding-package.tar.gz;" > /dev/null
 }
 
@@ -286,17 +215,16 @@ attestation() {
 
 # Try to connect to VM with 50 maximum retry.
 try_connect() {
-	#echo "start try connect"
-	MAX_RETRY=50
-	retries=0
-	connectionoutput=""
-	while [[ "$connectionoutput" != "Connected to VM" ]] && [[ $retries -lt $MAX_RETRY ]];
-	do
-		#echo "try to connect:"
-		connectionoutput=$(ssh -i $private_key_path -o "StrictHostKeyChecking no" $vm_ssh_info "echo 'Connected to VM';")
-		echo $connectionoutput
-		retries=$((retries+1))
-	done
+   echo "Starting trying to connect to VM"
+   MAX_RETRY=50
+   retries=0
+   connectionoutput=""
+   while [[ "$connectionoutput" != "Connected to VM" ]] && [[ $retries -lt $MAX_RETRY ]];
+   do
+       connectionoutput=$(ssh -i $private_key_path -o "StrictHostKeyChecking no" $vm_ssh_info "echo 'Connected to VM';")
+       echo $connectionoutput
+       retries=$((retries+1))
+   done
 }
 
 # Create a single VM.
@@ -309,7 +237,7 @@ create_vm() {
 	az vm create \
 	--resource-group $rg \
 	--name $vmname \
-	--image "/subscriptions/85c61f94-8912-4e82-900e-6ab44de9bdf8/resourceGroups/cgpu-image-gallary/providers/Microsoft.Compute/galleries/cgpunvidiaimagegallery/images/cgpunvidiaimage/versions/0.0.1" \
+	--image "/SharedGalleries/85c61f94-8912-4e82-900e-6ab44de9bdf8-testGalleryDeirectShare/Images/trustedLaunchSupported/Versions/latest" \
 	--public-ip-sku Standard \
 	--admin-username $adminuser_name \
 	--ssh-key-values $public_key_path_with_at \

@@ -18,7 +18,7 @@ The following steps help create a Confidential GPU Virtual Machine with a Linux 
 - Linux
 - [Azure Subscription](https://docs.microsoft.com/en-us/azure/cost-management-billing/manage/create-subscription)
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
-- Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V2.0.2/cgpu-onboarding-package.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-V2.0.2](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V2.0.2)
+- Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V2.1.0/cgpu-onboarding-package.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-V2.1.0](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V2.1.0)
 
 ----------------------------------------------------
 
@@ -84,8 +84,6 @@ az account set --subscription [your subscriptionId]
 # If you don't have a resource group already, execute this command to create one.
 az group create --name $rg --location eastus2
 
-
-
 # Create a VM.(takes few minute to finish)
 # Please replace <public key path> with your id_rsa.pub path.
 # EG: --ssh-key-values @/e/cgpu/.ssh/id_rsa.pub 
@@ -116,7 +114,7 @@ ssh -i <private key path> [adminusername]@[IP] -v
 
 ### Install-GPU-Driver
 
-Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V2.0.2/cgpu-onboarding-package.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-V2.0.2](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V2.0.2) if you haven't.
+Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V2.1.0/cgpu-onboarding-package.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-V2.1.0](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V2.1.0) if you haven't.
 
 ```
 # In a separate local terminal not connected to your vm, upload cgpu-onboarding-package.tar.gz to your VM.   
