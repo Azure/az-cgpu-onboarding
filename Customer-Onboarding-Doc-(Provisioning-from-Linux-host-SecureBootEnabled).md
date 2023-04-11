@@ -123,10 +123,9 @@ cd; bash mnist_example.sh pytorch
 
 ### Attestation
 
-In your VM, execute the attestation scripts in cgpu-onboarding-package.
-You should see: 
 ```
-GPU 0 verified successfully.
+# In your VM, execute the attestation scripts in cgpu-onboarding-package.
+# You should see: GPU 0 verified successfully.
 cd cgpu-onboarding-package 
 bash step-2-attestation.sh
 ```
@@ -136,7 +135,6 @@ bash step-2-attestation.sh
 ```
 # In your VM, execute the below command for a pytorch sample execution. (estimates finish in 10 min) 
 bash mnist_example.sh pytorch
-
 ```
 
 
