@@ -133,14 +133,9 @@ cd cgpu-onboarding-package
 bash step-2-attestation.sh
 ```
 
-
 ### Workload-Running
 
 ```
 # In your VM, execute the below command for a pytorch sample execution. (estimates finish in 10 min) 
 bash mnist_example.sh pytorch
-
 ```
-
-
-
