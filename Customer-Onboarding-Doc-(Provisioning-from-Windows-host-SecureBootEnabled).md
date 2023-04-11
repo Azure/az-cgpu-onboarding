@@ -62,7 +62,7 @@ The key's randomart image is:
 
 ```
 
-2. Create VM Based on confidential capable VM
+2. Create VM
 
 - Decompress downloaded [cgpu-sb-enable-vmi-onboarding.zip](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V2.1.0/cgpu-sb-enable-vmi-onboarding.zip) and enter the folder through powershell.
 ```
