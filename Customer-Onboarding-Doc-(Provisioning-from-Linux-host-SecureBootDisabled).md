@@ -84,8 +84,6 @@ az account set --subscription [your subscriptionId]
 # If you don't have a resource group already, execute this command to create one.
 az group create --name $rg --location eastus2
 
-
-
 # Create a VM.(takes few minute to finish)
 # Please replace <public key path> with your id_rsa.pub path.
 # EG: --ssh-key-values @/e/cgpu/.ssh/id_rsa.pub 
