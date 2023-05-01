@@ -16,7 +16,7 @@ The following steps help create a [Azure Secure Boot](https://learn.microsoft.co
 ## Requirements
 
 - Windows
-  - Note: it is strongly encouraged to use powershell and not WSL for this scenario
+  - Note: it is strongly encouraged to use powershell and not WSL for the Windows scenario
 - Powershell: version 5.1.19041.1682 and above (please run windows powershell as administrator)
 - [Azure Subscription](https://docs.microsoft.com/en-us/azure/cost-management-billing/manage/create-subscription)
 - [Azure Tenant ID](https://learn.microsoft.com/en-us/azure/active-directory/fundamentals/active-directory-how-to-find-tenant#find-tenant-id-with-powershell)
