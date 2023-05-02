@@ -314,5 +314,6 @@ if [[ "${#BASH_SOURCE[@]}" -eq 1 ]]; then
 	log_dir="logs/$log_time"
 	mkdir -p "$log_dir"
 
-    auto_onboard_cgpu_multi_vm "$@" 2>&1 | tee "$log_dir/current-operation.log"
+    auto_onboard_cgpu_multi_vm "$@" 2>&1 > "$log_dir/current-operation.log"
+	tail -f "$log_dir/current-operation.log"
 fi
