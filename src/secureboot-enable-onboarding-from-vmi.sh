@@ -256,12 +256,12 @@ create_vm() {
 validation() {
 	echo "Validate Confidential GPU capability."	
 	try_connect
-
+	
 	kernel_version=$(ssh -i $private_key_path $vm_ssh_info "sudo uname -r;")
 	if [ "$kernel_version" != "5.15.0-1019-azure" ];
 	then
 		is_success="failed"
-		echo "Failed: kernel version validation. Current kernel: ${kernel_version}"
+		echo "Failed: kernel validation. Current kernel: ${kernel_version}"
 	else
 		echo "Passed: kernel validation. Current kernel: ${kernel_version}"
 	fi
@@ -279,18 +279,18 @@ validation() {
 	if [ "$cc_retrieve" != "CC status: ON" ];
 	then
 		is_success="failed"
-		echo "Failed: Confidential Compute retrieve validation. current Confidential Compute retrieve is ${cc_retrieve}"
+		echo "Failed: Confidential Compute mode validation failed. Current Confidential Compute retrieve state: ${cc_retrieve}"
 	else 
-		echo "Passed: Confidential Compute mode validation passed. Current Confidential Compute retrieve is ${cc_retrieve}"
+		echo "Passed: Confidential Compute mode validation passed. Current Confidential Compute retrieve state: ${cc_retrieve}"
 	fi
 
 	cc_environment=$(ssh -i $private_key_path $vm_ssh_info "nvidia-smi conf-compute -e;")
 	if [ "$cc_environment" != "CC Environment: INTERNAL" ];
 	then
 		is_success="failed"
-		echo "Failed: Confidential Compute environment validation. current Confidential Compute environment is ${cc_environment}"
+		echo "Failed: Confidential Compute environment validation. Current Confidential Compute environment: ${cc_environment}"
 	else 
-		echo "Passed: Confidential Compute environment validation. current Confidential Compute environment is ${cc_environment}"
+		echo "Passed: Confidential Compute environment validation. Current Confidential Compute environment: ${cc_environment}"
 
 	fi
 
