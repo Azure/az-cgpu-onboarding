@@ -298,9 +298,9 @@ validation() {
 	if [ "$attestation_result" != "GPU 0 verified successfully." ];
 	then
 		is_success="failed"
-		echo "Failed: Attestation validation failed. last attestation message: ${attestation_result}"
+		echo "Failed: Attestation validation failed. Last attestation message: ${attestation_result}"
 	else 
-		echo "Passed: Attestation validation passed. last attestation message: ${attestation_result}"
+		echo "Passed: Attestation validation passed. Last attestation message: ${attestation_result}"
 	fi
 }
 
