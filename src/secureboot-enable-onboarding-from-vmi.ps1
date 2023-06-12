@@ -265,7 +265,7 @@ function VM-Creation {
 		--size Standard_NCC24ads_A100_v4 `
 		--os-disk-size-gb 100 `
 		--verbose
-
+	Write-Debug $result
 	$resultjson = $result | ConvertFrom-Json
 	$vmip= $resultjson.publicIpAddress
 	$vmsshinfo=$adminusername+"@"+$vmip
