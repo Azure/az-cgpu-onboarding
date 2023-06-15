@@ -224,11 +224,8 @@ function Auto-Onboard-CGPU-Single-VM {
 	if ($global:issuccess -eq "failed") {
 		Write-Host "Failed attestation."
 		return
-	} 
-	else {
-		Write-Host "Passed attestation"
 	}
-
+	
 	# Validation
 	Validation -vmsshinfo $vmsshinfo `
 	 -privatekeypath $privatekeypath
