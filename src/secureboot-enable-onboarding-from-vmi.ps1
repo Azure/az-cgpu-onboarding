@@ -204,15 +204,15 @@ function Auto-Onboard-CGPU-Single-VM {
 
 	# Create VM
 	$vmsshinfo=VM-Creation -rg $rg `
-	-publickeypath $publickeypath `
-	-vmname $vmname `
-	-adminusername $adminusername
+	 -publickeypath $publickeypath `
+	 -vmname $vmname `
+	 -adminusername $adminusername
 
 	# Upload package to VM and extract it.
 	Package-Upload -vmsshinfo $vmsshinfo `
-	-privatekeypath $privatekeypath `
-	-cgpupackagepath $cgpupackagepath `
-	-adminusername $adminusername
+	 -privatekeypath $privatekeypath `
+	 -cgpupackagepath $cgpupackagepath `
+	 -adminusername $adminusername
 	if ($global:issuccess -eq "failed") {
 		Write-Host "Failed to Package-Upload."
 		return
@@ -220,7 +220,7 @@ function Auto-Onboard-CGPU-Single-VM {
 
 	# Attestation
 	Attestation -vmsshinfo $vmsshinfo `
-	-privatekeypath $privatekeypath
+	 -privatekeypath $privatekeypath
 	if ($global:issuccess -eq "failed") {
 		Write-Host "Failed attestation."
 		return
@@ -231,7 +231,7 @@ function Auto-Onboard-CGPU-Single-VM {
 
 	# Validation
 	Validation -vmsshinfo $vmsshinfo `
-	-privatekeypath $privatekeypath
+	 -privatekeypath $privatekeypath
 	if ($global:issuccess -eq "failed") {
 		Write-Host "Failed validation."
 		return
@@ -339,7 +339,7 @@ function Try-Connect {
 	echo $privatekeypath
 
 	$currentRetry=0
-	while ($connectionoutput -ne "connected" -and $currentRetry -lt $maxretrycount) 
+	while ($connectionoutput -ne "connected" -and $currentRetry -lt $maxretrycount)
 	{
 		Write-Host "Trying to connect";
 		$connectionoutput=ssh -i ${privatekeypath} -o "StrictHostKeyChecking no" ${vmsshinfo} "sudo echo 'connected'; "
@@ -405,7 +405,7 @@ function Validation {
 	}
 
 	$attestationresult=$(ssh -i $privatekeypath $vmsshinfo "cd cgpu-onboarding-package; bash step-2-attestation.sh | tail -1| sed -e 's/^[[:space:]]*//'")
-	if ($attestationresult -ne "GPU 0 verified successfully.") 
+	if ($attestationresult -ne "GPU 0 verified successfully.")
 	{
 		$global:issuccess="failed"
 		Write-Host "Failed: Attestation validation failed. Last attestation message: ${attestationresult}"
