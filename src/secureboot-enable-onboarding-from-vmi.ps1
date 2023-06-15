@@ -83,7 +83,7 @@ function Auto-Onboard-CGPU-Multi-VM {
 
 	Write-Host "Cgpu onboarding package path:  ${cgpupackagepath}"
 	if (-not(Test-Path -Path $cgpupackagepath -PathType Leaf)) {
-		Write-Host "${privatekeypath} does not exist, please verify file path"
+		Write-Host "${cgpupackagepath} does not exist, please verify file path"
     	return
 	}
 
