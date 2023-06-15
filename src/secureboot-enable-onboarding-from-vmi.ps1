@@ -59,7 +59,10 @@ function Secureboot-Enable-Onboarding-From-VMI {
 			return
 		}
 
-		Auto-Onboard-CGPU-Multi-VM | Tee-Object -File .\logs\$logpath\current-operation.log
+		Start-Transcript -Path .\logs\$logpath\current-operation.log -Append
+		Auto-Onboard-CGPU-Multi-VM 
+		trap {Stop-Transcript; break}
+		Stop-Transcript
 }
 
 
@@ -225,7 +228,7 @@ function Auto-Onboard-CGPU-Single-VM {
 		Write-Host "Failed attestation."
 		return
 	}
-	
+
 	# Validation
 	Validation -vmsshinfo $vmsshinfo `
 	 -privatekeypath $privatekeypath
