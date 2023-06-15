@@ -91,7 +91,6 @@ function Auto-Onboard-CGPU-Multi-VM {
 	Write-Host "Vm Name prefix:  ${vmnameprefix}"
 	Write-Host "Total VM number:  ${totalvmnumber}"
 	Write-Host "Clear previous account info."
-
 	az account clear
 	az login --tenant $tenantid 2>&1 | Out-File -filepath ".\logs\$logpath\login-operation.log"
 	az account set --subscription $subscriptionid
@@ -126,9 +125,9 @@ function Auto-Onboard-CGPU-Multi-VM {
 		Write-Host "Start creating VM: ${vmname}"
 
 		Auto-Onboard-CGPU-Single-VM `
-			-vmname $vmname
+		-vmname $vmname
 
-		$successcount = $successcount + 1
+		$successcount=$successcount + 1
 
 		Write-Host "Finished creating VM: ${vmname}"
 	}
@@ -152,7 +151,7 @@ function Auto-Onboard-CGPU-Multi-VM {
 
 function Prepare-Subscription-And-Rg {
 	Write-Host "Prepare subscription and resource group: ${subscriptionid}"
-	if ( "$(az account show | Select-String $subscriptionid)" -eq "" ) 
+	if ( "$(az account show | Select-String $subscriptionid)" -eq "" )
 	{
 		Write-Host "Couldn't set to the correct subscription, please confirm and re-login with your azure account."
 
@@ -160,7 +159,7 @@ function Prepare-Subscription-And-Rg {
 		az login
 		az account set --subscription $subscriptionid
 
-		if ( "$(az account show | Select-String $subscriptionid)" -eq "") 
+		if( "$(az account show | Select-String $subscriptionid)" -eq "")
 		{
 			Write-Host "The logged in azure account doesn't belongs to the subscription: ${subscription_id}. Please check subscriptionId or contact subscription owner to add your account."
 			$global:issuccess = "failed"
@@ -170,14 +169,14 @@ function Prepare-Subscription-And-Rg {
 
 	Write-Host "SubscriptionId validation succeeded."
 	Write-Host "Checking resource group...."
-	if ($(az group exists --name $rg) -eq $false ) 
+	if ($(az group exists --name $rg) -eq $false )
 	{
 		Write-Host "Resource group ${rg} does not exist, start creating resource group ${rg}"
 		az group create --name ${rg} --location eastus2
-		if ( $(az group exists --name $rg) -eq $false ) 
+		if ( $(az group exists --name $rg) -eq $false )
 		{
 			Write-Host "Resource group ${rg} creation failed, please check if your subscription is correct."
-			$issuccess = "failed"
+			$issuccess="failed"
 			return
 		}
 		Write-Host "Resource group ${rg} creation succeeded."
@@ -191,7 +190,7 @@ function Check-Image-Access {
 	Write-Host "Check image access for subscription: ${subscriptionid}"
 	$region="eastus2"
 
-	if ( "$(az sig list-shared --location $region | Select-String "testGalleryDeirectShare")" -eq "") 
+	if( "$(az sig list-shared --location $region | Select-String "testGalleryDeirectShare")" -eq "")
 	{
 		Write-Host "Couldn't access direct share image from your subscription or tenant. Please make sure you have the necessary permissions."
 		$global:issuccess = "failed"
@@ -204,7 +203,7 @@ function Auto-Onboard-CGPU-Single-VM {
 	param($vmname)
 
 	# Create VM
-	$vmsshinfo = VM-Creation -rg $rg `
+	$vmsshinfo=VM-Creation -rg $rg `
 	-publickeypath $publickeypath `
 	-vmname $vmname `
 	-adminusername $adminusername
@@ -265,7 +264,7 @@ function VM-Creation {
 		--size Standard_NCC24ads_A100_v4 `
 		--os-disk-size-gb 100 `
 		--verbose
-
+	Write-Host $result
 	$resultjson = $result | ConvertFrom-Json
 	$vmip= $resultjson.publicIpAddress
 	$vmsshinfo=$adminusername+"@"+$vmip
@@ -307,7 +306,7 @@ function Attestation {
 		$privatekeypath)
 
 	# Test VM connnection.
- $isConnected=Try-Connect -vmsshinfo $vmsshinfo `
+ 	$isConnected=Try-Connect -vmsshinfo $vmsshinfo `
 		-privatekeypath $privatekeypath
 
 	if ($isConnected -eq $false) {
@@ -339,7 +338,7 @@ function Try-Connect {
 	Write-Host "Private key path: ${privatekeypath}"
 	echo $privatekeypath
 
-	$currentRetry = 0
+	$currentRetry=0
 	while ($connectionoutput -ne "connected" -and $currentRetry -lt $maxretrycount) 
 	{
 		Write-Host "Trying to connect";
@@ -367,24 +366,24 @@ function Validation {
 		$global:issuccess="failed"
 		Write-Host "Failed: kernel version validation. Current kernel: ${kernelversion}"
 	}
-	else 
+	else
 	{
 		Write-Host "Passed: kernel validation. Current kernel: ${kernelversion}"
 	}
 
 	$securebootstate=$(ssh -i $privatekeypath $vmsshinfo "mokutil --sb-state;")
-	if ($securebootstate -ne "SecureBoot enabled") 
+	if ($securebootstate -ne "SecureBoot enabled")
 	{
 		$global:issuccess="failed"
 		Write-Host "Failed: secure boot state validation. Current secure boot state: ${securebootstate}"
 	}
-	else 
+	else
 	{
 		Write-Host "Passed: secure boot state validation. Current secure boot state: ${securebootstate}"
 	}
 
-	$ccretrieve = $(ssh -i $privatekeypath $vmsshinfo "nvidia-smi conf-compute -f;")
-	if ($ccretrieve -ne "CC status: ON") 
+	$ccretrieve=$(ssh -i $privatekeypath $vmsshinfo "nvidia-smi conf-compute -f;")
+	if ($ccretrieve -ne "CC status: ON")
 	{
 		$global:issuccess="failed"
 		Write-Host "Failed: Confidential Compute retrieve validation. Current Confidential Compute retrieve state: ${ccretrieve}"
@@ -394,23 +393,24 @@ function Validation {
 		Write-Host "Passed: Confidential Compute mode validation passed. Current Confidential Compute retrieve state: ${ccretrieve}"
 	}
 
-	$ccenvironment = $(ssh -i $privatekeypath $vmsshinfo "nvidia-smi conf-compute -e;")
-	if ($ccenvironment -ne "CC Environment: INTERNAL") 
+	$ccenvironment=$(ssh -i $privatekeypath $vmsshinfo "nvidia-smi conf-compute -e;")
+	if ($ccenvironment -ne "CC Environment: INTERNAL")
 	{
 		$global:issuccess="failed"
 		Write-Host "Failed: Confidential Compute environment validation. Current Confidential Compute environment state: ${ccenvironment}"
 	}
-	else 
+	else
 	{
 		Write-Host "Passed: Confidential Compute environment validation. Current Confidential Compute environment: ${ccenvironment}"
 	}
 
-	$attestationresult = $(ssh -i $privatekeypath $vmsshinfo "cd cgpu-onboarding-package; bash step-2-attestation.sh | tail -1| sed -e 's/^[[:space:]]*//'")
-	if ($attestationresult -ne "GPU 0 verified successfully.") {
+	$attestationresult=$(ssh -i $privatekeypath $vmsshinfo "cd cgpu-onboarding-package; bash step-2-attestation.sh | tail -1| sed -e 's/^[[:space:]]*//'")
+	if ($attestationresult -ne "GPU 0 verified successfully.") 
+	{
 		$global:issuccess="failed"
 		Write-Host "Failed: Attestation validation failed. Last attestation message: ${attestationresult}"
 	}
-	else 
+	else
 	{
 		Write-Host "Passed: Attestation validation passed. Last attestation message: ${attestationresult}"
 	}
