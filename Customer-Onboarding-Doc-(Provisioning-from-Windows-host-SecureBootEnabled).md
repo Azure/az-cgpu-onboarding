@@ -16,11 +16,13 @@ The following steps help create a [Azure Secure Boot](https://learn.microsoft.co
 ## Requirements
 
 - Windows
+  - Note: it is strongly encouraged to use powershell and not WSL for the Windows scenario
 - Powershell: version 5.1.19041.1682 and above (please run windows powershell as administrator)
 - [Azure Subscription](https://docs.microsoft.com/en-us/azure/cost-management-billing/manage/create-subscription)
 - [Azure Tenant ID](https://learn.microsoft.com/en-us/azure/active-directory/fundamentals/active-directory-how-to-find-tenant#find-tenant-id-with-powershell)
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
-- Download [cgpu-sb-enable-vmi-onboarding.zip](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V2.1.0/cgpu-sb-enable-vmi-onboarding.zip) from [Azure-Confidential-Computing-CGPUPrivatePreview-V2.1.0](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V2.1.0)
+  - Note: minimum version 2.42.0 is required, run `az --version` to check your version and run `az upgrade` to install the latest version if your version is older
+- Download [cgpu-sb-enable-vmi-onboarding.zip](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V2.1.1/cgpu-sb-enable-vmi-onboarding.zip) from [Azure-Confidential-Computing-CGPUPrivatePreview-V2.1.1](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V2.1.1)
 - Please contact your Microsoft administrator to get access to the VM image
 
 ----------------------------------------------------
@@ -65,7 +67,7 @@ The key's randomart image is:
 
 2. Create VM
 
-- Decompress downloaded [cgpu-sb-enable-vmi-onboarding.zip](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V2.1.0/cgpu-sb-enable-vmi-onboarding.zip) and enter the folder through powershell.
+- Decompress downloaded [cgpu-sb-enable-vmi-onboarding.zip](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V2.1.1/cgpu-sb-enable-vmi-onboarding.zip) and enter the folder through powershell.
 ```
 cd cgpu-sb-enable-vmi-onboarding
 ```

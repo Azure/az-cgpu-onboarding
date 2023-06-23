@@ -54,44 +54,46 @@ function Secureboot-Enable-Onboarding-From-VMI {
 		}
 		
 		if ( "$(az --version | Select-String 'azure-cli')" -eq "" ) {
-			echo "Azure CLI is not installed, please try install Azure CLI first: https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-windows?tabs=powershell"
-			echo "Note: you might need to restart powershell after install."
+			Write-Host "Azure CLI is not installed, please try install Azure CLI first: https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-windows?tabs=powershell"
+			Write-Host "Note: you might need to restart powershell after install."
 			return
- 		}
+		}
 
-		Auto-Onboard-CGPU-Multi-VM | Tee-Object -File .\logs\$logpath\current-operation
-	}
+		Start-Transcript -Path .\logs\$logpath\current-operation.log -Append
+		Auto-Onboard-CGPU-Multi-VM 
+		trap {Stop-Transcript; break}
+		Stop-Transcript
+}
 
 
 # Auto Create and Onboard Multiple CGPU VM for customer.
 function Auto-Onboard-CGPU-Multi-VM {
-	echo "Tenant id: ${tenantid}"
-	echo "Subscription id: ${subscriptionid}"
-	echo "Resource group: ${rg}"
+	Write-Host "Tenant id: ${tenantid}"
+	Write-Host "Subscription ID: ${subscriptionid}"
+	Write-Host "Resource group: ${rg}"
 
-	echo "Public key path:  ${publickeypath}"
+	Write-Host "Public key path:  ${publickeypath}"
 	if (-not(Test-Path -Path $publickeypath -PathType Leaf)) {
-		echo "${public_key_path} does not exist, please verify file path"
-    	return
+		Write-Host "${public_key_path} does not exist, please verify file path"
+	return
 	}
 
-	echo "Private key path:  ${privatekeypath}"
+	Write-Host "Private key path:  ${privatekeypath}"
 	if (-not(Test-Path -Path $privatekeypath -PathType Leaf)) {
-		echo "${privatekeypath} does not exist, please verify file path"
-    	return
+		Write-Host "${privatekeypath} does not exist, please verify file path"
+	return
 	}
 
-	echo "Cgpu onboarding package path:  ${cgpupackagepath}"
+	Write-Host "C-GPU onboarding package path:  ${cgpupackagepath}"
 	if (-not(Test-Path -Path $cgpupackagepath -PathType Leaf)) {
-		echo "${privatekeypath} does not exist, please verify file path"
-    	return
+		Write-Host "${cgpupackagepath} does not exist, please verify file path"
+	return
 	}
 
-	echo "Admin user name:  ${adminusername}"
-	echo "Vm Name prefix:  ${vmnameprefix}"
-	echo "Total VM number:  ${totalvmnumber}"
-	echo "Clear previous account info."
-	
+	Write-Host "Admin user name:  ${adminusername}"
+	Write-Host "Vm Name prefix:  ${vmnameprefix}"
+	Write-Host "Total VM number:  ${totalvmnumber}"
+	Write-Host "Clear previous account info."
 	az account clear
 	az login --tenant $tenantid 2>&1 | Out-File -filepath ".\logs\$logpath\login-operation.log"
 	az account set --subscription $subscriptionid
@@ -100,22 +102,22 @@ function Auto-Onboard-CGPU-Multi-VM {
 	$global:issuccess = "succeeded"
 	Prepare-Subscription-And-Rg 2>&1 | Out-File -filepath ".\logs\$logpath\login-operation.log"
 	if ($global:issuccess -eq "failed") {
-		echo "Prepare-Subscription-And-Rg Failed"
+		Write-Host "Prepare-Subscription-And-Rg Failed"
 		return
 	}
 	else {
-		echo "Prepare-Subscription-And-Rg Succeeded"
+		Write-Host "Prepare-Subscription-And-Rg Succeeded"
 	}
 
 	### Check for direct share image access
 	Check-Image-Access 2>&1 | Out-File -filepath ".\logs\$logpath\login-operation.log"
 
 	if ($global:issuccess -eq "failed") {
-		echo "Check-Image-Access Failed."
+		Write-Host "Check-Image-Access Failed."
 		return
 	}
 	else {
-		echo "Check-Image-Access Succeeded"
+		Write-Host "Check-Image-Access Succeeded"
 	}
 
 	$successcount = 0
@@ -123,38 +125,38 @@ function Auto-Onboard-CGPU-Multi-VM {
 	for($i=1; $i -le $totalvmnumber; $i++) {
 		$vmname=${vmnameprefix}+"-"+${i}
 
-		echo "Start creating VM: '${vmname}'"
+		Write-Host "Start creating VM: ${vmname}"
 
 		Auto-Onboard-CGPU-Single-VM `
 		-vmname $vmname
 
 		$successcount=$successcount + 1
 
-		echo "Finished creating VM: '${vmname}'"
+		Write-Host "Finished creating VM: ${vmname}"
 	}
 
-	echo "******************************************************************************************"
-	echo "Please execute below commands to login to your VM(s):"
+	Write-Host "******************************************************************************************"
+	Write-Host "Please execute below commands to login to your VM(s):"
 	for($i=1; $i -le $totalvmnumber; $i++) {
-		echo $vmlogincommands[$i]
+		Write-Host $vmlogincommands[$i]
 	}
-	echo "Please execute the below command to try attestation:"
-	echo "cd cgpu-onboarding-package; bash step-2-attestation.sh";
-	echo "Please execute the below command to try a sample workload:"
-	echo "cd; bash mnist_example.sh pytorch";
-	echo "******************************************************************************************"
+	Write-Host "Please execute the below command to try attestation:"
+	Write-Host "cd cgpu-onboarding-package; bash step-2-attestation.sh";
+	Write-Host "Please execute the below command to try a sample workload:"
+	Write-Host "cd; bash mnist_example.sh pytorch";
+	Write-Host "******************************************************************************************"
 
-	echo "Total VM to onboard: ${totalvmnumber}, total Success: ${successcount}."
-	echo "Detailed logs can be found at: .\logs\$logpath"
+	Write-Host "Total VM to onboard: ${totalvmnumber}, total Success: ${successcount}."
+	Write-Host "Detailed logs can be found at: .\logs\$logpath"
 	
 	az account clear
 }
 
 function Prepare-Subscription-And-Rg {
-	echo "Prepare subscription and resource group: ${subscriptionid}"
+	Write-Host "Prepare subscription and resource group: ${subscriptionid}"
 	if ( "$(az account show | Select-String $subscriptionid)" -eq "" )
 	{
-		echo "Couldn't set to the correct subscription, please confirm and re-login with your azure account."
+		Write-Host "Couldn't set to the correct subscription, please confirm and re-login with your azure account."
 
 		az account clear
 		az login
@@ -162,38 +164,38 @@ function Prepare-Subscription-And-Rg {
 
 		if( "$(az account show | Select-String $subscriptionid)" -eq "")
 		{
-			echo "The logged in azure account doesn't belongs to the subscription: ${subscription_id}. Please check subscriptionId or contact subscription owner to add your account."
+			Write-Host "The logged in azure account doesn't belongs to the subscription: ${subscription_id}. Please check subscriptionId or contact subscription owner to add your account."
 			$global:issuccess = "failed"
 			return
 		}
 	}
 
-	echo "SubscriptionId validation succeeded."
-	echo "Checking resource group...."
+	Write-Host "SubscriptionId validation succeeded."
+	Write-Host "Checking resource group...."
 	if ($(az group exists --name $rg) -eq $false )
 	{
-    	echo "Resource group ${rg} does not exist, start creating resource group ${rg}"
-    	az group create --name ${rg} --location eastus2
+		Write-Host "Resource group ${rg} does not exist, start creating resource group ${rg}"
+		az group create --name ${rg} --location eastus2
 		if ( $(az group exists --name $rg) -eq $false )
 		{
-			echo "rg creation failed, please check if your subscription is correct."
+			Write-Host "Resource group ${rg} creation failed, please check if your subscription is correct."
 			$issuccess="failed"
 			return
 		}
-		echo "Resource group ${rg} creation succeeded."
+		Write-Host "Resource group ${rg} creation succeeded."
 	}
 
-	echo "Resource group ${rg} validation succeeded."
+	Write-Host "Resource group ${rg} validation succeeded."
 }
 
 # Check that user has access to the direct share image 
 function Check-Image-Access {
-	echo "Check-Image-Access. ${subscriptionid}"
+	Write-Host "Check image access for subscription: ${subscriptionid}"
 	$region="eastus2"
 
 	if( "$(az sig list-shared --location $region | Select-String "testGalleryDeirectShare")" -eq "")
 	{
-		echo "Couldn't access direct share image from your subscription or tenant. Please make sure you have the necessary permissions."
+		Write-Host "Couldn't access direct share image from your subscription or tenant. Please make sure you have the necessary permissions."
 		$global:issuccess = "failed"
 		return
 	}
@@ -204,10 +206,10 @@ function Auto-Onboard-CGPU-Single-VM {
 	param($vmname)
 
 	# Create VM
- 	$vmsshinfo=VM-Creation -rg $rg `
- 	 -publickeypath $publickeypath `
- 	 -vmname $vmname `
- 	 -adminusername $adminusername
+	$vmsshinfo=VM-Creation -rg $rg `
+	 -publickeypath $publickeypath `
+	 -vmname $vmname `
+	 -adminusername $adminusername
 
 	# Upload package to VM and extract it.
 	Package-Upload -vmsshinfo $vmsshinfo `
@@ -215,7 +217,7 @@ function Auto-Onboard-CGPU-Single-VM {
 	 -cgpupackagepath $cgpupackagepath `
 	 -adminusername $adminusername
 	if ($global:issuccess -eq "failed") {
-		echo "Failed to Package-Upload.."
+		Write-Host "Failed to Package-Upload."
 		return
 	}
 
@@ -223,18 +225,15 @@ function Auto-Onboard-CGPU-Single-VM {
 	Attestation -vmsshinfo $vmsshinfo `
 	 -privatekeypath $privatekeypath
 	if ($global:issuccess -eq "failed") {
-		echo "Failed attestation.."
+		Write-Host "Failed attestation."
 		return
-	} 
-	else {
-		echo "Passed attestation"
 	}
 
 	# Validation
 	Validation -vmsshinfo $vmsshinfo `
 	 -privatekeypath $privatekeypath
 	if ($global:issuccess -eq "failed") {
-		echo "Failed validation.."
+		Write-Host "Failed validation."
 		return
 	}
 
@@ -255,7 +254,7 @@ function VM-Creation {
 	$result=az vm create `
 		--resource-group $rg `
 		--name $vmname `
-	    --image "/SharedGalleries/85c61f94-8912-4e82-900e-6ab44de9bdf8-testGalleryDeirectShare/Images/trustedLaunchSupported/Versions/latest" `
+		--image "/SharedGalleries/85c61f94-8912-4e82-900e-6ab44de9bdf8-testGalleryDeirectShare/Images/trustedLaunchSupported/Versions/latest" `
 		--public-ip-sku Standard `
 		--admin-username $adminusername `
 		--ssh-key-values $publickeypath `
@@ -265,7 +264,7 @@ function VM-Creation {
 		--size Standard_NCC24ads_A100_v4 `
 		--os-disk-size-gb 100 `
 		--verbose
-
+	Write-Host $result
 	$resultjson = $result | ConvertFrom-Json
 	$vmip= $resultjson.publicIpAddress
 	$vmsshinfo=$adminusername+"@"+$vmip
@@ -285,19 +284,19 @@ function Package-Upload {
 		-privatekeypath $privatekeypath
 
 	if ($isConnected -eq $false) {
-		echo "VM connection failed after 50 times retry."
+		Write-Host "VM connection failed after 50 retries."
 		$global:issuccess = "failed"
 		return
 	}
 
-	echo "VM connection success."
+	Write-Host "VM connection success."
 
-	echo "Start Package-Upload."
+	Write-Host "Starting Package-Upload."
 	scp -i $privatekeypath $cgpupackagepath ${vmsshinfo}:/home/${adminusername}
-	echo "Finished Package-Upload."
-	echo "Start extracting package."
+	Write-Host "Finished Package-Upload."
+	Write-Host "Starting extracting package."
 	ssh -i ${privatekeypath} ${vmsshinfo} "tar -zxvf cgpu-onboarding-package.tar.gz;"
-	echo "Finished extracting package."
+	Write-Host "Finished extracting package."
 	$global:issuccess = "succeeded"
 }
 
@@ -311,38 +310,38 @@ function Attestation {
 		-privatekeypath $privatekeypath
 
 	if ($isConnected -eq $false) {
-		echo "VM connection failed after 50 times retry."
+		Write-Host "VM connection failed after 50 retries."
 		$global:issuccess = "failed"
 		return
 	}
-	echo "VM connection success."
+	Write-Host "VM connection success."
 
-	echo "Start installing attestation package - this may take up to 5 minutes."
+	Write-Host "Start installing attestation package - this may take up to 5 minutes."
 	echo $(ssh  -i ${privatekeypath} ${vmsshinfo} "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh;") 2>&1 | Out-File -filepath ".\logs\$logpath\attestation.log"
 
 	$attestationmessage=(Get-content -tail 20 .\logs\$logpath\attestation.log)
 	echo $attestationmessage
-	echo "Finished attestation."
+	Write-Host "Finished attestation."
 	$global:issuccess = "succeeded"
 }
 
 
-# Try to connect to VM with Given ssh info with maximum retry of 50 times.
+# Try to connect to VM with given SSH info with maximum retry of 50 times.
 function Try-Connect {
 	param($vmsshinfo,
 		$privatekeypath)
 
 	$connectionoutput="notconnected"
 	$maxretrycount=50
-	echo "Vmsshinfo in try connect"
+	Write-Host "VM SSH info: ${vmsshinfo}"
 	echo $vmsshinfo
-	echo "Private key path in try connect"
+	Write-Host "Private key path: ${privatekeypath}"
 	echo $privatekeypath
 
 	$currentRetry=0
 	while ($connectionoutput -ne "connected" -and $currentRetry -lt $maxretrycount)
 	{
-		echo "Try to connect:";
+		Write-Host "Trying to connect";
 		$connectionoutput=ssh -i ${privatekeypath} -o "StrictHostKeyChecking no" ${vmsshinfo} "sudo echo 'connected'; "
 		echo $connectionoutput
 		if ($connectionoutput -eq "connected") {
@@ -358,63 +357,63 @@ function Try-Connect {
 
 function Validation {
 	param($vmsshinfo,
-		  $privatekeypath)
+			$privatekeypath)
 	$global:issuccess = "succeeded"
-	echo "Started cgpu capable validation."
+	Write-Host "Started C-GPU capable validation."
 	$kernelversion=$(ssh -i $privatekeypath $vmsshinfo "sudo uname -r;")
-	if ($kernelversion -ne "5.15.0-1019-azure")
+	if ($kernelversion -ne "5.15.0-1019-azure") 
 	{
 		$global:issuccess="failed"
-		echo "Failed: kernel version validation. Current kernel: ${kernelversion}"
+		Write-Host "Failed: kernel version validation. Current kernel: ${kernelversion}"
 	}
 	else
 	{
-		echo "Passed: kernel validation. Current kernel: ${kernelversion}"
+		Write-Host "Passed: kernel validation. Current kernel: ${kernelversion}"
 	}
 
 	$securebootstate=$(ssh -i $privatekeypath $vmsshinfo "mokutil --sb-state;")
 	if ($securebootstate -ne "SecureBoot enabled")
 	{
 		$global:issuccess="failed"
-		echo "Failed: secure boot state validation. Current secure boot state: ${securebootstate}"
+		Write-Host "Failed: secure boot state validation. Current secure boot state: ${securebootstate}"
 	}
 	else
 	{
-		echo "Passed: secure boot state validation. Current secure boot state: ${securebootstate}"
+		Write-Host "Passed: secure boot state validation. Current secure boot state: ${securebootstate}"
 	}
 
 	$ccretrieve=$(ssh -i $privatekeypath $vmsshinfo "nvidia-smi conf-compute -f;")
 	if ($ccretrieve -ne "CC status: ON")
 	{
 		$global:issuccess="failed"
-		echo "Failed: Confidential Compute retrieve validation. Current Confidential Compute retrieve state: ${ccretrieve}"
+		Write-Host "Failed: Confidential Compute retrieve validation. Current Confidential Compute retrieve state: ${ccretrieve}"
 	}
-	else
+	else 
 	{
-		echo "Passed: Confidential Compute mode validation passed. Current Confidential Compute retrieve state: ${ccretrieve}"
+		Write-Host "Passed: Confidential Compute mode validation passed. Current Confidential Compute retrieve state: ${ccretrieve}"
 	}
 
 	$ccenvironment=$(ssh -i $privatekeypath $vmsshinfo "nvidia-smi conf-compute -e;")
 	if ($ccenvironment -ne "CC Environment: INTERNAL")
 	{
 		$global:issuccess="failed"
-		echo "Failed: Confidential Compute environment validation. Current Confidential Compute environment state: ${ccenvironment}"
+		Write-Host "Failed: Confidential Compute environment validation. Current Confidential Compute environment state: ${ccenvironment}"
 	}
 	else
 	{
-		echo "Passed: Confidential Compute environment validation. Current Confidential Compute environment: ${ccenvironment}"
+		Write-Host "Passed: Confidential Compute environment validation. Current Confidential Compute environment: ${ccenvironment}"
 	}
 
 	$attestationresult=$(ssh -i $privatekeypath $vmsshinfo "cd cgpu-onboarding-package; bash step-2-attestation.sh | tail -1| sed -e 's/^[[:space:]]*//'")
 	if ($attestationresult -ne "GPU 0 verified successfully.")
 	{
 		$global:issuccess="failed"
-		echo "Failed: Attestation validation failed. Last attestation message: ${attestationresult}"
+		Write-Host "Failed: Attestation validation failed. Last attestation message: ${attestationresult}"
 	}
 	else
 	{
-		echo "Passed: Attestation validation passed. Last attestation message: ${attestationresult}"
+		Write-Host "Passed: Attestation validation passed. Last attestation message: ${attestationresult}"
 	}
 
-	echo "Finished cgpu capable validation."
+	Write-Host "Finished C-GPU capable validation."
 }
