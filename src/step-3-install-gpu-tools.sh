@@ -51,8 +51,8 @@ install_gpu_tools(){
       sudo apt-get update
       sudo apt-get install -y nvidia-docker2
       sudo systemctl restart docker
-
-      sudo docker run --rm --gpus all nvidia/cuda:11.4.0-base nvidia-smi
+      
+      sudo docker run --rm --gpus all nvidia/cuda:11.4.3-base-ubuntu20.04 nvidia-smi
 
       lockError=$(cat logs/current-operation.log | grep "Could not get lock")
       if [ "$lockError" != "" ] && [ $MAX_RETRY \> 0 ];
