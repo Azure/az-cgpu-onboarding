@@ -1,7 +1,7 @@
 # Table of Contents
 1. [Dev Tools Overview](https://github.com/Azure-Confidential-Computing/PrivatePreview/blob/main/src/dev_tools/README.md#dev-tools-overview)
 
-3. [Instructions for Contributions](https://github.com/Azure-Confidential-Computing/PrivatePreview/blob/main/src/dev_tools/README.md#instructions-for-contributions)
+2. [Instructions for Contributions](https://github.com/Azure-Confidential-Computing/PrivatePreview/blob/main/src/dev_tools/README.md#instructions-for-contributions)
 
 ## Dev Tools Overview
 
