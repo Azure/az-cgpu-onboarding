@@ -117,8 +117,27 @@ def main():
     )
     parser.add_argument(
         "--rim_service_url",
-        help= "If the user wants to override the RIM service base url and provide their own url, then can do so by passing it as a command line argument.",
+        help="If the user wants to override the RIM service base url and provide their own url, then can do so by passing it as a command line argument.",
     )
+    parser.add_argument(
+        "--ocsp_server_url",
+        help="If the user wants to override the OCSP server url and provide their own url, then can do so by passing it as a command line argument.",
+    )
+    parser.add_argument(
+        "--ocsp_disable_nonce",
+        help="Disable the Nonce check in OCSP response",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--ocsp_validity_extension",
+        help="If the OCSP response is expired within the validity extension period in hours, treat the OCSP response as valid and continue the attestation.",
+    )
+    parser.add_argument(
+        "--ocsp_cert_revoked_extension",
+        help="If the OCSP response indicate the certificate is revoked within the extension period in hours, treat the cert as good and continue the attestation."
+    )
+
+
     args = parser.parse_args()
     arguments_as_dictionary = vars(args)
 
