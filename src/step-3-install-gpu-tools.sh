@@ -15,7 +15,7 @@ MAX_RETRY=3
 install_gpu_tools(){
     # verify attestation is given the correct result.
     attestation_result=$(bash step-2-attestation.sh | tail -1| sed -e 's/^[[:space:]]*//')
-    if [ "$attestation_result" != "$ATTESTATION_SUCCESS_MESSAGE" ]; 
+    if [ "$attestation_result" == "$ATTESTATION_SUCCESS_MESSAGE" ]; 
     then
       echo "Current gpu attestation failed: ${attestation_result}, expected: GPU 0 verified successfully."
       echo "Please verify previous steps and retry step-2-attestation."
@@ -52,7 +52,7 @@ install_gpu_tools(){
       sudo apt-get install -y nvidia-docker2
       sudo systemctl restart docker
 
-      sudo docker run --rm --gpus all nvidia/cuda:11.4.0-base nvidia-smi
+      sudo docker run --rm --gpus all nvidia/cuda:12.2.0-base-ubuntu22.04 nvidia-smi
 
       lockError=$(cat logs/current-operation.log | grep "Could not get lock")
       if [ "$lockError" != "" ] && [ $MAX_RETRY \> 0 ];
