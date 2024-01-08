@@ -323,9 +323,9 @@ class CcAdminUtils:
         Returns:
             [str]: the content of the required RIM file as a string.
         """
-        rim_result = CcAdminUtils.fetch_rim_file_from_url(file_id, BaseSettings.RIM_SERVICE_URL, max_retries)
+        rim_result = CcAdminUtils.fetch_rim_file_from_url(file_id, BaseSettings.RIM_SERVICE_BASE_URL, max_retries)
         if rim_result is None:
-            rim_result = CcAdminUtils.fetch_rim_file_from_url(file_id, BaseSettings.NVIDIA_RIM_SERVICE_URL, max_retries)
+            rim_result = CcAdminUtils.fetch_rim_file_from_url(file_id, BaseSettings.RIM_SERVICE_BASE_URL_NVIDIA, max_retries)
             if rim_result is None:
                 raise RIMFetchError(f"Could not fetch the required RIM file : {file_id} from the RIM service.")
         
