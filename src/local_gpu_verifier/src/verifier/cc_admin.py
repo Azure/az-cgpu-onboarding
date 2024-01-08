@@ -88,6 +88,7 @@ def main():
                 need to test the verifier, then no nvml apis will be available so, the verifier
                 will use a hardcoded gpu info.""",
         action="store_true",
+        default=True,
     )
     parser.add_argument(
         "--driver_rim",
@@ -127,14 +128,17 @@ def main():
         "--ocsp_disable_nonce",
         help="Disable the Nonce check in OCSP response",
         action="store_true",
+        default=True,
     )
     parser.add_argument(
         "--ocsp_validity_extension",
         help="If the OCSP response is expired within the validity extension period in hours, treat the OCSP response as valid and continue the attestation.",
+        default=168,
     )
     parser.add_argument(
         "--ocsp_cert_revoked_extension",
         help="If the OCSP response indicate the certificate is revoked within the extension period in hours, treat the cert as good and continue the attestation."
+        default=168,
     )
 
 
