@@ -280,26 +280,56 @@ class CcAdminUtils:
             info_log.info(err_msg)
             return False
 
-    @staticmethod
-    def fetch_rim_file(file_id):
-        """ A static method to fetch the RIM file with the given file id from the RIM service.
 
+    @staticmethod
+    def fetch_rim_file_from_url(file_id, url, max_retries=5):
+        """ A static method to fetch the RIM file with the given file id from the given url.
+            If the fetch fails, it retries for the maximum number of times specified by the max_retries parameter.
+            If the max_retries is set to 0, it does not retry on failure and return None.
+        
         Args:
-            file_id (str): the RIM file id which need to be fetched from the RIM service.
+            file_id (str): the RIM file id which need to be fetched from the given url.
+            url (str): the url from which the RIM file needs to be fetched.
+            max_retries (int, optional): the maximum number of retries to be performed in case of any error. Defaults to 5.
 
         Returns:
             [str]: the content of the required RIM file as a string.
         """
         try:
-            with request.urlopen(BaseSettings.RIM_SERVICE_BASE_URL + file_id) as https_response:
+            with request.urlopen(url + file_id) as https_response:
                 data = https_response.read()
                 json_object = json.loads(data)
                 base64_data = json_object['rim']
                 decoded_str = base64.b64decode(base64_data)
                 return decoded_str.decode('utf-8')
-        except HTTPError:
-            raise RIMFetchError("Could not fetch the rim file : " + file_id)        
+        except HTTPError as error:
+            if max_retries > 0:
+                return CcAdminUtils.fetch_rim_file_from_url(file_id, url, max_retries - 1)
+            else:
+                return None
 
+
+    @staticmethod
+    def fetch_rim_file(file_id, max_retries=5):
+        """ A static method to fetch the RIM file with the given file id from the RIM service.
+            It tries to fetch the RIM file from provided RIM service, and fallback to the Nvidia RIM service if the fetch fails.
+
+        Args:
+            file_id (str): the RIM file id which need to be fetched from the RIM service.
+
+        Raises:
+            RIMFetchError: it is raised in case the RIM fetch is failed.
+
+        Returns:
+            [str]: the content of the required RIM file as a string.
+        """
+        rim_result = CcAdminUtils.fetch_rim_file_from_url(file_id, BaseSettings.RIM_SERVICE_URL, max_retries)
+        if rim_result is None:
+            rim_result = CcAdminUtils.fetch_rim_file_from_url(file_id, BaseSettings.NVIDIA_RIM_SERVICE_URL, max_retries)
+            if rim_result is None:
+                raise RIMFetchError(f"Could not fetch the required RIM file : {file_id} from the RIM service.")
+        
+            
     @staticmethod
     def get_vbios_rim_file_id(project, project_sku, chip_sku, vbios_version):
         """ A static method to generate the required VBIOS RIM file id which needs to be fetched from the RIM service 
