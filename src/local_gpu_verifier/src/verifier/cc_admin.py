@@ -120,8 +120,8 @@ def main():
         help="If the user wants to override the RIM service base url and provide their own url, then can do so by passing it as a command line argument.",
     )
     parser.add_argument(
-        "--ocsp_server_url",
-        help="If the user wants to override the OCSP server url and provide their own url, then can do so by passing it as a command line argument.",
+        "--ocsp_service_url",
+        help="If the user wants to override the OCSP service url and provide their own url, then can do so by passing it as a command line argument.",
     )
     parser.add_argument(
         "--ocsp_disable_nonce",
