@@ -137,7 +137,7 @@ def main():
     )
     parser.add_argument(
         "--ocsp_cert_revoked_extension",
-        help="If the OCSP response indicate the certificate is revoked within the extension period in hours, treat the cert as good and continue the attestation."
+        help="If the OCSP response indicate the certificate is revoked within the extension period in hours, treat the cert as good and continue the attestation.",
         default=168,
     )
 
