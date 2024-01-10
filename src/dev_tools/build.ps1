@@ -6,7 +6,7 @@
 #
 
 # Generates a 'Drop' folder that contains all 3 release packages:
-# 1: cgpu-onboarding-package.tar.gz containing VM bring-up scripts, driver, and verifier
+# 1: cgpu-onboarding-package.tar.gz containing VM bring-up scripts, driver, and local verifier
 # 2: cgpu-sb-enable-vmi-onboarding.zip containing windows onboarding script with onboarding package
 # 3: cgpu-sb-enable-vmi-onboarding.tar.gz containing linux onboarding script with onboarding package
 
@@ -66,7 +66,7 @@ function Make-Cgpu-Onboarding-Package {
 	}
 
  	# Add in local verifier folder
-  	Copy-Item "$PSScriptRoot\..\local_cgpu_verifier" -Destination "{$packageDestination}\local_gpu_verifier" -Force -Recurse
+  	Copy-Item "$PSScriptRoot\..\local_gpu_verifier" -Destination "${packageDestination}\local_gpu_verifier" -Force -Recurse
 
 	# Creates main .tar.gz
 	echo "generating customer-onboarding-package.tar.gz"
