@@ -136,7 +136,7 @@ function Auto-Onboard-CGPU-Multi-VM {
 	Write-Host "Please execute the below command to try attestation:"
 	Write-Host "cd cgpu-onboarding-package; bash step-2-attestation.sh";
 	Write-Host "Please execute the below command to try a sample workload:"
-	Write-Host "cd; bash mnist_example.sh pytorch";
+	Write-Host "sudo docker run --gpus all -v /home/${adminusername}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:23.09-tf2-py3 python /home/mnist-sample-workload.py";
 	Write-Host "******************************************************************************************"
 
 	Write-Host "Total VM to onboard: ${totalvmnumber}, total Success: ${successcount}."
