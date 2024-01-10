@@ -51,7 +51,7 @@ function Build-Packages {
 
 function Make-Cgpu-Onboarding-Package {
 	# Lists out all files to be included in .tar.gz archive
-	[String[]]$files = "$PSScriptRoot\..\step-0-enroll-signing-key.sh", "$PSScriptRoot\..\step-1-install-gpu-driver.sh", 
+	[String[]]$files = "$PSScriptRoot\..\step-0-prepare-kernel.sh", "$PSScriptRoot\..\step-1-install-gpu-driver.sh", 
 		"$PSScriptRoot\..\step-2-attestation.sh", "$PSScriptRoot\..\step-3-install-gpu-tools.sh", "$PSScriptRoot\..\utilities-update-kernel.sh",
 		"$PSScriptRoot\..\mnist-sample-workload.py", "$PSScriptRoot\..\nvidia.pref", "${PackageFolder}\APM_470.10.12_5.15.0-1014.17.tar",
 		"${PackageFolder}\verifier_apm_pid3_5_1.tar", "${PackageFolder}\linux_kernel_apm_sha256_cert.pem"
@@ -65,6 +65,9 @@ function Make-Cgpu-Onboarding-Package {
 		Copy-Item $file -Destination $packageDestination -Force
 	}
 
+ 	# Add in local verifier folder
+  	Copy-Item "$PSScriptRoot\..\local_cgpu_verifier" -Destination "{$packageDestination}\local_gpu_verifier" -Force -Recurse
+
 	# Creates main .tar.gz
 	echo "generating customer-onboarding-package.tar.gz"
 	tar -czvf $cgpuOnboardingPackage -C $DropFolder $CgpuOnboardingPackageFolder
@@ -77,7 +80,7 @@ function Make-Sb-Enabled-Packages {
 	if (!(Test-Path $DropFolder\$SbEnabledPackage -PathType Container)) {
 		New-Item -ItemType Directory -Force -Path $SbEnabledPackageDestination
 	}
-	$powershellScript="$PSScriptRoot\..\secureboot-enable-onboarding-from-vmi.ps1"
+	$powershellScript="$PSScriptRoot\..\cgpu-h100-auto-onboarding.ps1"
 	Copy-Item $DropFolder\$cgpuOnboardingPackage -Destination $SbEnabledPackageDestination -Force
 	if (Get-Content $powershellScript -Delimiter "`0" | Select-String "[^`r]`n")
     {
@@ -88,7 +91,7 @@ function Make-Sb-Enabled-Packages {
 
 	# Generate linux (.tar.gz) secure-boot enabled package
 	"generating linux package"
-	$linuxScript="$PSScriptRoot\..\secureboot-enable-onboarding-from-vmi.sh"
+	$linuxScript="$PSScriptRoot\..\cgpu-h100-auto-onboarding.sh"
 	$extn = [IO.Path]::GetExtension("${SbEnabledPackageDestination}\${linuxScript}")
 	((Get-Content $linuxScript) -join "`n") + "`n" | Set-Content -NoNewline $linuxScript
 	Copy-Item $linuxScript -Destination $SbEnabledPackageDestination
