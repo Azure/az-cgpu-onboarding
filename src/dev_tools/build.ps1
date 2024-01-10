@@ -69,14 +69,14 @@ function Make-Cgpu-Onboarding-Package {
   	Copy-Item "$PSScriptRoot\..\local_gpu_verifier" -Destination "${packageDestination}\local_gpu_verifier" -Force -Recurse
 
 	# Creates main .tar.gz
-	echo "generating customer-onboarding-package.tar.gz"
+	echo "Generating customer-onboarding-package.tar.gz"
 	tar -czvf $cgpuOnboardingPackage -C $DropFolder $CgpuOnboardingPackageFolder
 	Move-Item $cgpuOnboardingPackage $DropFolder -Force
 }
 
 function Make-Sb-Enabled-Packages {
 	# Generate windows (zip) secure-boot enabled package
-	echo "generating windows package"
+	echo "Generating windows package"
 	if (!(Test-Path $DropFolder\$SbEnabledPackage -PathType Container)) {
 		New-Item -ItemType Directory -Force -Path $SbEnabledPackageDestination
 	}
@@ -90,7 +90,7 @@ function Make-Sb-Enabled-Packages {
 	Compress-Archive -Path $powershellScript, $DropFolder\$cgpuOnboardingPackage -DestinationPath $DropFolder\cgpu-sb-enable-vmi-onboarding.zip -Force
 
 	# Generate linux (.tar.gz) secure-boot enabled package
-	"generating linux package"
+	echo "Generating linux package"
 	$linuxScript="$PSScriptRoot\..\cgpu-h100-auto-onboarding.sh"
 	$extn = [IO.Path]::GetExtension("${SbEnabledPackageDestination}\${linuxScript}")
 	((Get-Content $linuxScript) -join "`n") + "`n" | Set-Content -NoNewline $linuxScript
