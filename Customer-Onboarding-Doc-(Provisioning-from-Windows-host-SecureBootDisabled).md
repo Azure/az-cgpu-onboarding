@@ -87,24 +87,24 @@ az account set --subscription [your subscriptionId]
 az group create --name $rg --location eastus2
 
 
-# Create a VM.(takes few minute to finish)
+# Create a VM - this takes few minute to finish
 # Please replace <public key path> with your id_rsa.pub path.
 # EG: --ssh-key-values @E:\cgpu\.ssh\id_rsa.pub 
-# Create VM with (takes a few minute to finish)
+# Create VM with the following command:
 az vm create `
---resource-group $rg `
---name $vmname `
---image Canonical:0001-com-ubuntu-server-focal:20_04-lts-gen2:20.04.202207130 `
---public-ip-sku Standard `
---admin-username $adminusername `
---ssh-key-values @<public key path> `
---security-type "TrustedLaunch" `
---enable-secure-boot $false `
---enable-vtpm $true `
---size Standard_NCC24ads_A100_v4 `
---os-disk-size-gb 100 `
---verbose
-
+			--resource-group $rg `
+			--name $vmname `
+   --image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:latest `
+			--public-ip-sku Standard `
+			--admin-username $adminusername `
+			--ssh-key-values $publickeypath `
+			--security-type ConfidentialVM `
+			--os-disk-security-encryption-type DiskWithVMGuestState `
+			--enable-secure-boot $true `
+			--enable-vtpm $true `
+			--size Standard_NCC40ads_H100_v5 `
+			--os-disk-size-gb 100 `
+			--verbose
 ```
 
  3. Check your VM connection using your private key
@@ -130,7 +130,10 @@ scp -i <private key path> cgpu-onboarding-package.tar.gz [adminusername]@[IP]:/h
 tar -zxvf cgpu-onboarding-package.tar.gz
 cd cgpu-onboarding-package 
 
-# In the terminal window connected to your VM, install the GPU-Driver in cgpu-onboarding-package folder.
+# In the terminal window connect to your VM, and start by preparing the kernel.
+bash step-0-prepare-kernel.sh
+
+# Next, install the GPU-Driver in cgpu-onboarding-package folder.
 # This step also requires a reboot. Please wait about 5-10 min to reconnect to the VM.
 bash step-1-install-gpu-driver.sh
 
