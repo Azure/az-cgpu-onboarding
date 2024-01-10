@@ -361,6 +361,8 @@ function Update-Kernel {
 	Write-Host "Start update kernel"
 	ssh  -i ${privatekeypath} ${vmsshinfo} "cd cgpu-onboarding-package; bash step-0-prepare-kernel.sh;"
 	Write-Host "Finished update kernel."
+	Write-Host "Rebooting..."
+
 	$global:issuccess = "succeeded"
 }
 
