@@ -1,6 +1,7 @@
 # CMK Deployment
 
 - Deploy CMK DES first if you need a CMK VM
+- You can use our deployDES.json and skr-policy.json, or define your own
 
 ## On Linux Bash shell
 
