@@ -36,7 +36,7 @@ attestation(){
 
         sudo rm -rf ~/verifier && echo "Cleaned up folder after running!"
     
-        cd ..
+        cd ~/cgpu-onboarding-package
 
         lockError=$(cat logs/current-operation.log | grep "Could not get lock")
         if [ "$lockError" != "" ] && [ $MAX_RETRY \> 0 ];

@@ -129,7 +129,7 @@ cgpu_h100_onboarding() {
 	echo "Please execute the below command to try attestation:"
 	echo "cd cgpu-onboarding-package; bash step-2-attestation.sh";
 	echo "Please execute the below command to try a sample workload:"
-	echo "cd; bash mnist_example.sh pytorch";
+	echo "sudo docker run --gpus all -v /home/${adminuser_name}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:23.09-tf2-py3 python /home/mnist-sample-workload.py";
 	echo "******************************************************************************************"
 
 	az account clear
@@ -180,8 +180,10 @@ auto_onboard_cgpu_single_vm() {
 		return
 	fi
 	ip=$(az vm show -d -g $rg -n $vmname --query publicIps -o tsv)
-	vm_ssh_info=$adminuser_name@$ip
-	
+
+	vm_ssh_info="${adminuser_name}@${ip}"
+	vm_ssh_info=$(echo "$vm_ssh_info" | tr -cd '[:alnum:]-/,.:@')
+
 	echo "VM creation finished"
 	echo $vm_ssh_info
 
@@ -205,41 +207,46 @@ auto_onboard_cgpu_single_vm() {
 
 # Upload package to VM.
 upload_package() {
-	echo "Start uploading package..."
 	try_connect
+
+	echo "Start uploading package..."
 	scp -i $private_key_path $cgpu_package_path $vm_ssh_info:/home/$adminuser_name
+	echo "Finished uploading package."
 
 	echo "Start extracting package..."
-	ssh -i $private_key_path $vm_ssh_info "tar -zxvf cgpu-onboarding-package.tar.gz;" > /dev/null
+	ssh -i $private_key_path $vm_ssh_info "tar -zxvf cgpu-onboarding-package.tar.gz;"
+	echo "Finished extracting package."
 }
 
 # Upload package to VM.
 update_kernel() {
-	echo "Start update kernel."
 	try_connect
-	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; bash step-0-prepare-kernel.sh;" > /dev/null
+	echo "Start update kernel."
+	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; bash step-0-prepare-kernel.sh;" 
 	echo "Finished update kernel."
+	echo "Rebooting.."
 }
 
 install_gpu_driver() {
-	echo "Start install gpu driver"
 	try_connect
-	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; bash step-1-install-gpu-driver.sh;" > /dev/null
+	echo "Start install gpu driver"
+	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; bash step-1-install-gpu-driver.sh;" 
 	echo "Finished install gpu driver"
 }
 
 # Do attestation in the created VMs.
 attestation() {
-	echo "Start verifier installation and attestation. Please wait, this process can take up to 2 minutes."
 	try_connect
-	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh;" > "$log_dir/attestation.log"
-	ssh -i $private_key_path $vm_ssh_info 'cd cgpu-onboarding-package/$(ls -1 cgpu-onboarding-package | grep verifier | head -1); sudo python3 cc_admin.py'
+	echo "Start verifier installation and attestation. Please wait, this process can take up to 2 minutes."
+	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh;"
+	#ssh -i $private_key_path $vm_ssh_info 'cd cgpu-onboarding-package/$(ls -1 cgpu-onboarding-package | grep verifier | head -1); sudo python3 cc_admin.py'
+	echo "Finished attestation."
 }
 
 install_gpu_tool() {
-	echo "Start install gpu tool."
 	try_connect
-	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; echo Y | bash step-3-install-gpu-tools.sh;" > /dev/null
+	echo "Start install gpu tool."
+	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; echo Y | bash step-3-install-gpu-tools.sh;" 
 	echo "Finished install gpu tool."
 }
 
@@ -251,7 +258,7 @@ try_connect() {
    connectionoutput=""
    while [[ "$connectionoutput" != "Connected to VM" ]] && [[ $retries -lt $MAX_RETRY ]];
    do
-       connectionoutput=$(ssh -i $private_key_path -o "StrictHostKeyChecking no" $vm_ssh_info "sudo echo 'Connected to VM';")
+       connectionoutput=$(ssh -i "${private_key_path}" -o "StrictHostKeyChecking=no" "${vm_ssh_info}" "echo 'Connected to VM';")
        echo $connectionoutput
        retries=$((retries+1))
    done
