@@ -70,7 +70,7 @@ The key's randomart image is:
 cd cgpu-h100-onboarding
 ```
 - Execute the CGPU H100 onboarding script.
-
+```
 # This script will help to get you get access to a private Canonical-signed confidential GPU-capable image with an Nvidia GPU driver 
 # installed. It will then create VMs with secure boot enabled in your specified resource group.
 # If the resource group doesn't exist, it will create the resource group with the specified name in the target subsription.
@@ -84,7 +84,6 @@ cd cgpu-h100-onboarding
 #	vmnameprefix: the prefix of your vm. It will create from prefix1, prefix2, prefix3 till the number of VMs specified;
 #	totalvmnumber: the number of VMs you want to create
 
-```
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 Import-Module .\cgpu-h100-auto-onboarding.ps1
  CGPU-H100-Onboarding `
