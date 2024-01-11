@@ -80,7 +80,7 @@ cgpu_h100_onboarding() {
 	echo "Total VM number:  ${total_vm_number}"
 
 	echo "Clear previous account info."
-	#az account clear
+	az account clear
 	az login --tenant ${tenant_id} > "$log_dir/login-operation.log"
 	az account set --subscription $subscription_id >> "$log_dir/login-operation.log"
 
@@ -91,7 +91,7 @@ cgpu_h100_onboarding() {
 		return
 	fi
 	echo "prepare subscription and resource group success."
-	return;
+
 	# Start VM creation with number of specified VMs.
 	successCount=0
 	for ((current_vm_count=1; current_vm_count <= total_vm_number; current_vm_count++))
