@@ -15,9 +15,9 @@ $DropFolder="$PSScriptRoot\..\..\drops"
 $PackageFolder="$PSScriptRoot\..\..\packages"
 $CgpuOnboardingPackageFolder="cgpu-onboarding-package"
 $cgpuOnboardingPackage="cgpu-onboarding-package.tar.gz"
-$SbEnabledPackage="cgpu-h100-onboarding"
+$H100Package="cgpu-h100-onboarding"
 $packageDestination = "${DropFolder}\${CgpuOnboardingPackageFolder}"
-$SbEnabledPackageDestination="${DropFolder}\${SbEnabledPackage}"
+$H100PackageDestination="${DropFolder}\${H100Package}"
 
 function Cleanup {
 	# Removes if there are any old packages before starting
@@ -46,7 +46,7 @@ function Build-Packages {
 
 	# Cleans up folders
 	Remove-Item $CgpuOnboardingPackageFolder -Force -Recurse
-	Remove-Item $SbEnabledPackage -Force -Recurse
+	Remove-Item $H100Package -Force -Recurse
 }
 
 function Make-Cgpu-Onboarding-Package {
@@ -77,13 +77,13 @@ function Make-Cgpu-Onboarding-Package {
 }
 
 function Make-H100-Packages {
-	# Generate windows (zip) secure-boot enabled package
+	# Generate windows (zip) H100 package
 	echo "Generating windows package"
-	if (!(Test-Path $DropFolder\$SbEnabledPackage -PathType Container)) {
-		New-Item -ItemType Directory -Force -Path $SbEnabledPackageDestination
+	if (!(Test-Path $DropFolder\$H100Package -PathType Container)) {
+		New-Item -ItemType Directory -Force -Path $H100PackageDestination
 	}
 	$powershellScript="$PSScriptRoot\..\cgpu-h100-auto-onboarding.ps1"
-	Copy-Item $DropFolder\$cgpuOnboardingPackage -Destination $SbEnabledPackageDestination -Force
+	Copy-Item $DropFolder\$cgpuOnboardingPackage -Destination $H100PackageDestination -Force
 
 	if (Get-Content $powershellScript -Delimiter "`0" | Select-String "[^`r]`n")
     {
@@ -92,15 +92,15 @@ function Make-H100-Packages {
     }
 	Compress-Archive -Path $powershellScript, $DropFolder\$cgpuOnboardingPackage, "$PSScriptRoot\..\cmk_module" -DestinationPath $DropFolder\cgpu-h100-onboarding.zip -Force
 
-	# Generate linux (.tar.gz) secure-boot enabled package
+	# Generate linux (.tar.gz) H100 enabled package
 	echo "Generating linux package"
 	$linuxScript="$PSScriptRoot\..\cgpu-h100-auto-onboarding.sh"
-	$extn = [IO.Path]::GetExtension("${SbEnabledPackageDestination}\${linuxScript}")
+	$extn = [IO.Path]::GetExtension("${H100PackageDestination}\${linuxScript}")
 	((Get-Content $linuxScript) -join "`n") + "`n" | Set-Content -NoNewline $linuxScript
-	Copy-Item $linuxScript -Destination $SbEnabledPackageDestination
-	Copy-Item "$PSScriptRoot\..\cmk_module" -Destination $SbEnabledPackageDestination -Recurse
+	Copy-Item $linuxScript -Destination $H100PackageDestination
+	Copy-Item "$PSScriptRoot\..\cmk_module" -Destination $H100PackageDestination -Recurse
 	Set-Location $DropFolder
-	tar -czvf "${SbEnabledPackage}.tar.gz" -C $DropFolder $SbEnabledPackage
+	tar -czvf "${H100Package}.tar.gz" -C $DropFolder $H100Package
 }
 
 Cleanup
