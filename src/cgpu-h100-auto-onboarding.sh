@@ -9,6 +9,7 @@
 #                          It will create the Resource Group if it is not found under given subscription
 #	-p <public key path>: your id_rsa.pub path 
 #	-i <private key path>: your id_rsa path
+#   -d <disk encryption id>: customer managed disk encryption id
 #	-c <CustomerOnboardingPackage path>: Customer onboarding package path
 #	-a <admin user name>: administrator username for the VM
 #	-v <vm name>: your VM name
