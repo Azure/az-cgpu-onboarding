@@ -13,7 +13,7 @@
 # 6: Install GPU docker tools.
 # 7: Output connection ssh info and tensorflow execution command.
 #
-# required paramter:
+# Required parameters:
 # 	rg: name of your resource group. (please do az login to your subscription and create a resource group)
 #	adminusername: your adminusername
 #	publickeypath: your public key path
@@ -24,17 +24,17 @@
 #	totalvmnumber: the number of retry we want to perform.
 #
 # EG:
-#CGPU-H100-Onboarding `
-#-tenantid "8af6653d-c9c0-4957-ab01-615c7212a40b" `
-#-subscriptionid "9269f664-5a68-4aee-9498-40a701230eb2" `
-#-rg "cgpu-test-rg" `
-#-publickeypath "E:\cgpu\.ssh\id_rsa.pub" `
-#-privatekeypath "E:\cgpu\.ssh\id_rsa"  `
-#-desid "/subscriptions/85c61f94-8912-4e82-900e-6ab44de9bdf8/resourceGroups/CGPU-CMK-KV/providers/Microsoft.Compute/diskEncryptionSets/CMK-Test-Des-03-01" `
-#-cgpupackagepath "E:\cgpu\cgpu-onboarding-package.tar.gz" `
-#-adminusername "admin" `
-#-vmnameprefix "cgpu-test" `
-#-totalvmnumber 2
+# CGPU-H100-Onboarding `
+# -tenantid "8af6653d-c9c0-4957-ab01-615c7212a40b" `
+# -subscriptionid "9269f664-5a68-4aee-9498-40a701230eb2" `
+# -rg "cgpu-test-rg" `
+# -publickeypath "E:\cgpu\.ssh\id_rsa.pub" `
+# -privatekeypath "E:\cgpu\.ssh\id_rsa"  `
+# -desid "/subscriptions/85c61f94-8912-4e82-900e-6ab44de9bdf8/resourceGroups/CGPU-CMK-KV/providers/Microsoft.Compute/diskEncryptionSets/CMK-Test-Des-03-01" `
+# -cgpupackagepath "E:\cgpu\cgpu-onboarding-package.tar.gz" `
+# -adminusername "admin" `
+# -vmnameprefix "cgpu-test" `
+# -totalvmnumber 2
 
 function CGPU-H100-Onboarding{
 		param(
