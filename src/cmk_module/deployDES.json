@@ -1,0 +1,51 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "desName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the DES."
+      }
+    },
+    "region": {
+      "type": "string",
+      "metadata": {
+        "description": "Region of the DES, should be consistent with that of encryption key and CVM"
+      }
+    },
+    "encryptionKeyURL": {
+      "type": "string",
+      "metadata": {
+        "description": "AKV key URL for CVM disk encryption."
+      }
+    },    
+    "encryptionKeyVaultId": {
+      "type": "string",
+      "metadata": {
+        "description": "The AKV key vault id that holds the encryption key."
+      }
+    }  
+  },
+  "variables": {},
+  "resources": [
+    {
+      "type": "Microsoft.Compute/diskEncryptionSets",
+      "apiVersion": "2021-04-01",
+      "name": "[parameters('desName')]",
+      "location": "[parameters('region')]",
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "properties": {
+        "activeKey": {
+          "keyUrl": "[parameters('encryptionKeyURL')]",
+          "sourceVault": {
+              "id": "[parameters('encryptionKeyVaultId')]"
+          }
+        },
+        "encryptionType": "ConfidentialVmEncryptedWithCustomerKey"
+      }
+    }
+  ]
+}
