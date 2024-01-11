@@ -80,7 +80,7 @@ cgpu_h100_onboarding() {
 	echo "Total VM number:  ${total_vm_number}"
 
 	echo "Clear previous account info."
-	az account clear
+	#az account clear
 	az login --tenant ${tenant_id} > "$log_dir/login-operation.log"
 	az account set --subscription $subscription_id >> "$log_dir/login-operation.log"
 
@@ -91,7 +91,7 @@ cgpu_h100_onboarding() {
 		return
 	fi
 	echo "prepare subscription and resource group success."
-
+	return;
 	# Start VM creation with number of specified VMs.
 	successCount=0
 	for ((current_vm_count=1; current_vm_count <= total_vm_number; current_vm_count++))
@@ -157,10 +157,21 @@ prepare_subscription_and_rg() {
 	
 	print_error "SubscriptionId validation success."
 	print_error "Checking resource group...."
-	if [ $(az group exists --name $rg) == false ]; then
+	
+	# azure cli return invisible char, removing it.
+	is_resource_group_exist="$(az group exists --name $rg)"
+	is_resource_group_exist=$(echo "$is_resource_group_exist" | tr -cd '[:alnum:]-/,.:@')
+	
+	if [ $is_resource_group_exist == "false" ]; then
     	print_error "Resource group ${rg} does not exits, start creating resource group ${rg}"
+    	
     	az group create --name ${rg} --location eastus2
-		if [ $(az group exists --name $rg) == false ]; then
+
+    	# azure cli return invisible char, removing it.
+    	is_resource_group_exist="$(az group exists --name $rg)"
+    	is_resource_group_exist=$(echo "$is_resource_group_exist" | tr -cd '[:alnum:]-/,.:@')
+		
+		if [ $is_resource_group_exist == "false" ]; then
 			print_error "rg creation failed, please check if your subscription is correct."
 			is_success="failed"
 			return
@@ -181,6 +192,7 @@ auto_onboard_cgpu_single_vm() {
 	fi
 	ip=$(az vm show -d -g $rg -n $vmname --query publicIps -o tsv)
 
+	# azure cli return invisible char, removing it.
 	vm_ssh_info="${adminuser_name}@${ip}"
 	vm_ssh_info=$(echo "$vm_ssh_info" | tr -cd '[:alnum:]-/,.:@')
 
