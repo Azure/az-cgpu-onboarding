@@ -51,7 +51,7 @@ function Build-Packages {
 
 function Make-Cgpu-Onboarding-Package {
 	# Lists out all files to be included in .tar.gz archive
-	[String[]]$files = "$PSScriptRoot\..\step-0-prepare-kernel.sh", "$PSScriptRoot\..\step-1-install-gpu-driver.sh", 
+	[String[]]$files = "$PSScriptRoot\..\local_gpu_verifier", "$PSScriptRoot\..\step-0-prepare-kernel.sh", "$PSScriptRoot\..\step-1-install-gpu-driver.sh", 
 		"$PSScriptRoot\..\step-2-attestation.sh", "$PSScriptRoot\..\step-3-install-gpu-tools.sh", "$PSScriptRoot\..\utilities-update-kernel.sh",
 		"$PSScriptRoot\..\mnist-sample-workload.py", "$PSScriptRoot\..\nvidia.pref", "${PackageFolder}\APM_470.10.12_5.15.0-1014.17.tar",
 		"${PackageFolder}\verifier_apm_pid3_5_1.tar", "${PackageFolder}\linux_kernel_apm_sha256_cert.pem"
@@ -62,14 +62,11 @@ function Make-Cgpu-Onboarding-Package {
 		if ($extn -eq ".sh" ){
 			((Get-Content $file) -join "`n") + "`n" | Set-Content -NoNewline $file
 		}
-		Copy-Item $file -Destination $packageDestination -Force
+		Copy-Item $file -Destination $packageDestination -Force -Recurse
 	}
 
- 	# Add in local verifier folder
-  	Copy-Item "$PSScriptRoot\..\local_gpu_verifier" -Destination "${packageDestination}\local_gpu_verifier" -Force -Recurse
-
 	# Creates main .tar.gz
-	echo "Generating customer-onboarding-package.tar.gz"
+	echo "Generating cgpu-onboarding-package.tar.gz"
 	tar -czvf $cgpuOnboardingPackage -C $DropFolder $CgpuOnboardingPackageFolder
 	Move-Item $cgpuOnboardingPackage $DropFolder -Force
 }
