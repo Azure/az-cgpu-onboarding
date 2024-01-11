@@ -65,7 +65,6 @@ The key's randomart image is:
 2. Create the VM using a powershell script
 
 - Decompress downloaded [cgpu-h100-onboarding.zip](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V3.0.1/cgpu-h100-onboarding.zip) and enter the folder through powershell.
-- 
 ```
 cd cgpu-h100-onboarding
 ```
@@ -96,7 +95,8 @@ Import-Module .\cgpu-h100-auto-onboarding.ps1
 -adminusername "admin" `
 -vmnameprefix "cgpu-test" `
 -totalvmnumber 2
-```
+
+------------------------------------------------------------------------------------------
 Sample output:
 
 ------------------------------------------------------------------------------------------
