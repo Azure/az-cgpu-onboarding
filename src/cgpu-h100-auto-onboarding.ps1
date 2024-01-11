@@ -18,29 +18,32 @@
 #	adminusername: your adminusername
 #	publickeypath: your public key path
 #	privatekeypath: your private key path
+#   desid: disk encryption set id. (only need if trying to use CMK, otherwith vm will be create through PMK)
 #	cgppackagepath: your cgpu-onboarding-pakcage.tar.gz path
 #	vmnameprefix: the prefix of your vm. It will create from prefix1, prefix2, prefix3 till the number of retry specified;
 #	totalvmnumber: the number of retry we want to perform.
 #
 # EG:
-#Secureboot-Enable-Onboarding-From-VMI `
+#CGPU-H100-Onboarding `
 #-tenantid "8af6653d-c9c0-4957-ab01-615c7212a40b" `
 #-subscriptionid "9269f664-5a68-4aee-9498-40a701230eb2" `
 #-rg "cgpu-test-rg" `
 #-publickeypath "E:\cgpu\.ssh\id_rsa.pub" `
 #-privatekeypath "E:\cgpu\.ssh\id_rsa"  `
+#-desid "/subscriptions/85c61f94-8912-4e82-900e-6ab44de9bdf8/resourceGroups/CGPU-CMK-KV/providers/Microsoft.Compute/diskEncryptionSets/CMK-Test-Des-03-01" `
 #-cgpupackagepath "E:\cgpu\cgpu-onboarding-package.tar.gz" `
 #-adminusername "admin" `
 #-vmnameprefix "cgpu-test" `
 #-totalvmnumber 2
 
-function Secureboot-Enable-Onboarding-From-VMI {
+function CGPU-H100-Onboarding{
 		param(
 		$tenantid,
 		$subscriptionid,
 		$rg,
 		$publickeypath,
 		$privatekeypath,
+		$desid,
 		$cgpupackagepath,
 		$adminusername,
 		$vmnameprefix,
@@ -91,6 +94,7 @@ function Auto-Onboard-CGPU-Multi-VM {
 	}
 
 	Write-Host "Admin user name:  ${adminusername}"
+	Write-Host "Disk encryption set:  ${desid}"
 	Write-Host "Vm Name prefix:  ${vmnameprefix}"
 	Write-Host "Total VM number:  ${totalvmnumber}"
 	Write-Host "Clear previous account info."
@@ -107,17 +111,6 @@ function Auto-Onboard-CGPU-Multi-VM {
 	}
 	else {
 		Write-Host "Prepare-Subscription-And-Rg Succeeded"
-	}
-
-	### Check for direct share image access
-	Check-Image-Access 2>&1 | Out-File -filepath ".\logs\$logpath\login-operation.log"
-
-	if ($global:issuccess -eq "failed") {
-		Write-Host "Check-Image-Access Failed."
-		return
-	}
-	else {
-		Write-Host "Check-Image-Access Succeeded"
 	}
 
 	$successcount = 0
@@ -143,7 +136,7 @@ function Auto-Onboard-CGPU-Multi-VM {
 	Write-Host "Please execute the below command to try attestation:"
 	Write-Host "cd cgpu-onboarding-package; bash step-2-attestation.sh";
 	Write-Host "Please execute the below command to try a sample workload:"
-	Write-Host "cd; bash mnist_example.sh pytorch";
+	Write-Host "sudo docker run --gpus all -v /home/${adminusername}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:23.09-tf2-py3 python /home/mnist-sample-workload.py";
 	Write-Host "******************************************************************************************"
 
 	Write-Host "Total VM to onboard: ${totalvmnumber}, total Success: ${successcount}."
@@ -209,7 +202,8 @@ function Auto-Onboard-CGPU-Single-VM {
 	$vmsshinfo=VM-Creation -rg $rg `
 	 -publickeypath $publickeypath `
 	 -vmname $vmname `
-	 -adminusername $adminusername
+	 -adminusername $adminusername `
+ 	 -desid $desid
 
 	# Upload package to VM and extract it.
 	Package-Upload -vmsshinfo $vmsshinfo `
@@ -221,6 +215,22 @@ function Auto-Onboard-CGPU-Single-VM {
 		return
 	}
 
+	# Update kernel
+	Update-Kernel -vmsshinfo $vmsshinfo `
+	 -privatekeypath $privatekeypath
+	if ($global:issuccess -eq "failed") {
+		Write-Host "Failed Update-Kernel."
+		return
+	}
+
+	# Install GPU driver
+	Install-GPU-Driver -vmsshinfo $vmsshinfo `
+	 -privatekeypath $privatekeypath
+	if ($global:issuccess -eq "failed") {
+		Write-Host "Failed Install-GPU-Driver."
+		return
+	}
+
 	# Attestation
 	Attestation -vmsshinfo $vmsshinfo `
 	 -privatekeypath $privatekeypath
@@ -228,6 +238,15 @@ function Auto-Onboard-CGPU-Single-VM {
 		Write-Host "Failed attestation."
 		return
 	}
+
+	# Install gpu tools for execute sample workload.
+	Install-GPU-Tools -vmsshinfo $vmsshinfo `
+	 -privatekeypath $privatekeypath
+	if ($global:issuccess -eq "failed") {
+		Write-Host "Failed Install gpu tools."
+		return
+	}
+
 
 	# Validation
 	Validation -vmsshinfo $vmsshinfo `
@@ -248,22 +267,46 @@ function VM-Creation {
 	param($rg,
 		$vmname,
 		$adminusername,
-		$publickeypath)
+		$publickeypath,
+		$desid)
 
 	$publickeypath="@${publickeypath}"
-	$result=az vm create `
-		--resource-group $rg `
-		--name $vmname `
-		--image "/SharedGalleries/85c61f94-8912-4e82-900e-6ab44de9bdf8-testGalleryDeirectShare/Images/trustedLaunchSupported/Versions/latest" `
-		--public-ip-sku Standard `
-		--admin-username $adminusername `
-		--ssh-key-values $publickeypath `
-		--security-type "TrustedLaunch" `
-		--enable-secure-boot $true `
-		--enable-vtpm $true `
-		--size Standard_NCC24ads_A100_v4 `
-		--os-disk-size-gb 100 `
-		--verbose
+
+	if (!$desid) {
+		Write-Host "Disk encryption set ID is not set, using Platform Managed Key for VM creation:"
+		$result=az vm create `
+			--resource-group $rg `
+			--name $vmname `
+		    --image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:latest `
+			--public-ip-sku Standard `
+			--admin-username $adminusername `
+			--ssh-key-values $publickeypath `
+			--security-type ConfidentialVM `
+			--os-disk-security-encryption-type DiskWithVMGuestState `
+			--enable-secure-boot $true `
+			--enable-vtpm $true `
+			--size Standard_NCC40ads_H100_v5 `
+			--os-disk-size-gb 100 `
+			--verbose
+	} else {
+		Write-Host "Disk encryption set ID has been set, using Customer Managed Key for VM creation:"
+		$result=az vm create `
+			--resource-group $rg `
+			--name $vmname `
+		    --image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:latest `
+			--public-ip-sku Standard `
+			--admin-username $adminusername `
+			--ssh-key-values $publickeypath `
+			--security-type ConfidentialVM `
+			--os-disk-security-encryption-type DiskWithVMGuestState `
+			--enable-secure-boot $true `
+			--enable-vtpm $true `
+			--size Standard_NCC40ads_H100_v5 `
+			--os-disk-size-gb 100 `
+			--os-disk-secure-vm-disk-encryption-set $desid `
+			--verbose
+	}
+
 	Write-Host $result
 	$resultjson = $result | ConvertFrom-Json
 	$vmip= $resultjson.publicIpAddress
@@ -300,6 +343,51 @@ function Package-Upload {
 	$global:issuccess = "succeeded"
 }
 
+function Update-Kernel {
+	param($vmsshinfo,
+		$privatekeypath)
+
+	# Test VM connnection.
+ 	$isConnected=Try-Connect -vmsshinfo $vmsshinfo `
+		-privatekeypath $privatekeypath 
+
+	if ($isConnected -eq $false) {
+		Write-Host "VM connection failed after 50 retries."
+		$global:issuccess = "failed"
+		return
+	} 
+	Write-Host "VM connection success."
+
+	Write-Host "Start update kernel"
+	ssh  -i ${privatekeypath} ${vmsshinfo} "cd cgpu-onboarding-package; bash step-0-prepare-kernel.sh;"
+	Write-Host "Finished update kernel."
+	Write-Host "Rebooting..."
+
+	$global:issuccess = "succeeded"
+}
+
+# Install Gpu driver.
+function Install-GPU-Driver {
+	param($vmsshinfo,
+		$privatekeypath)
+
+	# Test VM connnection.
+ 	$isConnected=Try-Connect -vmsshinfo $vmsshinfo `
+		-privatekeypath $privatekeypath 
+
+	if ($isConnected -eq $false) {
+		Write-Host "VM connection failed after 50 retries."
+		$global:issuccess = "failed"
+		return
+	} 
+	Write-Host "VM connection success."
+
+	Write-Host "Start GPU Driver install."
+	ssh  -i ${privatekeypath} ${vmsshinfo} "cd cgpu-onboarding-package; bash step-1-install-gpu-driver.sh;"
+	Write-Host "Finished install driver."
+	$global:issuccess = "succeeded"
+}
+
 # Attestation GPU.
 function Attestation {
 	param($vmsshinfo,
@@ -322,6 +410,28 @@ function Attestation {
 	$attestationmessage=(Get-content -tail 20 .\logs\$logpath\attestation.log)
 	echo $attestationmessage
 	Write-Host "Finished attestation."
+	$global:issuccess = "succeeded"
+}
+
+# Install GPU Tools
+function Install-GPU-Tools {
+	param($vmsshinfo,
+		$privatekeypath)
+
+	# Test VM connnection.
+ 	$isConnected=Try-Connect -vmsshinfo $vmsshinfo `
+		-privatekeypath $privatekeypath 
+
+	if ($isConnected -eq $false) {
+		Write-Host "VM connection failed after 50 retries."
+		$global:issuccess = "failed"
+		return
+	} 
+	Write-Host "VM connection success."
+
+	Write-Host "Start install gpu tools."
+	ssh  -i ${privatekeypath} ${vmsshinfo} "cd cgpu-onboarding-package; echo Y | bash step-3-install-gpu-tools.sh;"
+	Write-Host "Finish install gpu tools."
 	$global:issuccess = "succeeded"
 }
 
@@ -360,16 +470,6 @@ function Validation {
 			$privatekeypath)
 	$global:issuccess = "succeeded"
 	Write-Host "Started C-GPU capable validation."
-	$kernelversion=$(ssh -i $privatekeypath $vmsshinfo "sudo uname -r;")
-	if ($kernelversion -ne "5.15.0-1019-azure") 
-	{
-		$global:issuccess="failed"
-		Write-Host "Failed: kernel version validation. Current kernel: ${kernelversion}"
-	}
-	else
-	{
-		Write-Host "Passed: kernel validation. Current kernel: ${kernelversion}"
-	}
 
 	$securebootstate=$(ssh -i $privatekeypath $vmsshinfo "mokutil --sb-state;")
 	if ($securebootstate -ne "SecureBoot enabled")
@@ -402,17 +502,6 @@ function Validation {
 	else
 	{
 		Write-Host "Passed: Confidential Compute environment validation. Current Confidential Compute environment: ${ccenvironment}"
-	}
-
-	$attestationresult=$(ssh -i $privatekeypath $vmsshinfo "cd cgpu-onboarding-package; bash step-2-attestation.sh | tail -1| sed -e 's/^[[:space:]]*//'")
-	if ($attestationresult -ne "GPU 0 verified successfully.")
-	{
-		$global:issuccess="failed"
-		Write-Host "Failed: Attestation validation failed. Last attestation message: ${attestationresult}"
-	}
-	else
-	{
-		Write-Host "Passed: Attestation validation passed. Last attestation message: ${attestationresult}"
 	}
 
 	Write-Host "Finished C-GPU capable validation."

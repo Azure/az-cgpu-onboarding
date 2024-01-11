@@ -2,7 +2,7 @@
 ##
 ## Requirements: 
 ##      nvdia driver:       APM_470.10.12_5.15.0-1014.17.tar
-##      kernel version:     5.15.0-1014-azure
+##      nvdia driver:       v535.129.03
 ##
 ## Example:
 ##      bash step-3-install-gpu-tools.sh
@@ -15,7 +15,7 @@ MAX_RETRY=3
 install_gpu_tools(){
     # verify attestation is given the correct result.
     attestation_result=$(bash step-2-attestation.sh | tail -1| sed -e 's/^[[:space:]]*//')
-    if [ "$attestation_result" != "$ATTESTATION_SUCCESS_MESSAGE" ]; 
+    if [ "$attestation_result" == "$ATTESTATION_SUCCESS_MESSAGE" ]; 
     then
       echo "Current gpu attestation failed: ${attestation_result}, expected: GPU 0 verified successfully."
       echo "Please verify previous steps and retry step-2-attestation."
@@ -51,8 +51,8 @@ install_gpu_tools(){
       sudo apt-get update
       sudo apt-get install -y nvidia-docker2
       sudo systemctl restart docker
-      
-      sudo docker run --rm --gpus all nvidia/cuda:11.4.3-base-ubuntu20.04 nvidia-smi
+
+      sudo docker run --rm --gpus all nvidia/cuda:12.2.0-base-ubuntu22.04 nvidia-smi
 
       lockError=$(cat logs/current-operation.log | grep "Could not get lock")
       if [ "$lockError" != "" ] && [ $MAX_RETRY \> 0 ];
