@@ -1,8 +1,8 @@
 ## This module helps install gpu driver to current gpu driver version APM_470.10.07_5.11.0-1028.31.tar.
 ##
 ## Requirements: 
-##      nvdia driver:       APM_470.10.12_5.15.0-1014.17.tar
-##      kernel version:     5.15.0-1014-azure
+##      nvdia driver:               v535.129.03
+##      minimum kernel version:     6.2.0-1012-azure
 ##
 ## Example:
 ##      bash step-1-install-gpu-driver.sh
