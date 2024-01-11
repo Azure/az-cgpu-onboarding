@@ -1,9 +1,8 @@
 ## This module helps install associate dependency and  do attestation against CGPU driver.
 ##
 ## Requirements:
-##      nvdia driver:       APM_470.10.12_5.15.0-1014.17.tar
-##      kernel version:     5.15.0-1014-azure
-##      verifier:           verifier_apm_pid3_5_1.tar
+##      nvdia driver:       v535.129.03
+##      minimum kernel version:     6.2.0-1012-azure
 ##
 ## Example:
 ##      bash step-2-attestation.sh

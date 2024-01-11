@@ -9,6 +9,7 @@
 #                          It will create the Resource Group if it is not found under given subscription
 #	-p <public key path>: your id_rsa.pub path 
 #	-i <private key path>: your id_rsa path
+#   -d <disk encryption id>: customer managed disk encryption id
 #	-c <CustomerOnboardingPackage path>: Customer onboarding package path
 #	-a <admin user name>: administrator username for the VM
 #	-v <vm name>: your VM name
@@ -157,10 +158,21 @@ prepare_subscription_and_rg() {
 	
 	print_error "SubscriptionId validation success."
 	print_error "Checking resource group...."
-	if [ $(az group exists --name $rg) == false ]; then
+	
+	# azure cli return invisible char, removing it.
+	is_resource_group_exist="$(az group exists --name $rg)"
+	is_resource_group_exist=$(echo "$is_resource_group_exist" | tr -cd '[:alnum:]-/,.:@')
+	
+	if [ $is_resource_group_exist == "false" ]; then
     	print_error "Resource group ${rg} does not exits, start creating resource group ${rg}"
+    	
     	az group create --name ${rg} --location eastus2
-		if [ $(az group exists --name $rg) == false ]; then
+
+    	# azure cli return invisible char, removing it.
+    	is_resource_group_exist="$(az group exists --name $rg)"
+    	is_resource_group_exist=$(echo "$is_resource_group_exist" | tr -cd '[:alnum:]-/,.:@')
+		
+		if [ $is_resource_group_exist == "false" ]; then
 			print_error "rg creation failed, please check if your subscription is correct."
 			is_success="failed"
 			return
@@ -181,6 +193,7 @@ auto_onboard_cgpu_single_vm() {
 	fi
 	ip=$(az vm show -d -g $rg -n $vmname --query publicIps -o tsv)
 
+	# azure cli return invisible char, removing it.
 	vm_ssh_info="${adminuser_name}@${ip}"
 	vm_ssh_info=$(echo "$vm_ssh_info" | tr -cd '[:alnum:]-/,.:@')
 

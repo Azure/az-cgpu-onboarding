@@ -1,11 +1,37 @@
+<#
+  ##Sample Parameters:
+  $timeString = Get-Date -Format "HHmmss"
+  $subscriptionId = "85c61f94-8912-4e82-900e-6ab44de9bdf8"
+  $region = "eastus2"
+  $resourceGroup ="$($timeString)-CMK-rg"
+  $keyName = "$($timeString)-CMK-key"
+  $keyVault = "$($timeString)-CMK-kv"
+  $policyPath = "skr-policy-2.json"
+  $desName = "$($timeString)-CMK-des"
+  $deployName = "$($timeString)-CMK-desdeploy"
+  $desArmTemplate = "deployDES.json"
+
+  ##Sample Command:
+  DEPLOY-CMK-DES `
+  -subscriptionId $subscriptionId `
+  -region $region `
+  -resourceGroup $resourceGroup `
+  -keyName $keyName `
+  -keyVault $keyVault `
+  -policyPath $policyPath `
+  -desName $desName `
+  -deployName $deployName `
+  -desArmTemplate $desArmTemplate
+#>
+
 function DEPLOY-CMK-DES{
   param(
     $subscriptionId,
-    $region,
+    $region="eastus2",
     $resourceGroup,
     $keyVault,
     $cvmAgentId="bf7b6499-ff71-4aa2-97a4-f372087be7f0",
-    $keyName = "$(Get-Date -Format "HHmmss")-CMK-key",
+    $keyName,
     $keySize=3072,
     $policyPath,
     $desName,
