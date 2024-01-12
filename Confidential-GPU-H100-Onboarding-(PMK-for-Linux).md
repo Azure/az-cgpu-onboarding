@@ -68,25 +68,29 @@ The key's randomart image is:
 
 - Decompress downloaded [cgpu-h100-auto-onboarding-linux.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V3.0.1/cgpu-h100-auto-onboarding-linux.tar.gz) and enter the folder through your bash window.
 ```
-cd cgpu-h100-onboarding
+cd cgpu-h100-auto-onboarding-linux
 ```
 
 - Execute cgpu H100 onboarding script.
 
-# This script will help to get you get access to a private Canonical-signed confidential GPU-capable image with an Nvidia GPU driver 
-# installed. It will then create VMs with secure boot enabled in your specified resource group.
+# It will create VMs with secure boot enabled in your specified resource group.
 # If the resource group doesn't exist, it will create the resource group with the specified name in the target subsription.
 #
-# Required parameters:
-# -r <resource group name>: The resource group name for VM creation
-# -a <admin user name>: administrator username for the VM
-# -p <public key path>: your id_rsa.pub path 
-# -i <private key path>: your id_rsa path
-# -c <CustomerOnboardingPackage path>: Customer onboarding package path
-# -v <vm name>: your VM name
-# -n <vm number>: number of VMs to be generated
+# Required Arguments: 
+#	-t <tenant ID>: ID of your Tenant/Directory
+#	-s <subscription ID>: ID of your subscription.
+#	-r <resource group name>: The resource group name for VM creation
+#                          It will create the Resource Group if it is not found under given subscription
+#	-p <public key path>: your id_rsa.pub path 
+#	-i <private key path>: your id_rsa path
+#	-c <CustomerOnboardingPackage path>: Customer onboarding package path
+#	-a <admin user name>: administrator username for the VM
+#	-v <vm name>: your VM name
+#	-n <vm number>: number of VMs to be generated
 
 bash secureboot-enable-onboarding-from-vmi.sh  \
+-t "8af6653d-c9c0-4957-ab01-615c7212a40b" \
+-s "9269f664-5a68-4aee-9498-40a701230eb2" \
 -r "confidential-gpu-rg" \
 -a "azuretestuser" \
 -p "/home/username/.ssh/id_rsa.pub" \
@@ -95,7 +99,7 @@ bash secureboot-enable-onboarding-from-vmi.sh  \
 -v "confidential-test-vm"  \
 -n 1
 
-```
+------------------------------------------------------------------------------------------
 Sample output:
 
 Finish install gpu tools.

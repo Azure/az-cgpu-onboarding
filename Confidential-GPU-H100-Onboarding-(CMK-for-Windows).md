@@ -22,7 +22,7 @@ This page is using a customer managed keys. More information about customer mana
 - Powershell: version 5.1.19041.1682 and above (please run windows powershell as administrator)
 - [Azure Subscription](https://docs.microsoft.com/en-us/azure/cost-management-billing/manage/create-subscription)
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
-- Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V3.0.1/cgpu-onboarding-package.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-V3.0.1](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V3.0.1)
+- Download [cgpu-h100-auto-onboarding-windows.zip](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V3.0.1/cgpu-h100-auto-onboarding-windows.zip) from [Azure-Confidential-Computing-CGPUPrivatePreview-V3.0.1](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V3.0.1)
 
 -------------------------------------------
 
@@ -71,15 +71,14 @@ The key's randomart image is:
 
 ```
 
-- Decompress downloaded [cgpu-h100-onboarding.zip](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V3.0.1/cgpu-h100-onboarding.zip) and enter the folder through powershell.
+- Decompress downloaded [cgpu-h100-auto-onboarding-windows.zip](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V3.0.1/cgpu-h100-auto-onboarding-windows.zip) and enter the folder through powershell.
 ```
-cd cgpu-h100-onboarding
+cd cgpu-h100-auto-onboarding-windows
 ```
 
 - Execute cgpu H100 onboarding script.
 
-# This script will help to get you get access to a private Canonical-signed confidential GPU-capable image with an Nvidia GPU driver 
-# installed. It will then create VMs with secure boot enabled in your specified resource group.
+# It will create VMs with secure boot enabled in your specified resource group.
 # If the resource group doesn't exist, it will create the resource group with the specified name in the target subsription.
 #
 # Required parameters:
@@ -105,29 +104,31 @@ Import-Module .\cgpu-h100-auto-onboarding.ps1
 -cgpupackagepath "E:\cgpu\cgpu-onboarding-package.tar.gz" `
 -adminusername "admin" `
 -vmnameprefix "cgpu-test" `
--totalvmnumber 2
-```
+-totalvmnumber 1
+
+------------------------------------------------------------------------------------------
 Sample output:
 
-Started cgpu capable validation.
-Passed: kernel validation. Current kernel: 5.15.0-1019-azure
+Finish install gpu tools.
+Started C-GPU capable validation.
 Passed: secure boot state validation. Current secure boot state: SecureBoot enabled
 Passed: Confidential Compute mode validation passed. Current Confidential Compute retrieve state: CC status: ON
 Passed: Confidential Compute environment validation. Current Confidential Compute environment: CC Environment: INTERNAL
-Passed: Attestation validation passed. Last attestation message: GPU 0 verified successfully.
-Finished cgpu capable validation.
-Finished creating VM: '<vm name>'
+Finished C-GPU capable validation.
+Finished creating VM: cgpu-01-12-7-1
 ******************************************************************************************
 Please execute below commands to login to your VM(s):
-ssh -i E:\cgpu\.ssh\id_rsa azuretestuser@IP
+ssh -i E:\cgpu\.ssh\id_rsa adminusername@20.114.244.82
 Please execute the below command to try attestation:
 cd cgpu-onboarding-package; bash step-2-attestation.sh
 Please execute the below command to try a sample workload:
-cd; bash mnist_example.sh pytorch
+sudo docker run --gpus all -v /home/<adminusername>/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:23.09-tf2-py3 python /home/mnist-sample-workload.py
 ******************************************************************************************
-Total VM to onboard: 2, total Success: 2.
+Total VM to onboard: 1, total Success: 1.
+Detailed logs can be found at: .\logs\01-12-2024_14-42-44
+Transcript stopped, output file is D:\repo\PrivatePreview\drops\cgpu-h100-onboarding\logs\01-12-2024_14-42-44\current-operation.log
+
 ------------------------------------------------------------------------------------------
-Detailed logs can be found at: .\logs\<date time>
 ```
 
 ### Attestation
@@ -142,6 +143,6 @@ bash step-2-attestation.sh
 ### Workload-Running
 
 ```
-# In your VM, execute the below command for a pytorch sample execution. (estimates finish in 10 min) 
-bash mnist_example.sh pytorch
+# In your VM, execute the below command for a pytorch sample execution.
+sudo docker run --gpus all -v /home/<adminusername>/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:23.09-tf2-py3 python /home/mnist-sample-workload.py
 ```
