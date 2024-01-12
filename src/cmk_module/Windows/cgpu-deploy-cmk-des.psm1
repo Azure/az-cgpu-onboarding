@@ -1,4 +1,5 @@
 <#
+
 - (Prerequisite) Set MgServicePrincipal
 You will need this step if you have not set your cvmAgentId for your tenant
 ```
@@ -40,7 +41,7 @@ DEPLOY-CMK-DES `
   -policyPath $policyPath `
   -desName $desName `
   -deployName $deployName `
-  -desArm
+  -desArmTemplate $desArmTemplate
 ```
 #>
 
