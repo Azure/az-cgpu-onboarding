@@ -1,18 +1,37 @@
 <#
-  ##Sample Parameters:
+- (Prerequisite) Set MgServicePrincipal
+You will need this step if you have not set your cvmAgentId for your tenant
+```
+az login
+$tenatId= $(az account show --query tenantId -o tsv)
+Install-Module Microsoft.Graph -Scope CurrentUser -Repository PSGallery
+Connect-Graph -Tenant $tenatId -Scopes Application.ReadWrite.All
+New-MgServicePrincipal -AppId bf7b6499-ff71-4aa2-97a4-f372087be7f0 -DisplayName "Confidential VM Orchestrator"
+```
+
+- Import Module
+```
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+Import-Module -Name .\Windows\cgpu-deploy-cmk-des.psm1 -Force -DisableNameChecking
+```
+
+- Define Parameters
+```
   $timeString = Get-Date -Format "HHmmss"
   $subscriptionId = "85c61f94-8912-4e82-900e-6ab44de9bdf8"
   $region = "eastus2"
-  $resourceGroup ="$($timeString)-CMK-rg"
-  $keyName = "$($timeString)-CMK-key"
-  $keyVault = "$($timeString)-CMK-kv"
-  $policyPath = "skr-policy-2.json"
-  $desName = "$($timeString)-CMK-des"
-  $deployName = "$($timeString)-CMK-desdeploy"
+  $resourceGroup ="CMK-$($timeString)-rg"
+  $keyName = "CMK-$($timeString)-key"
+  $keyVault = "CMK-$($timeString)-kv"
+  $policyPath = "skr-policy.json"
+  $desName = "CMK-$($timeString)-des"
+  $deployName = "CMK-$($timeString)-desdeploy"
   $desArmTemplate = "deployDES.json"
+```
 
-  ##Sample Command:
-  DEPLOY-CMK-DES `
+- Call the function with the parameters
+```
+DEPLOY-CMK-DES `
   -subscriptionId $subscriptionId `
   -region $region `
   -resourceGroup $resourceGroup `
@@ -21,7 +40,8 @@
   -policyPath $policyPath `
   -desName $desName `
   -deployName $deployName `
-  -desArmTemplate $desArmTemplate
+  -desArm
+```
 #>
 
 function DEPLOY-CMK-DES{
@@ -43,7 +63,15 @@ function DEPLOY-CMK-DES{
   az account set --subscription $subscriptionid
   Write-Host "---------------------------------- Login to [$($subscriptionId)] ----------------------------------"
 
-  az group create --name $resourceGroup --location $region
+
+  $groupExists = az group exists --name $resourceGroup
+  if ($groupExists -eq "false") {
+    az group create --name $resourceGroup --location $region
+    Write-Host "---------------------------------- Resource group [$($resourceGroup)] created ----------------------------------"
+  } else {
+    Write-Host "---------------------------------- Resource group [$($resourceGroup)] already exists ----------------------------------"
+  }
+
   az keyvault create --name $keyVault --resource-group $resourceGroup --location $region --sku Premium --enable-purge-protection 
   Write-Host "---------------------------------- Keyvault [$($keyVault)] created ----------------------------------"
 
