@@ -1,6 +1,9 @@
 #!/bin/bash
 
-## s<TODO >You will need this step if you have not set your cvmAgentId for your tenant
+#- (Prerequisite) Set MgServicePrincipal
+# You will need this step if you have not set your cvmAgentId for your tenant
+# bash Linux/pre-requisite.sh
+
 ## Sample Command:
 ## bash Linux/cgpu-deploy-cmk-des.sh \
 ## -s "85c61f94-8912-4e82-900e-6ab44de9bdf8" \

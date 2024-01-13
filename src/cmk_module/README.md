@@ -5,17 +5,11 @@
 
 ## On Linux Bash shell
 
-- (Prerequisite) Set MgServicePrincipal
-<TODO >You will need this step if you have not set your cvmAgentId for your tenant
+#- (Prerequisite) Set MgServicePrincipal
+You will need this step if you have not set your cvmAgentId for your tenant
 ```
-az login;
-tenantId=$(az account show --query tenantId -o tsv)
-tenantId=$(echo "$tenantId" | tr -cd '[:alnum:]-/,.:')
-az ad sp create-for-rbac --name "Confidential VM Orchestrator" --skip-assignment
-az role assignment create --assignee "bf7b6499-ff71-4aa2-97a4-f372087be7f0" --role "Contributor" --scope /subscriptions/"85c61f94-8912-4e82-900e-6ab44de9bdf8"
+bash Linux/pre-requisite.sh
 ```
-This has not been tested yet
-
 
 - Call bash script
 ```
@@ -33,20 +27,16 @@ bash Linux/cgpu-deploy-cmk-des.sh \
 
 ## On Windows Powershell
 
-- (Prerequisite) Set MgServicePrincipal
-You will need this step if you have not set your cvmAgentId for your tenant
-```
-az login
-$tenatId= $(az account show --query tenantId -o tsv)
-Install-Module Microsoft.Graph -Scope CurrentUser -Repository PSGallery
-Connect-Graph -Tenant $tenatId -Scopes Application.ReadWrite.All
-New-MgServicePrincipal -AppId bf7b6499-ff71-4aa2-97a4-f372087be7f0 -DisplayName "Confidential VM Orchestrator"
-```   
-
 - Import Module
 ```
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 Import-Module -Name .\Windows\cgpu-deploy-cmk-des.psm1 -Force -DisableNameChecking
+```
+
+- (Prerequisite) Set MgServicePrincipal
+You will need this step if you have not set your cvmAgentId for your tenant
+```
+SET-SERVICEPRINCIPAL
 ```
 
 - Define Parameters

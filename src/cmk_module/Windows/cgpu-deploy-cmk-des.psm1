@@ -1,19 +1,14 @@
 <#
-
-- (Prerequisite) Set MgServicePrincipal
-You will need this step if you have not set your cvmAgentId for your tenant
-```
-az login
-$tenatId= $(az account show --query tenantId -o tsv)
-Install-Module Microsoft.Graph -Scope CurrentUser -Repository PSGallery
-Connect-Graph -Tenant $tenatId -Scopes Application.ReadWrite.All
-New-MgServicePrincipal -AppId bf7b6499-ff71-4aa2-97a4-f372087be7f0 -DisplayName "Confidential VM Orchestrator"
-```
-
 - Import Module
 ```
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 Import-Module -Name .\Windows\cgpu-deploy-cmk-des.psm1 -Force -DisableNameChecking
+```
+
+- (Prerequisite) Set MgServicePrincipal
+You will need this step if you have not set your cvmAgentId for your tenant
+```
+SET-SERVICEPRINCIPAL
 ```
 
 - Define Parameters
@@ -44,6 +39,19 @@ DEPLOY-CMK-DES `
   -desArmTemplate $desArmTemplate
 ```
 #>
+
+function SET-SERVICEPRINCIPAL {
+  # Get TenantId
+  az login
+  $tenantId= $(az account show --query tenantId -o tsv)
+
+  # Install Microsoft.Graph module
+  Install-Module Microsoft.Graph -Scope CurrentUser -Repository PSGallery
+
+  # Create MgServicePrincipal
+  Connect-Graph -Tenant $tenantId -Scopes Application.ReadWrite.All
+  New-MgServicePrincipal -AppId bf7b6499-ff71-4aa2-97a4-f372087be7f0 -DisplayName "Confidential VM Orchestrator"
+}
 
 function DEPLOY-CMK-DES{
   param(
