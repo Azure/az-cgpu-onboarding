@@ -41,21 +41,26 @@ DEPLOY-CMK-DES `
 #>
 
 function SET-SERVICEPRINCIPAL {
-  # Get TenantId
-  az login
-  $tenantId= $(az account show --query tenantId -o tsv)
+
+  param(
+    $tenantId="72f988bf-86f1-41af-91ab-2d7cd011db47",
+    $cvmAgentId="bf7b6499-ff71-4aa2-97a4-f372087be7f0"
+  )
+
+  # TODO Add check for service principal
 
   # Install Microsoft.Graph module
   Install-Module Microsoft.Graph -Scope CurrentUser -Repository PSGallery
 
   # Create MgServicePrincipal
   Connect-Graph -Tenant $tenantId -Scopes Application.ReadWrite.All
-  New-MgServicePrincipal -AppId bf7b6499-ff71-4aa2-97a4-f372087be7f0 -DisplayName "Confidential VM Orchestrator"
+  New-MgServicePrincipal -AppId $cvmAgentId -DisplayName "Confidential VM Orchestrator"
 }
 
 function DEPLOY-CMK-DES{
   param(
     $subscriptionId,
+    $tenantId="72f988bf-86f1-41af-91ab-2d7cd011db47",
     $region="eastus2",
     $resourceGroup,
     $keyVault,
@@ -67,6 +72,9 @@ function DEPLOY-CMK-DES{
     $deployName,
     $desArmTemplate
   )
+
+  # Install Microsoft.Graph module
+  SET-SERVICEPRINCIPAL -tenantId $tenantId -cvmAgentId $cvmAgentId
 
   az login
   az account set --subscription $subscriptionid

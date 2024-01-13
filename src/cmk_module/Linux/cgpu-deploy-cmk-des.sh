@@ -16,26 +16,62 @@
 ## -n "cmk-$(date +"%H%M%S")-des" \
 ## -t "deployDES.json"
 
+# Initialize variables
+subscriptionId=""
+region="eastus2"
+resourceGroup=""
+keyName=""
+keyVault=""
+policyPath=""
+desName=""
+deployName=""
+desArmTemplate=""
+keySize=3072
+cvmAgentId="bf7b6499-ff71-4aa2-97a4-f372087be7f0"
+
+# Set MgServicePrincipal
+SET-SERVICEPRINCIPAL() {
+
+   # TODO Add check for service principal
+
+   # Update the list of packages
+   sudo apt-get update
+
+   # Install pre-requisite packages
+   sudo apt-get install -y wget apt-transport-https software-properties-common
+
+   # Download the Microsoft repository GPG keys
+   wget -q "https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb"
+
+   # Register the Microsoft repository GPG keys
+   sudo dpkg -i packages-microsoft-prod.deb
+
+   # Update the list of products
+   sudo apt-get update
+
+   # Enable the "universe" repositories
+   sudo add-apt-repository universe
+
+   # Install PowerShell
+   sudo apt-get install -y powershell
+
+   #- (Prerequisite) Set MgServicePrincipal
+   # Install Microsoft.Graph PowerShell module
+   sudo pwsh -Command "Install-Module Microsoft.Graph -Scope CurrentUser -Repository PSGallery"
+   sudo pwsh -Command "Get-Module -Name Microsoft.Graph -ListAvailable"
+
+   # Create MgServicePrincipal
+   sudo pwsh -Command "Connect-Graph -Tenant '$tenantId' -Scopes Application.ReadWrite.All; New-MgServicePrincipal -AppId '$cvmAgentId' -DisplayName 'Confidential VM Orchestrator'"
+}
+
 # Deploy CMK DES
 DEPLOY-CMK-DES() {
 
-   # Initialize variables
-   local subscriptionId=""
-   local region="eastus2"
-   local resourceGroup=""
-   local keyName=""
-   local keyVault=""
-   local policyPath=""
-   local desName=""
-   local deployName=""
-   local desArmTemplate=""
-   local keySize=3072
-   local cvmAgentId="bf7b6499-ff71-4aa2-97a4-f372087be7f0"
-
    # Parse options
-   while getopts ":s:r:g:k:v:p:d:n:t:" opt; do
+   while getopts ":s:t:r:g:k:v:p:d:n:m:" opt; do
       case $opt in
          s) subscriptionId=$OPTARG;;
+         t) tenantId=$OPTARG;;
          r) region=$OPTARG;;
          g) resourceGroup=$OPTARG;;
          k) keyName=$OPTARG;;
@@ -43,7 +79,7 @@ DEPLOY-CMK-DES() {
          p) policyPath=$OPTARG;;
          d) deployName=$OPTARG;;
          n) desName=$OPTARG;;
-         t) desArmTemplate=$OPTARG;;
+         m) desArmTemplate=$OPTARG;;
          \?) echo "Invalid option -$OPTARG" >&2
                return 1
          ;;
@@ -52,6 +88,7 @@ DEPLOY-CMK-DES() {
 
    echo "Parameters:"
    echo "Subscription ID: $subscriptionId"
+   echo "Tenant ID: $tenantId"
    echo "Region: $region"
    echo "Resource Group: $resourceGroup"
    echo "Key Name: $keyName"
@@ -64,6 +101,10 @@ DEPLOY-CMK-DES() {
    az account set --subscription $subscriptionId
    echo "---------------------------------- Login to [$subscriptionId] ----------------------------------"
 
+   # Set MgServicePrincipal
+   SET-SERVICEPRINCIPAL
+
+   # Check if the resource group exists
    groupExists=$(az group exists --name $resourceGroup)
    groupExists=$(echo "$groupExists" | tr -cd '[:alnum:]')
    if [ "$groupExists" == "false" ]; then
