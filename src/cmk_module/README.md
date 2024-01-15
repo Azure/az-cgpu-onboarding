@@ -5,16 +5,11 @@
 
 ## On Linux Bash shell
 
-#- (Prerequisite) Set MgServicePrincipal
-You will need this step if you have not set your cvmAgentId for your tenant
-```
-bash Linux/pre-requisite.sh
-```
-
 - Call bash script
 ```
 bash Linux/cgpu-deploy-cmk-des.sh \
 -s "85c61f94-8912-4e82-900e-6ab44de9bdf8" \
+-t "72f988bf-86f1-41af-91ab-2d7cd011db47" \
 -r "eastus2" \
 -g "cmk-$(date +"%H%M%S")-rg" \
 -k "cmk-$(date +"%H%M%S")-key" \
@@ -22,7 +17,7 @@ bash Linux/cgpu-deploy-cmk-des.sh \
 -p "skr-policy.json" \
 -d "cmk-$(date +"%H%M%S")-desdeploy" \
 -n "cmk-$(date +"%H%M%S")-des" \
--t "deployDES.json"
+-m "deployDES.json"
 ```
 
 ## On Windows Powershell
@@ -33,16 +28,11 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 Import-Module -Name .\Windows\cgpu-deploy-cmk-des.psm1 -Force -DisableNameChecking
 ```
 
-- (Prerequisite) Set MgServicePrincipal
-You will need this step if you have not set your cvmAgentId for your tenant
-```
-SET-SERVICEPRINCIPAL
-```
-
 - Define Parameters
 ```
   $timeString = Get-Date -Format "HHmmss"
   $subscriptionId = "85c61f94-8912-4e82-900e-6ab44de9bdf8"
+  $tenantId = "72f988bf-86f1-41af-91ab-2d7cd011db47"
   $region = "eastus2"
   $resourceGroup ="CMK-$($timeString)-rg"
   $keyName = "CMK-$($timeString)-key"
@@ -57,6 +47,7 @@ SET-SERVICEPRINCIPAL
 ```
 DEPLOY-CMK-DES `
   -subscriptionId $subscriptionId `
+  -tenantId $tenantId `
   -region $region `
   -resourceGroup $resourceGroup `
   -keyName $keyName `

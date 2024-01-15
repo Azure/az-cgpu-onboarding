@@ -7,6 +7,7 @@
 ## Sample Command:
 ## bash Linux/cgpu-deploy-cmk-des.sh \
 ## -s "85c61f94-8912-4e82-900e-6ab44de9bdf8" \
+## -t "72f988bf-86f1-41af-91ab-2d7cd011db47" \
 ## -r "eastus2" \
 ## -g "cmk-$(date +"%H%M%S")-rg" \
 ## -k "cmk-$(date +"%H%M%S")-key" \
@@ -14,10 +15,11 @@
 ## -p "skr-policy.json" \
 ## -d "cmk-$(date +"%H%M%S")-desdeploy" \
 ## -n "cmk-$(date +"%H%M%S")-des" \
-## -t "deployDES.json"
+## -m "deployDES.json"
 
 # Initialize variables
 subscriptionId=""
+tenantId=""
 region="eastus2"
 resourceGroup=""
 keyName=""
@@ -33,41 +35,52 @@ cvmAgentId="bf7b6499-ff71-4aa2-97a4-f372087be7f0"
 SET-SERVICEPRINCIPAL() {
 
    # TODO Add check for service principal
+   servicePrincipalExists=$(az ad sp list --filter "appId eq '$cvmAgentId'" | jq -r '.[].appId')
+   if [ "$servicePrincipalExists" == "$cvmAgentId" ]; then
+      echo "---------------------------------- Service principal [$cvmAgentId] already exists ----------------------------------"
+      
+   else
+      echo "---------------------------------- Creating service principal [$cvmAgentId] ----------------------------------"
+      
+      # Update the list of packages
+      sudo apt-get update
 
-   # Update the list of packages
-   sudo apt-get update
+      # Install pre-requisite packages
+      sudo apt-get install -y wget apt-transport-https software-properties-common
 
-   # Install pre-requisite packages
-   sudo apt-get install -y wget apt-transport-https software-properties-common
+      # Download the Microsoft repository GPG keys
+      wget -q "https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb"
 
-   # Download the Microsoft repository GPG keys
-   wget -q "https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb"
+      # Register the Microsoft repository GPG keys
+      sudo dpkg -i packages-microsoft-prod.deb
 
-   # Register the Microsoft repository GPG keys
-   sudo dpkg -i packages-microsoft-prod.deb
+      # Update the list of products
+      sudo apt-get update
 
-   # Update the list of products
-   sudo apt-get update
+      # Enable the "universe" repositories
+      sudo add-apt-repository universe
 
-   # Enable the "universe" repositories
-   sudo add-apt-repository universe
+      # Install PowerShell
+      sudo apt-get install -y powershell
 
-   # Install PowerShell
-   sudo apt-get install -y powershell
+      #- (Prerequisite) Set MgServicePrincipal
+      # Install Microsoft.Graph PowerShell module
+      sudo pwsh -Command "Install-Module Microsoft.Graph -Scope CurrentUser -Repository PSGallery"
+      sudo pwsh -Command "Get-Module -Name Microsoft.Graph -ListAvailable"
 
-   #- (Prerequisite) Set MgServicePrincipal
-   # Install Microsoft.Graph PowerShell module
-   sudo pwsh -Command "Install-Module Microsoft.Graph -Scope CurrentUser -Repository PSGallery"
-   sudo pwsh -Command "Get-Module -Name Microsoft.Graph -ListAvailable"
+      # Create MgServicePrincipal
+      sudo pwsh -Command "Connect-Graph -Tenant '$tenantId' -Scopes Application.ReadWrite.All; New-MgServicePrincipal -AppId '$cvmAgentId' -DisplayName 'Confidential VM Orchestrator'"
 
-   # Create MgServicePrincipal
-   sudo pwsh -Command "Connect-Graph -Tenant '$tenantId' -Scopes Application.ReadWrite.All; New-MgServicePrincipal -AppId '$cvmAgentId' -DisplayName 'Confidential VM Orchestrator'"
+      echo "---------------------------------- Service principal [$cvmAgentId] created ----------------------------------"
+   fi
+
+
 }
 
 # Deploy CMK DES
 DEPLOY-CMK-DES() {
 
-   # Parse options
+   # Parse parameter options
    while getopts ":s:t:r:g:k:v:p:d:n:m:" opt; do
       case $opt in
          s) subscriptionId=$OPTARG;;
@@ -97,7 +110,9 @@ DEPLOY-CMK-DES() {
    echo "DES Name: $desName"
    echo "Deploy Name: $deployName"
    echo "DES ARM Template: $desArmTemplate"
-   az login
+
+   # Login to Azure
+   az login --tenant $tenantId
    az account set --subscription $subscriptionId
    echo "---------------------------------- Login to [$subscriptionId] ----------------------------------"
 
