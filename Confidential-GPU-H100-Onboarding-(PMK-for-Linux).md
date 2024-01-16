@@ -8,6 +8,7 @@ This page is using platform managed keys. More information about platform manage
 
 ## Steps
 
+- [Check-Prerequisites](#requirements)
 - [Create-CGPU-VM](#Create-CGPU-VM)
 - [Attestation](#Attestation)
 - [Workload-Running](#Workload-Running)
