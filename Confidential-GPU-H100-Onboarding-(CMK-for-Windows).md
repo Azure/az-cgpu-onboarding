@@ -81,21 +81,22 @@ cd cgpu-h100-auto-onboarding-windows
 # If the resource group doesn't exist, it will create the resource group with the specified name in the target subsription.
 #
 # Required parameters:
+# tenantid: your tenant ID, also known as your directory ID
+# subscriptionid: your subscription ID
 # 	rg: name of your resource group. (please do az login to your subscription and create a resource group)
 #	adminusername: your adminusername
 #	publickeypath: your public key path
 #	privatekeypath: your private key path
-#   desid: disk encryption set id. (only need if trying to use CMK, otherwith vm will be create through PMK)
+# desid: disk encryption set id. (only need if trying to use CMK, otherwith vm will be create through PMK)
 #	cgppackagepath: your cgpu-onboarding-pakcage.tar.gz path
 #	vmnameprefix: the prefix of your vm. It will create from prefix1, prefix2, prefix3 till the number of VMs specified;
 #	totalvmnumber: the number of VMs you want to create
 
-```
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-Import-Module .\cgpu-h100-auto-onboarding.ps1
- CGPU-H100-Onboarding `
--tenantid "8af6653d-c9c0-4957-ab01-615c7212a40b" `
--subscriptionid "9269f664-5a68-4aee-9498-40a701230eb2" `
+Import-Module .\cgpu-h100-auto-onboarding.ps1 -Force
+CGPU-H100-Onboarding `
+-tenantid "<your Tenant ID>" `
+-subscriptionid "<your subscription ID>" `
 -rg "cgpu-test-rg" `
 -publickeypath "E:\cgpu\.ssh\id_rsa.pub" `
 -privatekeypath "E:\cgpu\.ssh\id_rsa"  `
