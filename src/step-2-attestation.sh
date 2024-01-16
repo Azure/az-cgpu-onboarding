@@ -21,8 +21,10 @@ attestation(){
         echo "Please retry step-1-install-gpu-driver."
     else
         sudo rm -rf ~/verifier && echo "Clean up ~/verifier succsessfully!"
-
+        
         git clone https://github.com/nvidia/nvtrust ~/verifier && echo "Clone folder succsessfully!"
+        
+        pushd . 
         cd ~/verifier/guest_tools/gpu_verifiers/local_gpu_verifier && echo "Open verifier folder succsessfully!"
         
         #sudo cp -f  ~/cgpu-onboarding-package/cc_admin.py ~/verifier/guest_tools/gpu_verifiers/local_gpu_verifier/src/verifier/cc_admin.py && echo "Replace cc_admin.py successfully!"
@@ -35,7 +37,7 @@ attestation(){
 
         sudo rm -rf ~/verifier 
     
-        cd ~/cgpu-onboarding-package
+        popd
 
         lockError=$(cat logs/current-operation.log | grep "Could not get lock")
         if [ "$lockError" != "" ] && [ $MAX_RETRY \> 0 ];
@@ -58,5 +60,7 @@ if [[ "${#BASH_SOURCE[@]}" -eq 1 ]]; then
     then
         mkdir logs
     fi    
+
     attestation "$@" 2>&1 | tee logs/current-operation.log | tee -a logs/all-operation.log
+
 fi
