@@ -36,8 +36,7 @@ attestation(){
         sudo python3 -m verifier.cc_admin
 
         sudo rm -rf ~/verifier 
-    
-        popd
+        popd > /dev/null
 
         lockError=$(cat logs/current-operation.log | grep "Could not get lock")
         if [ "$lockError" != "" ] && [ $MAX_RETRY \> 0 ];
