@@ -125,12 +125,6 @@ def main():
         help="If the user wants to override the OCSP service url and provide their own url, then can do so by passing it as a command line argument.",
     )
     parser.add_argument(
-        "--ocsp_disable_nonce",
-        help="Disable the Nonce check in OCSP response",
-        action="store_true",
-        default=True,
-    )
-    parser.add_argument(
         "--ocsp_validity_extension",
         help="If the OCSP response is expired within the validity extension period in hours, treat the OCSP response as valid and continue the attestation.",
         default=168,
