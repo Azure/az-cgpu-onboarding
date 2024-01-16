@@ -8,14 +8,14 @@ This page is using platform managed keys. More information about platform manage
 
 ## Steps
 
-- [Check-Prerequisites](#requirements)
+- [Check-Requirements](#Check-Requirements)
 - [Create-CGPU-VM](#Create-CGPU-VM)
 - [Attestation](#Attestation)
 - [Workload-Running](#Workload-Running)
 
 -------------------------------------------
 
-## Requirements
+## Check Requirements
 
 - Windows
 - Powershell: version 5.1.19041.1682 and above (please run windows powershell as administrator)
