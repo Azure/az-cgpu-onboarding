@@ -187,8 +187,6 @@ class CcAdminUtils:
         for i in range(start_index, end_index):
             # Build OCSP Request
             nonce = None
-            if BaseSettings.OCSP_NONCE_ENABLED:
-                nonce = CcAdminUtils.generate_nonce(BaseSettings.SIZE_OF_NONCE_IN_BYTES)
             ocsp_request = CcAdminUtils.build_ocsp_request(cert_chain[i], cert_chain[i + 1], nonce)
             ocsp_response = function_wrapper_with_timeout(
                 [
@@ -202,10 +200,7 @@ class CcAdminUtils:
 
             # Checking if the ocsp response is received or not, falling back to Nvidia ocsp server if the response is not received.
             if ocsp_response is None:
-                BaseSettings.OCSP_NONCE_ENABLED = True
-                nonce = None
-                if BaseSettings.OCSP_NONCE_ENABLED:
-                    nonce = CcAdminUtils.generate_nonce(BaseSettings.SIZE_OF_NONCE_IN_BYTES)
+                nonce = CcAdminUtils.generate_nonce(BaseSettings.SIZE_OF_NONCE_IN_BYTES)
                 ocsp_request = CcAdminUtils.build_ocsp_request(cert_chain[i], cert_chain[i + 1], nonce)
                 ocsp_response = function_wrapper_with_timeout(
                     [
@@ -250,7 +245,7 @@ class CcAdminUtils:
                 settings.mark_gpu_certificate_ocsp_signature_as_verified()
 
             # Verifying the nonce in the ocsp response message.
-            if BaseSettings.OCSP_NONCE_ENABLED and nonce != ocsp_response.extensions.get_extension_for_class(OCSPNonce).value.nonce:
+            if nonce is not None and nonce != ocsp_response.extensions.get_extension_for_class(OCSPNonce).value.nonce:
                 info_log.error("\t\tThe nonce in the OCSP response message is not matching with the one passed in the OCSP request message.")
                 return False
             elif i == end_index - 1:
