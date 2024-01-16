@@ -16,7 +16,7 @@ This page is using a customer managed keys. More information about customer mana
 
 -------------------------------------------
 
-## Check Requirements
+## Check-Requirements
 
 - [Azure Subscription](https://docs.microsoft.com/en-us/azure/cost-management-billing/manage/create-subscription)
 - [Azure Tenant ID](https://learn.microsoft.com/en-us/azure/active-directory/fundamentals/active-directory-how-to-find-tenant#find-tenant-id-with-powershell)
@@ -26,7 +26,7 @@ This page is using a customer managed keys. More information about customer mana
 
 -------------------------------------------
 
-## Create Customer Managed Key
+## Create-Customer-Managed-Key
 
 ----------------------------------------------------
 
