@@ -26,7 +26,7 @@ This page is using platform managed keys. More information about platform manage
 
 ----------------------------------------------------
 
-### Create-CGPU-VM
+## Create-CGPU-VM
 
 1. Prepare ssh key for creating VM (if you don't have one)
 
@@ -123,7 +123,7 @@ Transcript stopped, output file is D:\repo\PrivatePreview\drops\cgpu-h100-onboar
 ------------------------------------------------------------------------------------------
 ```
 
-### Attestation
+## Attestation
 
 ```
 # In your VM, execute the attestation scripts in cgpu-onboarding-package.
@@ -132,7 +132,7 @@ cd cgpu-onboarding-package
 bash step-2-attestation.sh
 ```
 
-### Workload-Running
+## Workload-Running
 
 ```
 # In your VM, execute the below command for a pytorch sample execution.  
