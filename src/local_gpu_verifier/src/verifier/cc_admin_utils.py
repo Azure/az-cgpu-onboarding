@@ -164,7 +164,7 @@ class CcAdminUtils:
 
         for i, cert in enumerate(cert_chain):
             cert_chain[i] = cert.to_cryptography()
-        
+
         for i in range(start_index, end_index):
             request_builder = ocsp.OCSPRequestBuilder()
             request_builder = request_builder.add_certificate(cert_chain[i], cert_chain[i + 1], SHA384())
@@ -183,7 +183,7 @@ class CcAdminUtils:
                                                               buffer = ocsp_response.certificates[0].public_bytes(serialization.Encoding.DER))
 
             ocsp_cert_chain = [ocsp_response_leaf_cert]
-            
+
             for j in range(i, len(cert_chain)):
                 ocsp_cert_chain.append(CcAdminUtils.convert_cert_from_cryptography_to_pyopenssl(cert_chain[j]))
 
@@ -243,7 +243,7 @@ class CcAdminUtils:
             [cryptography.hazmat.backends.openssl.ocsp._OCSPResponse]: the ocsp response message object.
         """
         if not BaseSettings.OCSP_URL.lower().startswith('https'):
-            # Raising exception in case of url not starting with http, and not FTP, etc. 
+            # Raising exception in case of url not starting with http, and not FTP, etc.
             raise ValueError from None
 
         https_request = request.Request(BaseSettings.OCSP_URL, data)
@@ -280,15 +280,14 @@ class CcAdminUtils:
             info_log.info(err_msg)
             return False
 
-
     @staticmethod
-    def fetch_rim_file_from_url(file_id, url, max_retries=5):
+    def fetch_rim_file_from_url(rim_id, url, max_retries=5):
         """ A static method to fetch the RIM file with the given file id from the given url.
             If the fetch fails, it retries for the maximum number of times specified by the max_retries parameter.
             If the max_retries is set to 0, it does not retry on failure and return None.
-        
+
         Args:
-            file_id (str): the RIM file id which need to be fetched from the given url.
+            rim_id (str): the RIM file id which need to be fetched from the given url.
             url (str): the url from which the RIM file needs to be fetched.
             max_retries (int, optional): the maximum number of retries to be performed in case of any error. Defaults to 5.
 
@@ -296,26 +295,29 @@ class CcAdminUtils:
             [str]: the content of the required RIM file as a string.
         """
         try:
-            with request.urlopen(url + file_id) as https_response:
+            with request.urlopen(url + rim_id) as https_response:
                 data = https_response.read()
                 json_object = json.loads(data)
-                base64_data = json_object['rim']
+                base64_data = json_object["rim"]
                 decoded_str = base64.b64decode(base64_data)
-                return decoded_str.decode('utf-8')
-        except HTTPError as error:
+                return decoded_str.decode("utf-8")
+        except Exception as e:
+            info_log.debug(f"Error while fetching the RIM file from {url + rim_id}")
+            if isinstance(e, HTTPError):
+                info_log.debug(f"HTTP Error code : {e.code}")
+
             if max_retries > 0:
-                return CcAdminUtils.fetch_rim_file_from_url(file_id, url, max_retries - 1)
+                return CcAdminUtils.fetch_rim_file_from_url(rim_id, url, max_retries - 1)
             else:
                 return None
 
-
     @staticmethod
-    def fetch_rim_file(file_id, max_retries=5):
+    def fetch_rim_file(rim_id, max_retries=5):
         """ A static method to fetch the RIM file with the given file id from the RIM service.
             It tries to fetch the RIM file from provided RIM service, and fallback to the Nvidia RIM service if the fetch fails.
 
         Args:
-            file_id (str): the RIM file id which need to be fetched from the RIM service.
+            rim_id (str): the RIM file id which need to be fetched from the RIM service.
 
         Raises:
             RIMFetchError: it is raised in case the RIM fetch is failed.
@@ -323,13 +325,15 @@ class CcAdminUtils:
         Returns:
             [str]: the content of the required RIM file as a string.
         """
-        rim_result = CcAdminUtils.fetch_rim_file_from_url(file_id, BaseSettings.RIM_SERVICE_BASE_URL, max_retries)
+        rim_result = CcAdminUtils.fetch_rim_file_from_url(rim_id, BaseSettings.RIM_SERVICE_BASE_URL, max_retries)
         if rim_result is None:
-            rim_result = CcAdminUtils.fetch_rim_file_from_url(file_id, BaseSettings.RIM_SERVICE_BASE_URL_NVIDIA, max_retries)
+            rim_result = CcAdminUtils.fetch_rim_file_from_url(
+                rim_id, BaseSettings.RIM_SERVICE_BASE_URL_NVIDIA, max_retries
+            )
             if rim_result is None:
-                raise RIMFetchError(f"Could not fetch the required RIM file : {file_id} from the RIM service.")
-        
-            
+                info_log.error(f"Failed to fetch the required RIM file : {rim_id} from the RIM service.")
+                raise RIMFetchError(f"Could not fetch the required RIM file : {rim_id} from the RIM service.")
+
     @staticmethod
     def get_vbios_rim_file_id(project, project_sku, chip_sku, vbios_version):
         """ A static method to generate the required VBIOS RIM file id which needs to be fetched from the RIM service 
@@ -358,7 +362,6 @@ class CcAdminUtils:
         """
         base_str = 'NV_GPU_DRIVER_GH100_'
         return base_str + driver_version
-
 
     @staticmethod
     def get_vbios_rim_path(settings, attestation_report):
@@ -424,14 +427,14 @@ class CcAdminUtils:
         assert isinstance(gpu_leaf_certificate, crypto.X509)
         assert isinstance(nonce, bytes) and len(nonce) == settings.SIZE_OF_NONCE_IN_BYTES
 
-        # Here the attestation report is the concatenated SPDM GET_MEASUREMENTS request with the SPDM GET_MEASUREMENT response message. 
+        # Here the attestation report is the concatenated SPDM GET_MEASUREMENTS request with the SPDM GET_MEASUREMENT response message.
         request_nonce = attestation_report_obj.get_request_message().get_nonce()
-        
+
         if len(nonce) > settings.SIZE_OF_NONCE_IN_BYTES or len(request_nonce) > settings.SIZE_OF_NONCE_IN_BYTES:
             err_msg = "\t\t Length of Nonce is greater than max nonce size allowed."
             event_log.error(err_msg)
             raise InvalidNonceError(err_msg)
-        
+
         # compare the generated nonce with the nonce of SPDM GET MEASUREMENT request message in the attestation report.
         if request_nonce != nonce:
             err_msg = "\t\tThe nonce in the SPDM GET MEASUREMENT request message is not matching with the generated nonce."
@@ -512,7 +515,7 @@ class CcAdminUtils:
             return bytes.fromhex(nonce_hex_string)
         else :
             raise InvalidNonceError("Invalid Nonce Size. The nonce should be 32 bytes in length represented as Hex String")
-            
+
     def __init__(self, number_of_gpus):
         """ It is the constructor for the CcAdminUtils.
 
