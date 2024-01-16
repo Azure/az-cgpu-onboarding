@@ -366,7 +366,8 @@ def attest(arguments_as_dictionary):
                     driver_rim_file_id = CcAdminUtils.get_driver_rim_file_id(driver_version)
                     
                     driver_rim_content = function_wrapper_with_timeout([CcAdminUtils.fetch_rim_file,
-                                                                        driver_rim_file_id,
+                                                                        driver_rim_file_id, 
+                                                                        BaseSettings.RIM_SERVICE_RETRY_COUNT,
                                                                         'fetch_rim_file'],
                                                                         BaseSettings.MAX_NETWORK_TIME_DELAY)
                     

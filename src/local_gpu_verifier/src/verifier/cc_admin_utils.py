@@ -193,6 +193,7 @@ class CcAdminUtils:
                     CcAdminUtils.send_ocsp_request,
                     ocsp_request.public_bytes(serialization.Encoding.DER),
                     BaseSettings.OCSP_URL,
+                    BaseSettings.OCSP_RETRY_COUNT,
                     "send_ocsp_request",
                 ],
                 BaseSettings.MAX_OCSP_TIME_DELAY,
@@ -207,6 +208,7 @@ class CcAdminUtils:
                         CcAdminUtils.send_ocsp_request,
                         ocsp_request.public_bytes(serialization.Encoding.DER),
                         BaseSettings.OCSP_URL_NVIDIA,
+                        BaseSettings.OCSP_RETRY_COUNT,
                         "send_ocsp_request",
                     ],
                     BaseSettings.MAX_OCSP_TIME_DELAY,
@@ -273,7 +275,7 @@ class CcAdminUtils:
         return True
 
     @staticmethod
-    def send_ocsp_request(data, url, max_retries=5):
+    def send_ocsp_request(data, url, max_retries=3):
         """ A static method to prepare http request and send it to the ocsp server
             and returns the ocsp response message.
 
@@ -333,7 +335,7 @@ class CcAdminUtils:
             return False
 
     @staticmethod
-    def fetch_rim_file_from_url(rim_id, url, max_retries=5):
+    def fetch_rim_file_from_url(rim_id, url, max_retries=3):
         """ A static method to fetch the RIM file with the given file id from the given url.
             If the fetch fails, it retries for the maximum number of times specified by the max_retries parameter.
             If the max_retries is set to 0, it does not retry on failure and return None.
@@ -363,7 +365,7 @@ class CcAdminUtils:
                 return None
 
     @staticmethod
-    def fetch_rim_file(rim_id, max_retries=5):
+    def fetch_rim_file(rim_id, max_retries=3):
         """ A static method to fetch the RIM file with the given file id from the RIM service.
             It tries to fetch the RIM file from provided RIM service, and fallback to the Nvidia RIM service if the fetch fails.
 
