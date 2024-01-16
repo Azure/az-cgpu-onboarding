@@ -33,7 +33,7 @@ attestation(){
         sudo pip3 install .
         sudo python3 -m verifier.cc_admin
 
-        sudo rm -rf ~/verifier && echo "Cleaned up folder after running!"
+        sudo rm -rf ~/verifier 
     
         cd ~/cgpu-onboarding-package
 

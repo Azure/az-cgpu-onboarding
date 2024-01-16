@@ -1,15 +1,4 @@
 <#
-
-- (Prerequisite) Set MgServicePrincipal
-You will need this step if you have not set your cvmAgentId for your tenant
-```
-az login
-$tenatId= $(az account show --query tenantId -o tsv)
-Install-Module Microsoft.Graph -Scope CurrentUser -Repository PSGallery
-Connect-Graph -Tenant $tenatId -Scopes Application.ReadWrite.All
-New-MgServicePrincipal -AppId bf7b6499-ff71-4aa2-97a4-f372087be7f0 -DisplayName "Confidential VM Orchestrator"
-```
-
 - Import Module
 ```
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
@@ -20,6 +9,7 @@ Import-Module -Name .\Windows\cgpu-deploy-cmk-des.psm1 -Force -DisableNameChecki
 ```
   $timeString = Get-Date -Format "HHmmss"
   $subscriptionId = "85c61f94-8912-4e82-900e-6ab44de9bdf8"
+  $tenantId = "72f988bf-86f1-41af-91ab-2d7cd011db47"
   $region = "eastus2"
   $resourceGroup ="CMK-$($timeString)-rg"
   $keyName = "CMK-$($timeString)-key"
@@ -34,6 +24,7 @@ Import-Module -Name .\Windows\cgpu-deploy-cmk-des.psm1 -Force -DisableNameChecki
 ```
 DEPLOY-CMK-DES `
   -subscriptionId $subscriptionId `
+  -tenantId $tenantId `
   -region $region `
   -resourceGroup $resourceGroup `
   -keyName $keyName `
@@ -45,9 +36,37 @@ DEPLOY-CMK-DES `
 ```
 #>
 
+function SET-SERVICEPRINCIPAL {
+
+  param(
+    $tenantId="72f988bf-86f1-41af-91ab-2d7cd011db47",
+    $cvmAgentId="bf7b6499-ff71-4aa2-97a4-f372087be7f0"
+  )
+
+  # check for service principal existence
+  $servicePrincipal = az ad sp show --id $cvmAgentId | Out-String | ConvertFrom-Json
+
+  if ($null -ne $servicePrincipal) {
+    Write-Output "----------------------------------  Service Principal exists, SKIP ---------------------------------- "
+  } 
+  else {
+
+    Write-Output "----------------------------------  Service Principal does not exist, creating ---------------------------------- "
+
+    # Install Microsoft.Graph module
+    Install-Module Microsoft.Graph -Scope CurrentUser -Repository PSGallery
+    
+    # Create MgServicePrincipal
+    Connect-Graph -Tenant $tenantId -Scopes Application.ReadWrite.All
+    New-MgServicePrincipal -AppId $cvmAgentId -DisplayName "Confidential VM Orchestrator"
+    Write-Output "----------------------------------  Service Principal $($cvmAgentId) created ---------------------------------- "
+  }
+}
+
 function DEPLOY-CMK-DES{
   param(
     $subscriptionId,
+    $tenantId="72f988bf-86f1-41af-91ab-2d7cd011db47",
     $region="eastus2",
     $resourceGroup,
     $keyVault,
@@ -60,10 +79,12 @@ function DEPLOY-CMK-DES{
     $desArmTemplate
   )
 
-  az login
+  az login --tenant $tenantId
   az account set --subscription $subscriptionid
   Write-Host "---------------------------------- Login to [$($subscriptionId)] ----------------------------------"
 
+  # Install Microsoft.Graph module
+  SET-SERVICEPRINCIPAL -tenantId $tenantId -cvmAgentId $cvmAgentId
 
   $groupExists = az group exists --name $resourceGroup
   if ($groupExists -eq "false") {
