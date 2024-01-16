@@ -307,7 +307,7 @@ class CcAdminUtils:
             if isinstance(e, HTTPError):
                 info_log.debug(f"HTTP Error code : {e.code}")
             if max_retries > 0:
-                return CcAdminUtils.get_ocsp_response_from_url(data, url, max_retries - 1)
+                return CcAdminUtils.send_ocsp_request(data, url, max_retries - 1)
             else:
                 return None
 
