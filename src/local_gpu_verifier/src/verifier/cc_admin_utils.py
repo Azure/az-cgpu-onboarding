@@ -378,14 +378,21 @@ class CcAdminUtils:
         Returns:
             [str]: the content of the required RIM file as a string.
         """
+        # Fetching the RIM file from the provided RIM service
         rim_result = CcAdminUtils.fetch_rim_file_from_url(rim_id, BaseSettings.RIM_SERVICE_BASE_URL, max_retries)
-        if rim_result is None:
-            rim_result = CcAdminUtils.fetch_rim_file_from_url(
-                rim_id, BaseSettings.RIM_SERVICE_BASE_URL_NVIDIA, max_retries
-            )
-            if rim_result is None:
-                info_log.error(f"Failed to fetch the required RIM file : {rim_id} from the RIM service.")
-                raise RIMFetchError(f"Could not fetch the required RIM file : {rim_id} from the RIM service.")
+        if rim_result is not None:
+            return rim_result
+
+        # Fallback to the Nvidia RIM service if the fetch fails
+        rim_result = CcAdminUtils.fetch_rim_file_from_url(
+            rim_id, BaseSettings.RIM_SERVICE_BASE_URL_NVIDIA, max_retries
+        )
+        if rim_result is not None:
+            return rim_result
+
+        # Raise error if RIM file is not fetched from both the RIM services
+        info_log.error(f"Failed to fetch the required RIM file : {rim_id} from the RIM service.")
+        raise RIMFetchError(f"Could not fetch the required RIM file : {rim_id} from the RIM service.")
 
     @staticmethod
     def get_vbios_rim_file_id(project, project_sku, chip_sku, vbios_version):
