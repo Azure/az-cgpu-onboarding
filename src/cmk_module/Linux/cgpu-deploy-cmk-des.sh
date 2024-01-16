@@ -7,6 +7,7 @@
 ## Sample Command:
 ## bash Linux/cgpu-deploy-cmk-des.sh \
 ## -s "85c61f94-8912-4e82-900e-6ab44de9bdf8" \
+## -t "72f988bf-86f1-41af-91ab-2d7cd011db47" \
 ## -r "eastus2" \
 ## -g "cmk-$(date +"%H%M%S")-rg" \
 ## -k "cmk-$(date +"%H%M%S")-key" \
@@ -14,28 +15,76 @@
 ## -p "skr-policy.json" \
 ## -d "cmk-$(date +"%H%M%S")-desdeploy" \
 ## -n "cmk-$(date +"%H%M%S")-des" \
-## -t "deployDES.json"
+## -m "deployDES.json"
+
+# Initialize variables
+subscriptionId=""
+tenantId=""
+region="eastus2"
+resourceGroup=""
+keyName=""
+keyVault=""
+policyPath=""
+desName=""
+deployName=""
+desArmTemplate=""
+keySize=3072
+cvmAgentId="bf7b6499-ff71-4aa2-97a4-f372087be7f0"
+
+# Set MgServicePrincipal
+SET-SERVICEPRINCIPAL() {
+
+   # TODO Add check for service principal
+   servicePrincipalExists=$(az ad sp list --filter "appId eq '$cvmAgentId'" | jq -r '.[].appId')
+   if [ "$servicePrincipalExists" == "$cvmAgentId" ]; then
+      echo "---------------------------------- Service principal [$cvmAgentId] already exists ----------------------------------"
+      
+   else
+      echo "---------------------------------- Creating service principal [$cvmAgentId] ----------------------------------"
+      
+      # Update the list of packages
+      sudo apt-get update
+
+      # Install pre-requisite packages
+      sudo apt-get install -y wget apt-transport-https software-properties-common
+
+      # Download the Microsoft repository GPG keys
+      wget -q "https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb"
+
+      # Register the Microsoft repository GPG keys
+      sudo dpkg -i packages-microsoft-prod.deb
+
+      # Update the list of products
+      sudo apt-get update
+
+      # Enable the "universe" repositories
+      sudo add-apt-repository universe
+
+      # Install PowerShell
+      sudo apt-get install -y powershell
+
+      #- (Prerequisite) Set MgServicePrincipal
+      # Install Microsoft.Graph PowerShell module
+      sudo pwsh -Command "Install-Module Microsoft.Graph -Scope CurrentUser -Repository PSGallery"
+      sudo pwsh -Command "Get-Module -Name Microsoft.Graph -ListAvailable"
+
+      # Create MgServicePrincipal
+      sudo pwsh -Command "Connect-Graph -Tenant '$tenantId' -Scopes Application.ReadWrite.All; New-MgServicePrincipal -AppId '$cvmAgentId' -DisplayName 'Confidential VM Orchestrator'"
+
+      echo "---------------------------------- Service principal [$cvmAgentId] created ----------------------------------"
+   fi
+
+
+}
 
 # Deploy CMK DES
 DEPLOY-CMK-DES() {
 
-   # Initialize variables
-   local subscriptionId=""
-   local region="eastus2"
-   local resourceGroup=""
-   local keyName=""
-   local keyVault=""
-   local policyPath=""
-   local desName=""
-   local deployName=""
-   local desArmTemplate=""
-   local keySize=3072
-   local cvmAgentId="bf7b6499-ff71-4aa2-97a4-f372087be7f0"
-
-   # Parse options
-   while getopts ":s:r:g:k:v:p:d:n:t:" opt; do
+   # Parse parameter options
+   while getopts ":s:t:r:g:k:v:p:d:n:m:" opt; do
       case $opt in
          s) subscriptionId=$OPTARG;;
+         t) tenantId=$OPTARG;;
          r) region=$OPTARG;;
          g) resourceGroup=$OPTARG;;
          k) keyName=$OPTARG;;
@@ -43,7 +92,7 @@ DEPLOY-CMK-DES() {
          p) policyPath=$OPTARG;;
          d) deployName=$OPTARG;;
          n) desName=$OPTARG;;
-         t) desArmTemplate=$OPTARG;;
+         m) desArmTemplate=$OPTARG;;
          \?) echo "Invalid option -$OPTARG" >&2
                return 1
          ;;
@@ -52,6 +101,7 @@ DEPLOY-CMK-DES() {
 
    echo "Parameters:"
    echo "Subscription ID: $subscriptionId"
+   echo "Tenant ID: $tenantId"
    echo "Region: $region"
    echo "Resource Group: $resourceGroup"
    echo "Key Name: $keyName"
@@ -60,10 +110,16 @@ DEPLOY-CMK-DES() {
    echo "DES Name: $desName"
    echo "Deploy Name: $deployName"
    echo "DES ARM Template: $desArmTemplate"
-   az login
+
+   # Login to Azure
+   az login --tenant $tenantId
    az account set --subscription $subscriptionId
    echo "---------------------------------- Login to [$subscriptionId] ----------------------------------"
 
+   # Set MgServicePrincipal
+   SET-SERVICEPRINCIPAL
+
+   # Check if the resource group exists
    groupExists=$(az group exists --name $resourceGroup)
    groupExists=$(echo "$groupExists" | tr -cd '[:alnum:]')
    if [ "$groupExists" == "false" ]; then
