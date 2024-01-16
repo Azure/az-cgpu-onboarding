@@ -8,15 +8,15 @@
 - Call bash script
 ```
 bash Linux/cgpu-deploy-cmk-des.sh \
--s "85c61f94-8912-4e82-900e-6ab44de9bdf8" \
--t "72f988bf-86f1-41af-91ab-2d7cd011db47" \
+-s "<subscriptionId>" \
+-t "<tenantId>" \
 -r "eastus2" \
--g "cmk-$(date +"%H%M%S")-rg" \
--k "cmk-$(date +"%H%M%S")-key" \
--v "cmk-$(date +"%H%M%S")-kv" \
+-g "cmk-$(date +"%Y%m%d%H%M%S")-rg" \
+-k "cmk-$(date +"%Y%m%d%H%M%S")-key" \
+-v "cmk-$(date +"%Y%m%d%H%M%S")-kv" \
 -p "skr-policy.json" \
--d "cmk-$(date +"%H%M%S")-desdeploy" \
--n "cmk-$(date +"%H%M%S")-des" \
+-d "cmk-$(date +"%Y%m%d%H%M%S")-desdeploy" \
+-n "cmk-$(date +"%Y%m%d%H%M%S")-des" \
 -m "deployDES.json"
 ```
 
@@ -30,17 +30,23 @@ Import-Module -Name .\Windows\cgpu-deploy-cmk-des.psm1 -Force -DisableNameChecki
 
 - Define Parameters
 ```
-  $timeString = Get-Date -Format "HHmmss"
-  $subscriptionId = "85c61f94-8912-4e82-900e-6ab44de9bdf8"
-  $tenantId = "72f988bf-86f1-41af-91ab-2d7cd011db47"
+  # Put your own subsctripionId and tenantId here
+  $subscriptionId = "<Your subsctripionId>"
+  $tenantId = "<Your tenantId>"
+
+  # Default parameters
   $region = "eastus2"
+  $desArmTemplate = "deployDES.json"
+  $policyPath = "skr-policy.json"
+
+  # Auto generate the resource group name, key name, key vault name, des name, des deployment name from the current time
+  $timeString = Get-Date -Format "yyyyMMddHHmmss"
   $resourceGroup ="CMK-$($timeString)-rg"
   $keyName = "CMK-$($timeString)-key"
-  $keyVault = "CMK-$($timeString)-kv"
-  $policyPath = "skr-policy.json"
+  $keyVault = "CMK-$($timeString)-kv" 
   $desName = "CMK-$($timeString)-des"
   $deployName = "CMK-$($timeString)-desdeploy"
-  $desArmTemplate = "deployDES.json"
+  
 ```
 
 - Call the function with the parameters

@@ -6,15 +6,15 @@
 
 ## Sample Command:
 ## bash Linux/cgpu-deploy-cmk-des.sh \
-## -s "85c61f94-8912-4e82-900e-6ab44de9bdf8" \
-## -t "72f988bf-86f1-41af-91ab-2d7cd011db47" \
+## -s "<subscriptionId>" \
+## -t "<tenantId>" \
 ## -r "eastus2" \
-## -g "cmk-$(date +"%H%M%S")-rg" \
-## -k "cmk-$(date +"%H%M%S")-key" \
-## -v "cmk-$(date +"%H%M%S")-kv" \
+## -g "cmk-$(date +"%Y%m%d%H%M%S")-rg" \
+## -k "cmk-$(date +"%Y%m%d%H%M%S")-key" \
+## -v "cmk-$(date +"%Y%m%d%H%M%S")-kv" \
 ## -p "skr-policy.json" \
-## -d "cmk-$(date +"%H%M%S")-desdeploy" \
-## -n "cmk-$(date +"%H%M%S")-des" \
+## -d "cmk-$(date +"%Y%m%d%H%M%S")-desdeploy" \
+## -n "cmk-$(date +"%Y%m%d%H%M%S")-des" \
 ## -m "deployDES.json"
 
 # Initialize variables
@@ -70,6 +70,16 @@ SET-SERVICEPRINCIPAL() {
 
       # Create MgServicePrincipal
       sudo pwsh -Command "Connect-Graph -Tenant '$tenantId' -Scopes Application.ReadWrite.All; New-MgServicePrincipal -AppId '$cvmAgentId' -DisplayName 'Confidential VM Orchestrator'"
+
+      # Wait for service principal to be created
+      for i in {1..10}; do
+         servicePrincipalExists=$(az ad sp list --filter "appId eq '$cvmAgentId'" | jq -r '.[].appId')
+         if [ "$servicePrincipalExists" == "$cvmAgentId" ]; then
+            break
+         fi
+         echo "---------------------------------- Waiting for service principal [$cvmAgentId] to be created ----------------------------------"
+         sleep 5
+      done
 
       echo "---------------------------------- Service principal [$cvmAgentId] created ----------------------------------"
    fi
