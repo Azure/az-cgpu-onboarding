@@ -83,7 +83,7 @@ cd cgpu-h100-auto-onboarding-windows
 # totalvmnumber: the number of VMs you want to create
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-Import-Module .\cgpu-h100-auto-onboarding.ps1
+Import-Module .\cgpu-h100-auto-onboarding.ps1 -Force
 CGPU-H100-Onboarding `
 -tenantid "8af6653d-c9c0-4957-ab01-615c7212a40b" `
 -subscriptionid "9269f664-5a68-4aee-9498-40a701230eb2" `
