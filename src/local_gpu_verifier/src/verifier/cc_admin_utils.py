@@ -63,6 +63,7 @@ from verifier.exceptions import (
     SignatureVerificationError,
     VBIOSVersionMismatchError,
     RIMFetchError,
+    OCSPFetchError,
     InvalidNonceError
 )
 
@@ -232,6 +233,40 @@ class CcAdminUtils:
         return True
 
     @staticmethod
+    def get_ocsp_response_from_url(data, url, max_retries=5):
+        """ A static method to prepare http request and send it to the ocsp server
+            and returns the ocsp response message.
+
+        Args:
+            data (bytes): the raw ocsp request message.
+            url (str): the url of the ocsp service.
+            max_retries (int, optional): the maximum number of retries to be performed in case of any error. Defaults to 5.
+
+        Returns:
+            [cryptography.hazmat.backends.openssl.ocsp._OCSPResponse]: the ocsp response message object.
+        """
+        if not url.lower().startswith("https"):
+            # Raising exception in case of url not starting with http, and not FTP, etc.
+            raise ValueError("The OCSP service url should start with https")
+
+        try:
+            ocsp_request = request.Request(url, data)
+            ocsp_request.add_header("Content-Type", "application/ocsp-request")
+
+            with request.urlopen(ocsp_request) as ocsp_response_raw:
+                ocsp_response = ocsp.load_der_ocsp_response(ocsp_response_raw.read())
+                return ocsp_response
+
+        except Exception as e:
+            info_log.debug(f"Error while fetching the ocsp response from {url}")
+            if isinstance(e, HTTPError):
+                info_log.debug(f"HTTP Error code : {e.code}")
+            if max_retries > 0:
+                return CcAdminUtils.get_ocsp_response_from_url(data, url, max_retries - 1)
+            else:
+                return None
+
+    @staticmethod
     def send_ocsp_request(data):
         """ A static method to prepare http request and send it to the ocsp server
         and returns the ocsp response message.
@@ -242,16 +277,12 @@ class CcAdminUtils:
         Returns:
             [cryptography.hazmat.backends.openssl.ocsp._OCSPResponse]: the ocsp response message object.
         """
-        if not BaseSettings.OCSP_URL.lower().startswith('https'):
-            # Raising exception in case of url not starting with http, and not FTP, etc.
-            raise ValueError from None
-
-        https_request = request.Request(BaseSettings.OCSP_URL, data)
-        https_request.add_header("Content-Type", "application/ocsp-request")
-
-        with request.urlopen(https_request) as https_response:      #nosec taken care of the security issue by checking for the url to start with "http"
-            ocsp_response = ocsp.load_der_ocsp_response(https_response.read())
-
+        ocsp_response = CcAdminUtils.get_ocsp_response_from_url(data, BaseSettings.OCSP_SERVICE_BASE_URL)
+        if ocsp_response is None:
+            ocsp_response = CcAdminUtils.get_ocsp_response_from_url(data, BaseSettings.OCSP_SERVICE_BASE_URL_NVIDIA)
+            if ocsp_response is None:
+                info_log.error("Failed to fetch the ocsp response from the OCSP service.")
+                raise OCSPFetchError("Failed to fetch the ocsp response from the OCSP service.")
         return ocsp_response
 
     @staticmethod
@@ -305,7 +336,6 @@ class CcAdminUtils:
             info_log.debug(f"Error while fetching the RIM file from {url + rim_id}")
             if isinstance(e, HTTPError):
                 info_log.debug(f"HTTP Error code : {e.code}")
-
             if max_retries > 0:
                 return CcAdminUtils.fetch_rim_file_from_url(rim_id, url, max_retries - 1)
             else:
