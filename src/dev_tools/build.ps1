@@ -7,15 +7,15 @@
 
 # Generates a 'Drop' folder that contains all 3 release packages:
 # 1: cgpu-onboarding-package.tar.gz containing VM bring-up scripts, driver, and local verifier
-# 2: cgpu-h100-onboarding.zip containing windows onboarding script with onboarding package
-# 3: cgpu-h100-onboarding.tar.gz containing linux onboarding script with onboarding package
+# 2: cgpu-h100-auto-onboarding-windows.zip containing windows onboarding script with onboarding package
+# 3: cgpu-h100-auto-onboarding-linux.tar.gz containing linux onboarding script with onboarding package
 
 # Set all locations and paths
 $DropFolder="$PSScriptRoot\..\..\drops"
 $PackageFolder="$PSScriptRoot\..\..\packages"
 $CgpuOnboardingPackageFolder="cgpu-onboarding-package"
 $cgpuOnboardingPackage="cgpu-onboarding-package.tar.gz"
-$H100Package="cgpu-h100-onboarding"
+$H100Package="cgpu-h100-auto-onboarding-linux"
 $packageDestination = "${DropFolder}\${CgpuOnboardingPackageFolder}"
 $H100PackageDestination="${DropFolder}\${H100Package}"
 
@@ -29,6 +29,7 @@ function Cleanup {
 
 function Build-Packages {
 	echo "Building Packages"
+
 	# Creates folder for final packages
 	if (!(Test-Path $DropFolder -PathType Container)) {
 		New-Item -ItemType Directory -Force -Path $DropFolder
@@ -90,7 +91,7 @@ function Make-H100-Packages {
         $content = Get-Content $powershellScript
         $content | Set-Content $powershellScript
     }
-	Compress-Archive -Path $powershellScript, $DropFolder\$cgpuOnboardingPackage, "$PSScriptRoot\..\cmk_module" -DestinationPath $DropFolder\cgpu-h100-onboarding.zip -Force
+	Compress-Archive -Path $powershellScript, $DropFolder\$cgpuOnboardingPackage, "$PSScriptRoot\..\cmk_module" -DestinationPath $DropFolder\cgpu-h100-auto-onboarding-windows.zip -Force
 
 	# Generate linux (.tar.gz) H100 enabled package
 	echo "Generating linux package"
