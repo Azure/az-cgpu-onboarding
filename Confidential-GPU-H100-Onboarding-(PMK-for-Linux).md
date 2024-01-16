@@ -63,6 +63,7 @@ The key's randomart image is:
 ```
 
 2. Create VM using powershell script
+- This will create a Standard_NCC40ads_H100_v5 Confidential VM with a Platform Managed Key (PMK) with secure boot enabled in your specified resource group. If the resource group doesn't exist, it will create it with the specified name under the target subscription.
 
 - Decompress downloaded [cgpu-h100-auto-onboarding-linux.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V3.0.1/cgpu-h100-auto-onboarding-linux.tar.gz) and enter the folder through your bash window.
 ```
@@ -71,9 +72,6 @@ cd cgpu-h100-auto-onboarding-linux
 
 - Execute cgpu H100 onboarding script.
 ```
-# It will create VMs with secure boot enabled in your specified resource group.
-# If the resource group doesn't exist, it will create the resource group with the specified name in the target subsription.
-#
 # Required Arguments: 
 #	-t <tenant ID>: ID of your Tenant/Directory
 #	-s <subscription ID>: ID of your subscription.
