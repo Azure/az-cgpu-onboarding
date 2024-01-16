@@ -8,14 +8,14 @@ This page is using platform managed keys. More information about platform manage
 
 ## Steps
 
-- [Check-Prerequisites](#requirements)
+- [Check-Requirements](#Check-Requirements)
 - [Create-CGPU-VM](#Create-CGPU-VM)
 - [Attestation](#Attestation)
 - [Workload-Running](#Workload-Running)
 
 -------------------------------------------
 
-## Requirements
+## Check Requirements
 
 - Linux
 - [Azure Subscription](https://docs.microsoft.com/en-us/azure/cost-management-billing/manage/create-subscription)
