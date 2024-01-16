@@ -78,17 +78,17 @@ cd cgpu-h100-auto-onboarding-linux
 - Execute cgpu H100 onboarding script.
 ```
 # Required Arguments: 
-#	-t <tenant ID>: ID of your Tenant/Directory
-#	-s <subscription ID>: ID of your subscription.
-#	-r <resource group name>: The resource group name for VM creation
+# -t <tenant ID>: ID of your Tenant/Directory
+# -s <subscription ID>: ID of your subscription.
+# -r <resource group name>: The resource group name for VM creation
 #                          It will create the Resource Group if it is not found under given subscription
-#	-p <public key path>: your id_rsa.pub path 
-#	-i <private key path>: your id_rsa path
+# -p <public key path>: your id_rsa.pub path 
+# -i <private key path>: your id_rsa path
 # -d <disk encryption id>: customer managed disk encryption id (if not set, your VM will be created using a platform managed key)
-#	-c <CustomerOnboardingPackage path>: Customer onboarding package path
-#	-a <admin user name>: administrator username for the VM
-#	-v <vm name>: your VM name
-#	-n <vm number>: number of VMs to be generated
+# -c <CustomerOnboardingPackage path>: Customer onboarding package path
+# -a <admin user name>: administrator username for the VM
+# -v <vm name>: your VM name
+# -n <vm number>: number of VMs to be generated
 
 bash secureboot-enable-onboarding-from-vmi.sh  \
 -t "<your Tenant ID>" \
