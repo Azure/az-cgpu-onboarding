@@ -71,7 +71,7 @@ cd cgpu-h100-auto-onboarding-linux
 ```
 
 - Execute cgpu H100 onboarding script.
-
+```
 # It will create VMs with secure boot enabled in your specified resource group.
 # If the resource group doesn't exist, it will create the resource group with the specified name in the target subsription.
 #
