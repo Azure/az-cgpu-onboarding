@@ -169,9 +169,10 @@ class CcAdminUtils:
         for i in range(start_index, end_index):
             request_builder = ocsp.OCSPRequestBuilder()
             request_builder = request_builder.add_certificate(cert_chain[i], cert_chain[i + 1], SHA384())
-            nonce  = CcAdminUtils.generate_nonce(BaseSettings.SIZE_OF_NONCE_IN_BYTES)
-            request_builder = request_builder.add_extension(extval = OCSPNonce(nonce),
-                                                            critical = True)
+            if BaseSettings.OCSP_NONCE_ENABLED:
+                nonce  = CcAdminUtils.generate_nonce(BaseSettings.SIZE_OF_NONCE_IN_BYTES)
+                request_builder = request_builder.add_extension(extval = OCSPNonce(nonce),
+                                                                critical = True)
             request = request_builder.build()
             # Making the network call in a separate thread.
             ocsp_response = function_wrapper_with_timeout([CcAdminUtils.send_ocsp_request,
@@ -205,7 +206,8 @@ class CcAdminUtils:
             elif i == end_index - 1:
                 settings.mark_gpu_certificate_ocsp_signature_as_verified()
 
-            if nonce != ocsp_response.extensions.get_extension_for_class(OCSPNonce).value.nonce:
+            # Verifying the nonce in the ocsp response message.
+            if BaseSettings.OCSP_NONCE_ENABLED and nonce != ocsp_response.extensions.get_extension_for_class(OCSPNonce).value.nonce:
                 info_log.error("\t\tThe nonce in the OCSP response message is not matching with the one passed in the OCSP request message.")
                 return False
             elif i == end_index - 1:
@@ -279,6 +281,7 @@ class CcAdminUtils:
         """
         ocsp_response = CcAdminUtils.get_ocsp_response_from_url(data, BaseSettings.OCSP_URL)
         if ocsp_response is None:
+            BaseSettings.OCSP_NONCE_ENABLED = True
             ocsp_response = CcAdminUtils.get_ocsp_response_from_url(data, BaseSettings.OCSP_URL_NVIDIA)
             if ocsp_response is None:
                 info_log.error("Failed to fetch the ocsp response from the OCSP service.")

@@ -69,6 +69,7 @@ class BaseSettings:
     MAX_NETWORK_TIME_DELAY = 10
     OCSP_URL = 'https://thimpft2.thim.azure-test.net/nvidia/ocsp/'
     OCSP_URL_NVIDIA = 'https://ocsp.ndis.nvidia.com/'
+    OCSP_NONCE_ENABLED = True
     OCSP_HASH_FUNCTION = sha384
     RIM_SERVICE_BASE_URL = 'https://thimpft2.thim.azure-test.net/nvidia/v1/rim/'
     RIM_SERVICE_BASE_URL_NVIDIA = 'https://rim.attestation.nvidia.com/v1/rim/'
@@ -120,6 +121,12 @@ class BaseSettings:
         if not isinstance(url, str):
             raise ValueError("Incorrect data type for the URL.")
         cls.RIM_SERVICE_BASE_URL = url
+
+    @classmethod
+    def set_ocsp_service_url(cls, url):
+        if not isinstance(url, str):
+            raise ValueError("Incorrect data type for the URL.")
+        cls.OCSP_URL = url
 
     @classmethod
     def get_sku(cls):

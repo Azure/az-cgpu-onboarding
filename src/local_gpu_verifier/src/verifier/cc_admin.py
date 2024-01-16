@@ -217,6 +217,11 @@ def attest(arguments_as_dictionary):
 
         if not arguments_as_dictionary['rim_service_url'] is None:
             BaseSettings.set_rim_service_base_url(arguments_as_dictionary['rim_service_url'])
+            BaseSettings.OCSP_NONCE_ENABLED = False
+
+        if not arguments_as_dictionary['ocsp_service_url'] is None:
+            BaseSettings.set_ocsp_service_url(arguments_as_dictionary['ocsp_service_url'])
+            BaseSettings.OCSP_NONCE_ENABLED = False
 
         if arguments_as_dictionary['verbose']:
             info_log.setLevel(logging.DEBUG)
