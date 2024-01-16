@@ -139,6 +139,24 @@ class CcAdminUtils:
         return crypto.load_certificate(type=crypto.FILETYPE_ASN1, buffer = cert.public_bytes(serialization.Encoding.DER))
 
     @staticmethod
+    def build_ocsp_request(cert, issuer, nonce=None):
+        """ A static method to build the ocsp request message.
+
+        Args:
+            cert (OpenSSL.crypto.X509): the input certificate object.
+            issuer (OpenSSL.crypto.X509): the issuer certificate object.
+            nonce (bytes, optional): the nonce to be added in the ocsp request message. Defaults to None.
+
+        Returns:
+            [bytes]: the raw ocsp request message.
+        """
+        request_builder = ocsp.OCSPRequestBuilder()
+        request_builder = request_builder.add_certificate(cert, issuer, SHA384())
+        if nonce is not None:
+            request_builder = request_builder.add_extension(extval=OCSPNonce(nonce), critical=True)
+        return request_builder.build()
+
+    @staticmethod
     def ocsp_certificate_chain_validation(cert_chain, settings, mode):
         """ A static method to perform the ocsp status check of the input certificate chain along with the
         signature verification and the cert chain verification if the ocsp response message received.
@@ -167,19 +185,43 @@ class CcAdminUtils:
             cert_chain[i] = cert.to_cryptography()
 
         for i in range(start_index, end_index):
-            request_builder = ocsp.OCSPRequestBuilder()
-            request_builder = request_builder.add_certificate(cert_chain[i], cert_chain[i + 1], SHA384())
+            # Build OCSP Request
             nonce = None
             if BaseSettings.OCSP_NONCE_ENABLED:
-                nonce  = CcAdminUtils.generate_nonce(BaseSettings.SIZE_OF_NONCE_IN_BYTES)
-                request_builder = request_builder.add_extension(extval = OCSPNonce(nonce),
-                                                                critical = True)
-            request = request_builder.build()
-            # Making the network call in a separate thread.
-            ocsp_response = function_wrapper_with_timeout([CcAdminUtils.send_ocsp_request,
-                                                           request.public_bytes(serialization.Encoding.DER),
-                                                           "send_ocsp_request"],
-                                                           BaseSettings.MAX_OCSP_TIME_DELAY)
+                nonce = CcAdminUtils.generate_nonce(BaseSettings.SIZE_OF_NONCE_IN_BYTES)
+            ocsp_request = CcAdminUtils.build_ocsp_request(cert_chain[i], cert_chain[i + 1], nonce)
+            ocsp_response = function_wrapper_with_timeout(
+                [
+                    CcAdminUtils.send_ocsp_request,
+                    ocsp_request.public_bytes(serialization.Encoding.DER),
+                    BaseSettings.OCSP_URL,
+                    "send_ocsp_request",
+                ],
+                BaseSettings.MAX_OCSP_TIME_DELAY,
+            )
+
+            # Checking if the ocsp response is received or not, falling back to Nvidia ocsp server if the response is not received.
+            if ocsp_response is None:
+                BaseSettings.OCSP_NONCE_ENABLED = True
+                nonce = None
+                if BaseSettings.OCSP_NONCE_ENABLED:
+                    nonce = CcAdminUtils.generate_nonce(BaseSettings.SIZE_OF_NONCE_IN_BYTES)
+                ocsp_request = CcAdminUtils.build_ocsp_request(cert_chain[i], cert_chain[i + 1], nonce)
+                ocsp_response = function_wrapper_with_timeout(
+                    [
+                        CcAdminUtils.send_ocsp_request,
+                        ocsp_request.public_bytes(serialization.Encoding.DER),
+                        BaseSettings.OCSP_URL_NVIDIA,
+                        "send_ocsp_request",
+                    ],
+                    BaseSettings.MAX_OCSP_TIME_DELAY,
+                )
+
+            # Raise error if OCSP response is still not received
+            if ocsp_response is None:
+                error_msg = f"Failed to fetch the ocsp response for certificate {cert_chain[i].subject.get_attributes_for_oid(x509.oid.NameOID.COMMON_NAME)[0].value}"        
+                info_log.error(f"\t\t\t{error_msg}")
+                raise OCSPFetchError(error_msg)
 
             # Verifying the ocsp response certificate chain.
             ocsp_response_leaf_cert = crypto.load_certificate(type=crypto.FILETYPE_ASN1,
@@ -236,7 +278,7 @@ class CcAdminUtils:
         return True
 
     @staticmethod
-    def get_ocsp_response_from_url(data, url, max_retries=5):
+    def send_ocsp_request(data, url, max_retries=5):
         """ A static method to prepare http request and send it to the ocsp server
             and returns the ocsp response message.
 
@@ -268,26 +310,6 @@ class CcAdminUtils:
                 return CcAdminUtils.get_ocsp_response_from_url(data, url, max_retries - 1)
             else:
                 return None
-
-    @staticmethod
-    def send_ocsp_request(data):
-        """ A static method to prepare http request and send it to the ocsp server
-        and returns the ocsp response message.
-
-        Args:
-            data (bytes): the raw ocsp request message.
-
-        Returns:
-            [cryptography.hazmat.backends.openssl.ocsp._OCSPResponse]: the ocsp response message object.
-        """
-        ocsp_response = CcAdminUtils.get_ocsp_response_from_url(data, BaseSettings.OCSP_URL)
-        if ocsp_response is None:
-            BaseSettings.OCSP_NONCE_ENABLED = True
-            ocsp_response = CcAdminUtils.get_ocsp_response_from_url(data, BaseSettings.OCSP_URL_NVIDIA)
-            if ocsp_response is None:
-                info_log.error("Failed to fetch the ocsp response from the OCSP service.")
-                raise OCSPFetchError("Failed to fetch the ocsp response from the OCSP service.")
-        return ocsp_response
 
     @staticmethod
     def verify_ocsp_signature(ocsp_response):
