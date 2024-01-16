@@ -8,7 +8,7 @@ This page is using a customer managed keys. More information about customer mana
 
 ## Steps
 
-- [Check-Prerequisites](#requirements)
+- [Check-Requirements](#Check-Requirements)
 - [Create-Customer-Managed-Key](#create-customer-managed-key)
 - [Create-CGPU-VM](#Create-CGPU-VM)
 - [Attestation](#Attestation)
@@ -16,9 +16,8 @@ This page is using a customer managed keys. More information about customer mana
 
 -------------------------------------------
 
-## Requirements
+## Check Requirements
 
-- Linux
 - [Azure Subscription](https://docs.microsoft.com/en-us/azure/cost-management-billing/manage/create-subscription)
 - [Azure Tenant ID](https://learn.microsoft.com/en-us/azure/active-directory/fundamentals/active-directory-how-to-find-tenant#find-tenant-id-with-powershell)
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
