@@ -169,6 +169,7 @@ class CcAdminUtils:
         for i in range(start_index, end_index):
             request_builder = ocsp.OCSPRequestBuilder()
             request_builder = request_builder.add_certificate(cert_chain[i], cert_chain[i + 1], SHA384())
+            nonce = None
             if BaseSettings.OCSP_NONCE_ENABLED:
                 nonce  = CcAdminUtils.generate_nonce(BaseSettings.SIZE_OF_NONCE_IN_BYTES)
                 request_builder = request_builder.add_extension(extval = OCSPNonce(nonce),
