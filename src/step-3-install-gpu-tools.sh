@@ -8,14 +8,14 @@
 ##      bash step-3-install-gpu-tools.sh
 ##
 
-ATTESTATION_SUCCESS_MESSAGE="GPU 0 verified successfully."
+ATTESTATION_SUCCESS_MESSAGE="GPU Attested Successfully"
 MAX_RETRY=3
 
 ## install dockder dependency.
 install_gpu_tools(){
     # verify attestation is given the correct result.
     attestation_result=$(bash step-2-attestation.sh | tail -1| sed -e 's/^[[:space:]]*//')
-    if [ "$attestation_result" == "$ATTESTATION_SUCCESS_MESSAGE" ]; 
+    if [ "$attestation_result" != "$ATTESTATION_SUCCESS_MESSAGE" ]; 
     then
       echo "Current gpu attestation failed: ${attestation_result}, expected: GPU 0 verified successfully."
       echo "Please verify previous steps and retry step-2-attestation."
