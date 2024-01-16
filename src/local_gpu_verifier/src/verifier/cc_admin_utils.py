@@ -277,9 +277,9 @@ class CcAdminUtils:
         Returns:
             [cryptography.hazmat.backends.openssl.ocsp._OCSPResponse]: the ocsp response message object.
         """
-        ocsp_response = CcAdminUtils.get_ocsp_response_from_url(data, BaseSettings.OCSP_SERVICE_BASE_URL)
+        ocsp_response = CcAdminUtils.get_ocsp_response_from_url(data, BaseSettings.OCSP_URL)
         if ocsp_response is None:
-            ocsp_response = CcAdminUtils.get_ocsp_response_from_url(data, BaseSettings.OCSP_SERVICE_BASE_URL_NVIDIA)
+            ocsp_response = CcAdminUtils.get_ocsp_response_from_url(data, BaseSettings.OCSP_URL_NVIDIA)
             if ocsp_response is None:
                 info_log.error("Failed to fetch the ocsp response from the OCSP service.")
                 raise OCSPFetchError("Failed to fetch the ocsp response from the OCSP service.")
