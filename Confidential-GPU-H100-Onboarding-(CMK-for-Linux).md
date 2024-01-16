@@ -30,7 +30,7 @@ This page is using a customer managed keys. More information about customer mana
 
 ----------------------------------------------------
 
-### Create-CGPU-VM
+## Create-CGPU-VM
 
 1. Prepare ssh key for creating VM (if you don't have one)
 
@@ -88,7 +88,7 @@ cd cgpu-h100-auto-onboarding-linux
 #                          It will create the Resource Group if it is not found under given subscription
 #	-p <public key path>: your id_rsa.pub path 
 #	-i <private key path>: your id_rsa path
-# -d <disk encryption id>: customer managed disk encryption id
+# -d <disk encryption id>: customer managed disk encryption id (if not set, your VM will be created using a platform managed key)
 #	-c <CustomerOnboardingPackage path>: Customer onboarding package path
 #	-a <admin user name>: administrator username for the VM
 #	-v <vm name>: your VM name
@@ -132,7 +132,7 @@ Transcript stopped, output file is D:\repo\PrivatePreview\drops\cgpu-h100-onboar
 ------------------------------------------------------------------------------------------
 ```
 
-### Attestation
+## Attestation
 
 ```
 # In your VM, execute the attestation scripts in cgpu-onboarding-package.
@@ -141,7 +141,7 @@ cd cgpu-onboarding-package
 bash step-2-attestation.sh
 ```
 
-### Workload-Running
+## Workload-Running
 
 ```
 # In your VM, execute the below command for a pytorch sample execution.
