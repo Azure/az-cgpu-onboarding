@@ -8,7 +8,7 @@ This page is using a customer managed keys. More information about customer mana
 
 ## Steps
 
-- [Check-Prerequisites](#requirements)
+- [Check-Requirements](#Check-Requirements)
 - [Create-Customer-Managed-Key](#create-customer-managed-key)
 - [Create-CGPU-VM](#Create-CGPU-VM)
 - [Attestation](#Attestation)
@@ -16,11 +16,12 @@ This page is using a customer managed keys. More information about customer mana
 
 -------------------------------------------
 
-## Requirements
+## Check Requirements
 
 - Windows
 - Powershell: version 5.1.19041.1682 and above (please run windows powershell as administrator)
 - [Azure Subscription](https://docs.microsoft.com/en-us/azure/cost-management-billing/manage/create-subscription)
+- [Azure Tenant ID](https://learn.microsoft.com/en-us/azure/active-directory/fundamentals/active-directory-how-to-find-tenant#find-tenant-id-with-powershell)
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
 - Download [cgpu-h100-auto-onboarding-windows.zip](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V3.0.1/cgpu-h100-auto-onboarding-windows.zip) from [Azure-Confidential-Computing-CGPUPrivatePreview-V3.0.1](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V3.0.1)
 
@@ -30,7 +31,7 @@ This page is using a customer managed keys. More information about customer mana
 
 ----------------------------------------------------
 
-### Create-CGPU-VM
+## Create-CGPU-VM
 
 1. Prepare ssh key for creating VM (if you don't have one)
 
@@ -131,7 +132,7 @@ Transcript stopped, output file is D:\repo\PrivatePreview\drops\cgpu-h100-onboar
 ------------------------------------------------------------------------------------------
 ```
 
-### Attestation
+## Attestation
 
 ```
 # In your VM, execute the attestation scripts in cgpu-onboarding-package.
@@ -140,7 +141,7 @@ cd cgpu-onboarding-package
 bash step-2-attestation.sh
 ```
 
-### Workload-Running
+## Workload-Running
 
 ```
 # In your VM, execute the below command for a pytorch sample execution.
