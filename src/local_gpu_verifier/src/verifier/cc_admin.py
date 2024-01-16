@@ -88,7 +88,6 @@ def main():
                 need to test the verifier, then no nvml apis will be available so, the verifier
                 will use a hardcoded gpu info.""",
         action="store_true",
-        default=True,
     )
     parser.add_argument(
         "--driver_rim",
@@ -135,7 +134,6 @@ def main():
         help="If the OCSP response indicate the certificate is revoked within the extension period in hours, treat the cert as good and continue the attestation.",
         default=168,
     )
-
 
     args = parser.parse_args()
     arguments_as_dictionary = vars(args)
