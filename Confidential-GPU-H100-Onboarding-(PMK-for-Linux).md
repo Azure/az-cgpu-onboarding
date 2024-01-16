@@ -88,14 +88,14 @@ cd cgpu-h100-auto-onboarding-linux
 #	-n <vm number>: number of VMs to be generated
 
 bash secureboot-enable-onboarding-from-vmi.sh  \
--t "8af6653d-c9c0-4957-ab01-615c7212a40b" \
--s "9269f664-5a68-4aee-9498-40a701230eb2" \
+-t "<your Tenant ID>" \
+-s "<your subscription ID>" \
 -r "confidential-gpu-rg" \
 -a "azuretestuser" \
 -p "/home/username/.ssh/id_rsa.pub" \
 -i "/home/username/.ssh/id_rsa"  \
 -c "./cgpu-onboarding-package.tar.gz" \
--v "confidential-test-vm"  \
+-v "cgpu-test"  \
 -n 1
 
 ------------------------------------------------------------------------------------------
