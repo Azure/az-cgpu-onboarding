@@ -1,6 +1,7 @@
 <#
 - Import Module
 ```
+cd <Repo Path>\src\cmk_module
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 Import-Module -Name .\Windows\cgpu-deploy-cmk-des.psm1 -Force -DisableNameChecking
 ```

@@ -28,6 +28,26 @@ This page is using a customer managed keys. More information about customer mana
 
 ## Create-Customer-Managed-Key
 
+- Open cmk module
+```
+cd <Repo Path>/src/cmk_module
+```
+
+- Call bash script
+```
+bash Linux/cgpu-deploy-cmk-des.sh \
+-s "<subscriptionId>" \
+-t "<tenantId>" \
+-r "eastus2" \
+-g "cmk-$(date +"%Y%m%d%H%M%S")-rg" \
+-k "cmk-$(date +"%Y%m%d%H%M%S")-key" \
+-v "cmk-$(date +"%Y%m%d%H%M%S")-kv" \
+-p "skr-policy.json" \
+-d "cmk-$(date +"%Y%m%d%H%M%S")-desdeploy" \
+-n "cmk-$(date +"%Y%m%d%H%M%S")-des" \
+-m "deployDES.json"
+```
+
 ----------------------------------------------------
 
 ## Create-CGPU-VM

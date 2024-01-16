@@ -5,6 +5,11 @@
 
 ## On Linux Bash shell
 
+- Open cmk module
+```
+cd <Repo Path>/src/cmk_module
+```
+
 - Call bash script
 ```
 bash Linux/cgpu-deploy-cmk-des.sh \
@@ -24,6 +29,7 @@ bash Linux/cgpu-deploy-cmk-des.sh \
 
 - Import Module
 ```
+cd <Repo Path>\src\cmk_module
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 Import-Module -Name .\Windows\cgpu-deploy-cmk-des.psm1 -Force -DisableNameChecking
 ```
