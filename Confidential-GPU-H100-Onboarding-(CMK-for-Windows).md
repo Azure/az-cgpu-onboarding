@@ -86,8 +86,8 @@ cd cgpu-h100-auto-onboarding-windows
 # privatekeypath: your private key path
 # desid: disk encryption set ID (if not set, your VM will be created using a platform managed key)
 # cgpupackagepath: your cgpu-onboarding-package.tar.gz path
-#	vmnameprefix: the prefix of your vm. It will create from prefix1, prefix2, prefix3 till the number of VMs specified;
-#	totalvmnumber: the number of VMs you want to create
+# vmnameprefix: the prefix of your vm. It will create from prefix1, prefix2, prefix3 till the number of VMs specified;
+# totalvmnumber: the number of VMs you want to create
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 Import-Module .\cgpu-h100-auto-onboarding.ps1 -Force
