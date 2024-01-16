@@ -15,7 +15,7 @@ This page is using platform managed keys. More information about platform manage
 
 -------------------------------------------
 
-## Check Requirements
+## Check-Requirements
 
 - [Azure Subscription](https://docs.microsoft.com/en-us/azure/cost-management-billing/manage/create-subscription)
 - [Azure Tenant ID](https://learn.microsoft.com/en-us/azure/active-directory/fundamentals/active-directory-how-to-find-tenant#find-tenant-id-with-powershell)
