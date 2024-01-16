@@ -21,7 +21,6 @@ attestation(){
         echo "Please retry step-1-install-gpu-driver."
     else
         sudo rm -rf ~/verifier && echo "Clean up ~/verifier succsessfully!"
-        
         git clone https://github.com/nvidia/nvtrust ~/verifier && echo "Clone folder succsessfully!"
         
         pushd . 
@@ -59,7 +58,5 @@ if [[ "${#BASH_SOURCE[@]}" -eq 1 ]]; then
     then
         mkdir logs
     fi    
-
     attestation "$@" 2>&1 | tee logs/current-operation.log | tee -a logs/all-operation.log
-
 fi
