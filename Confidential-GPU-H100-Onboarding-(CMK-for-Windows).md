@@ -28,7 +28,7 @@ This page is using a customer managed keys. More information about customer mana
 
 ## Create-Customer-Managed-Key
 
-# Open Powershell as Admin
+- Open Powershell as Admin
 
 - Import Module
 ```
