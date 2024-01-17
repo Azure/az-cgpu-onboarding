@@ -316,6 +316,7 @@ class CcAdminUtils:
 
             with request.urlopen(ocsp_request) as ocsp_response_raw:
                 ocsp_response = ocsp.load_der_ocsp_response(ocsp_response_raw.read())
+                info_log.debug(f"Successfully fetched the ocsp response from {url}")
                 return ocsp_response
 
         except Exception as e:
@@ -373,8 +374,9 @@ class CcAdminUtils:
                 data = https_response.read()
                 json_object = json.loads(data)
                 base64_data = json_object["rim"]
-                decoded_str = base64.b64decode(base64_data)
-                return decoded_str.decode("utf-8")
+                decoded_str = base64.b64decode(base64_data).decode("utf-8")
+                info_log.debug(f"Successfully fetched the RIM file from {url + rim_id}")
+                return decoded_str
         except Exception as e:
             info_log.debug(f"Error while fetching the RIM file from {url + rim_id}")
             if isinstance(e, HTTPError):
