@@ -106,7 +106,6 @@ def main():
         "--allow_hold_cert",
         help="If the user wants to continue the attestation in case of the OCSP revocation status of the certificate in the RIM files is 'certificate_hold'.",
         action="store_true",
-        default=True,
     )
     parser.add_argument(
         "--nonce",
