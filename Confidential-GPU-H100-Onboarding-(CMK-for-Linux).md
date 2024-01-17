@@ -28,16 +28,19 @@ This page is using a customer managed keys. More information about customer mana
 
 ## Create-Customer-Managed-Key
 
-- Open cmk module
+1. Open the CMK module
 ```
 cd <Repo Path>/src/cmk_module
 ```
 
-- Call bash script
+2. Call the bash script
 ```
+# Replace with your own subscription ID and tenant ID here
+# The region, policy path and DES ARM template path are default parameters
+# The resource group name, key name, key vault name, des name, des deployment name are auto-generated from the current time
 bash Linux/cgpu-deploy-cmk-des.sh \
--s "<subscriptionId>" \
--t "<tenantId>" \
+-s "<your subscription ID>" \
+-t "<your tenant ID>" \
 -r "eastus2" \
 -g "cmk-$(date +"%Y%m%d%H%M%S")-rg" \
 -k "cmk-$(date +"%Y%m%d%H%M%S")-key" \
@@ -112,7 +115,7 @@ cd cgpu-h100-auto-onboarding-linux
 
 bash secureboot-enable-onboarding-from-vmi.sh  \
 -t "<your Tenant ID>" \
--s "<your subscription ID>2" \
+-s "<your subscription ID>" \
 -r "confidential-gpu-rg" \
 -a "azuretestuser" \
 -p "/home/username/.ssh/id_rsa.pub" \
