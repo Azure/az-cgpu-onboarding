@@ -85,18 +85,18 @@ function SET-SERVICEPRINCIPAL {
 function DEPLOY-CMK-DES{
   param(
     $subscriptionId,
-    $tenantId="72f988bf-86f1-41af-91ab-2d7cd011db47",
+    $tenantId,
     $region="eastus2",
-    $resourceGroup,
-    $keyVault,
+    $resourceGroup="CMK-$($timeString)-rg",
+    $keyVault="CMK-$($timeString)-kv",
     $cvmAgentId="bf7b6499-ff71-4aa2-97a4-f372087be7f0",
     $cvmAgentName="Confidential VM Orchestrator",
-    $keyName,
+    $keyName="CMK-$($timeString)-key",
     $keySize=3072,
-    $policyPath,
-    $desName,
-    $deployName,
-    $desArmTemplate
+    $policyPath="skr-policy.json",
+    $desName="CMK-$($timeString)-des",
+    $deployName="CMK-$($timeString)-desdeploy",
+    $desArmTemplate="deployDES.json"
   )
 
   az login --tenant $tenantId
