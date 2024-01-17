@@ -124,6 +124,11 @@ def main():
         help="If the user wants to override the OCSP service url and provide their own url, then can do so by passing it as a command line argument.",
     )
     parser.add_argument(
+        "--ocsp_nonce_enabled",
+        help="Enable the nonce with the provided OCSP service URL.",
+        action="store_true",
+    )
+    parser.add_argument(
         "--ocsp_validity_extension",
         help="If the OCSP response is expired within the validity extension period in hours, treat the OCSP response as valid and continue the attestation.",
         default=168,
@@ -215,11 +220,10 @@ def attest(arguments_as_dictionary):
 
         if not arguments_as_dictionary["rim_service_url"] is None:
             BaseSettings.set_rim_service_base_url(arguments_as_dictionary["rim_service_url"])
-            BaseSettings.OCSP_NONCE_ENABLED = False
 
         if not arguments_as_dictionary["ocsp_service_url"] is None:
             BaseSettings.set_ocsp_service_url(arguments_as_dictionary["ocsp_service_url"])
-            BaseSettings.OCSP_NONCE_ENABLED = False
+            BaseSettings.OCSP_NONCE_ENABLED = arguments_as_dictionary.get("ocsp_nonce_enabled", False)
 
         if arguments_as_dictionary['verbose']:
             info_log.setLevel(logging.DEBUG)

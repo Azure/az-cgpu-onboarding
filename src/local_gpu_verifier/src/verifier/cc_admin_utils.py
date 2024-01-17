@@ -189,7 +189,7 @@ class CcAdminUtils:
             cert_common_name = cert_chain[i].subject.get_attributes_for_oid(x509.oid.NameOID.COMMON_NAME)[0].value
 
             # Build OCSP Request.
-            nonce = None
+            nonce = CcAdminUtils.generate_nonce(BaseSettings.SIZE_OF_NONCE_IN_BYTES) if BaseSettings.OCSP_NONCE_ENABLED else None
             ocsp_request = CcAdminUtils.build_ocsp_request(cert_chain[i], cert_chain[i + 1], nonce)
             ocsp_response = function_wrapper_with_timeout(
                 [
