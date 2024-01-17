@@ -1,6 +1,6 @@
 # Confidential GPU Private Preview Onboarding 
 
-Welcome to the preview. This onboarding document helps to create an Azure confidential VM with NVIDIA H100 Tensor Core GPU in Confidential Computing mode.  
+Welcome to this preview! This onboarding document helps to create an Azure confidential VM with NVIDIA H100 Tensor Core GPU in Confidential Computing mode.  
 
 Please note that any associated materials or documentation below are strictly confidential and subject to obligations in the Non-Disclosure Agreement (NDA) signed between Microsoft and your organization. 
 
@@ -26,6 +26,8 @@ In this preview, you can:
 - [Azure subscription](https://learn.microsoft.com/en-us/azure/cost-management-billing/manage/create-subscription)
 - Quota for the NCC H100 v5 VM SKU
 - [Install Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)
+
+## Instructions
 
 The following four major steps are provided to help deploy your first Confidential GPU VM and to run a sample workload. The first step sets up the Confidential GPU environment and create the VM. The second step is optional, only required if you choose the customer managed key option (read more about key management options here: [Azure Key Management](https://learn.microsoft.com/en-us/azure/security/fundamentals/key-management)). The third step performs attestation verification and ensures the CGPU mode has been turned on successfully. The last step helps run a sample workload to verify and complete the setup. These steps are only required the first time you are deploying your VM.
 
@@ -60,6 +62,7 @@ We support the options to create confidential GPUs with Windows and Linux hosts,
 This preview is currently availability in the East US 2 region. We plan to expand to more regions in a phased manner during public preview/General Availability (GA).  Non-production data is recommended during this phase of the preview. We are not providing a reliability SLA during the preview phase. 
 
 ## Contact Information
+
 Support will be directly with the product team via the email Confidential GPU Preview: cgpupreview@microsoft.com   
 The service will be taken down around 1-2 times per month for security and performance updates.
 Thanks for your cooperation and help!
