@@ -118,7 +118,7 @@ cd cgpu-h100-auto-onboarding-linux
 # -v <vm name>: your VM name
 # -n <vm number>: number of VMs to be generated
 
-bash secureboot-enable-onboarding-from-vmi.sh  \
+bash cgpu-h100-auto-onboarding.sh  \
 -t "<your Tenant ID>" \
 -s "<your subscription ID>" \
 -r "confidential-gpu-rg" \
