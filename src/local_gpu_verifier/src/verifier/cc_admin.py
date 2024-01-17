@@ -1,7 +1,7 @@
 #
 # SPDX-FileCopyrightText: Copyright (c) 2021-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #
@@ -138,8 +138,8 @@ def main():
     args = parser.parse_args()
     arguments_as_dictionary = vars(args)
 
-    result,_  = attest(arguments_as_dictionary)
-    
+    result, _ = attest(arguments_as_dictionary)
+
     if not result:
         sys.exit(1)
 
@@ -214,12 +214,12 @@ def attest(arguments_as_dictionary):
     try:
         BaseSettings.allow_hold_cert = arguments_as_dictionary['allow_hold_cert']
 
-        if not arguments_as_dictionary['rim_service_url'] is None:
-            BaseSettings.set_rim_service_base_url(arguments_as_dictionary['rim_service_url'])
+        if not arguments_as_dictionary["rim_service_url"] is None:
+            BaseSettings.set_rim_service_base_url(arguments_as_dictionary["rim_service_url"])
             BaseSettings.OCSP_NONCE_ENABLED = False
 
-        if not arguments_as_dictionary['ocsp_service_url'] is None:
-            BaseSettings.set_ocsp_service_url(arguments_as_dictionary['ocsp_service_url'])
+        if not arguments_as_dictionary["ocsp_service_url"] is None:
+            BaseSettings.set_ocsp_service_url(arguments_as_dictionary["ocsp_service_url"])
             BaseSettings.OCSP_NONCE_ENABLED = False
 
         if arguments_as_dictionary['verbose']:
@@ -357,30 +357,26 @@ def attest(arguments_as_dictionary):
 
             # performing the schema validation and signature verification of the driver RIM.
             info_log.info("\t\tAuthenticating Driver RIM")
-            
-            if arguments_as_dictionary['driver_rim'] is None:
-                
-                if not arguments_as_dictionary['test_no_gpu']:
+            if arguments_as_dictionary["driver_rim"] is None:
+                if not arguments_as_dictionary["test_no_gpu"]:
                     info_log.info("\t\t\tFetching the driver RIM from the RIM service.")
-
                     driver_rim_file_id = CcAdminUtils.get_driver_rim_file_id(driver_version)
-                    
-                    driver_rim_content = function_wrapper_with_timeout([CcAdminUtils.fetch_rim_file,
-                                                                        driver_rim_file_id, 
-                                                                        BaseSettings.RIM_SERVICE_RETRY_COUNT,
-                                                                        'fetch_rim_file'],
-                                                                        BaseSettings.MAX_NETWORK_TIME_DELAY)
-                    
-                    driver_rim = RIM(rim_name = 'driver', settings = settings, content = driver_rim_content)
-                
+                    driver_rim_content = function_wrapper_with_timeout(
+                        [
+                            CcAdminUtils.fetch_rim_file,
+                            driver_rim_file_id,
+                            BaseSettings.RIM_SERVICE_RETRY_COUNT,
+                            "fetch_rim_file",
+                        ],
+                        BaseSettings.MAX_NETWORK_TIME_DELAY,
+                    )
+                    driver_rim = RIM(rim_name="driver", settings=settings, content=driver_rim_content)
                 else:
                     info_log.info("\t\t\tUsing the local driver rim file : " + settings.DRIVER_RIM_PATH)
-                    driver_rim = RIM(rim_name = 'driver', settings = settings, rim_path = settings.DRIVER_RIM_PATH)        
-            
+                    driver_rim = RIM(rim_name="driver", settings=settings, rim_path=settings.DRIVER_RIM_PATH)
             else:
                 info_log.info("\t\t\tUsing the local driver rim file : " + settings.DRIVER_RIM_PATH)
-                driver_rim = RIM(rim_name = 'driver', settings = settings, rim_path = settings.DRIVER_RIM_PATH)
-
+                driver_rim = RIM(rim_name="driver", settings=settings, rim_path=settings.DRIVER_RIM_PATH)
             driver_rim_verification_status = driver_rim.verify(version=driver_version, settings=settings)
 
             if driver_rim_verification_status:
@@ -394,47 +390,65 @@ def attest(arguments_as_dictionary):
             info_log.info("\t\tAuthenticating VBIOS RIM.")
             vbios_rim_path = settings.VBIOS_RIM_PATH
 
-            if arguments_as_dictionary['vbios_rim'] is None:
-                
-                if not arguments_as_dictionary['test_no_gpu']:
+            if arguments_as_dictionary["vbios_rim"] is None:
+                if not arguments_as_dictionary["test_no_gpu"]:
                     info_log.info("\t\t\tFetching the VBIOS RIM from the RIM service.")
 
-                    project = attestation_report_obj.get_response_message().get_opaque_data().get_data("OPAQUE_FIELD_ID_PROJECT")
-                    project_sku = attestation_report_obj.get_response_message().get_opaque_data().get_data("OPAQUE_FIELD_ID_PROJECT_SKU")
-                    chip_sku = attestation_report_obj.get_response_message().get_opaque_data().get_data("OPAQUE_FIELD_ID_CHIP_SKU")
-                    vbios_version = format_vbios_version(attestation_report_obj.get_response_message().get_opaque_data().get_data("OPAQUE_FIELD_ID_VBIOS_VERSION"))
+                    project = (
+                        attestation_report_obj.get_response_message()
+                        .get_opaque_data()
+                        .get_data("OPAQUE_FIELD_ID_PROJECT")
+                    )
+                    project_sku = (
+                        attestation_report_obj.get_response_message()
+                        .get_opaque_data()
+                        .get_data("OPAQUE_FIELD_ID_PROJECT_SKU")
+                    )
+                    chip_sku = (
+                        attestation_report_obj.get_response_message()
+                        .get_opaque_data()
+                        .get_data("OPAQUE_FIELD_ID_CHIP_SKU")
+                    )
+                    vbios_version = format_vbios_version(
+                        attestation_report_obj.get_response_message()
+                        .get_opaque_data()
+                        .get_data("OPAQUE_FIELD_ID_VBIOS_VERSION")
+                    )
                     vbios_version_for_id = vbios_version.replace(".", "").upper()
                     vbios_version = vbios_version.lower()
 
-                    project = project.decode('ascii').strip().strip('\x00')
+                    project = project.decode("ascii").strip().strip("\x00")
                     project = project.upper()
-                    project_sku = project_sku.decode('ascii').strip().strip('\x00')
+                    project_sku = project_sku.decode("ascii").strip().strip("\x00")
                     project_sku = project_sku.upper()
-                    chip_sku = chip_sku.decode('ascii').strip().strip('\x00')
+                    chip_sku = chip_sku.decode("ascii").strip().strip("\x00")
                     chip_sku = chip_sku.upper()
-                    vbios_rim_file_id = CcAdminUtils.get_vbios_rim_file_id(project,
-                                                                           project_sku,
-                                                                           chip_sku,
-                                                                           vbios_version_for_id)
-                    
-                    vbios_rim_content = function_wrapper_with_timeout([CcAdminUtils.fetch_rim_file,
-                                                                       vbios_rim_file_id,
-                                                                        BaseSettings.RIM_SERVICE_RETRY_COUNT,
-                                                                       'fetch_rim_file'],
-                                                                       BaseSettings.MAX_NETWORK_TIME_DELAY)
-                    
-                    vbios_rim = RIM(rim_name = 'vbios', settings = settings, content = vbios_rim_content)
-                
+                    vbios_rim_file_id = CcAdminUtils.get_vbios_rim_file_id(
+                        project, project_sku, chip_sku, vbios_version_for_id
+                    )
+
+                    vbios_rim_content = function_wrapper_with_timeout(
+                        [
+                            CcAdminUtils.fetch_rim_file,
+                            vbios_rim_file_id,
+                            BaseSettings.RIM_SERVICE_RETRY_COUNT,
+                            "fetch_rim_file",
+                        ],
+                        BaseSettings.MAX_NETWORK_TIME_DELAY,
+                    )
+
+                    vbios_rim = RIM(rim_name="vbios", settings=settings, content=vbios_rim_content)
+
                 else:
                     info_log.info("\t\t\tUsing the TEST_NO_GPU VBIOS rim file.")
                     vbios_rim_path = settings.TEST_NO_GPU_VBIOS_RIM_PATH
-                    vbios_rim = RIM(rim_name = 'vbios', settings=settings, rim_path = vbios_rim_path)
-            
+                    vbios_rim = RIM(rim_name="vbios", settings=settings, rim_path=vbios_rim_path)
+
             else:
-                info_log.info("\t\t\tUsing the vbios from the local disk : " + arguments_as_dictionary['vbios_rim'])
-                vbios_rim = RIM(rim_name = 'vbios', settings = settings, rim_path = arguments_as_dictionary['vbios_rim'])
-            
-            vbios_rim_verification_status = vbios_rim.verify(version = vbios_version, settings = settings)
+                info_log.info("\t\t\tUsing the vbios from the local disk : " + arguments_as_dictionary["vbios_rim"])
+                vbios_rim = RIM(rim_name="vbios", settings=settings, rim_path=arguments_as_dictionary["vbios_rim"])
+
+            vbios_rim_verification_status = vbios_rim.verify(version=vbios_version, settings=settings)
 
             if vbios_rim_verification_status:
                 settings.mark_vbios_rim_signature_verified()
@@ -454,7 +468,7 @@ def attest(arguments_as_dictionary):
                         NvmlHandler.set_gpu_ready_state(True)
                     else:
                         info_log.info("\tGPU Ready State is already READY")
-            
+
                 info_log.info(f'\tGPU {i} verified successfully.')
 
             elif arguments_as_dictionary['test_no_gpu']:
@@ -533,7 +547,6 @@ def attest(arguments_as_dictionary):
         jwt_claims = create_jwt_token(verified_claims)
         event_log.debug("-----------ENDING-----------")
         return overall_status, jwt_claims
-        
 
 
 def create_jwt_token(gpu_claims_list: any):

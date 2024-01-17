@@ -186,7 +186,9 @@ class CcAdminUtils:
             cert_chain[i] = cert.to_cryptography()
 
         for i in range(start_index, end_index):
-            # Build OCSP Request
+            cert_common_name = cert_chain[i].subject.get_attributes_for_oid(x509.oid.NameOID.COMMON_NAME)[0].value
+
+            # Build OCSP Request.
             nonce = None
             ocsp_request = CcAdminUtils.build_ocsp_request(cert_chain[i], cert_chain[i + 1], nonce)
             ocsp_response = function_wrapper_with_timeout(
@@ -215,63 +217,79 @@ class CcAdminUtils:
                     BaseSettings.MAX_OCSP_TIME_DELAY,
                 )
 
-            # Raise error if OCSP response is still not received
+            # Raise error if OCSP response is still not received.
             if ocsp_response is None:
-                error_msg = f"Failed to fetch the ocsp response for certificate {cert_chain[i].subject.get_attributes_for_oid(x509.oid.NameOID.COMMON_NAME)[0].value}"        
+                error_msg = f"Failed to fetch the ocsp response for certificate {cert_common_name}"
                 info_log.error(f"\t\t\t{error_msg}")
                 raise OCSPFetchError(error_msg)
 
             # Verifying the ocsp response certificate chain.
-            ocsp_response_leaf_cert = crypto.load_certificate(type=crypto.FILETYPE_ASN1,
-                                                              buffer = ocsp_response.certificates[0].public_bytes(serialization.Encoding.DER))
-
+            ocsp_response_leaf_cert = crypto.load_certificate(
+                type=crypto.FILETYPE_ASN1,
+                buffer=ocsp_response.certificates[0].public_bytes(serialization.Encoding.DER),
+            )
             ocsp_cert_chain = [ocsp_response_leaf_cert]
-
             for j in range(i, len(cert_chain)):
                 ocsp_cert_chain.append(CcAdminUtils.convert_cert_from_cryptography_to_pyopenssl(cert_chain[j]))
-
-            ocsp_cert_chain_verification_status = CcAdminUtils.verify_certificate_chain(ocsp_cert_chain,
-                                                                                        settings,
-                                                                                        BaseSettings.Certificate_Chain_Verification_Mode.OCSP_RESPONSE)
+            ocsp_cert_chain_verification_status = CcAdminUtils.verify_certificate_chain(
+                ocsp_cert_chain, settings, BaseSettings.Certificate_Chain_Verification_Mode.OCSP_RESPONSE
+            )
 
             if not ocsp_cert_chain_verification_status:
-                info_log.error(f"\t\tThe ocsp response certificate chain verification failed for {cert_chain[i].subject.get_attributes_for_oid(x509.oid.NameOID.COMMON_NAME)[0].value}.")
+                info_log.error(f"\t\tThe ocsp response certificate chain verification failed for {cert_common_name}.")
                 return False
             elif i == end_index - 1:
                 settings.mark_gpu_certificate_ocsp_cert_chain_as_verified(mode)
 
             # Verifying the signature of the ocsp response message.
             if not CcAdminUtils.verify_ocsp_signature(ocsp_response):
-                info_log.error(f"\t\tThe ocsp response response for certificate {cert_chain[i].subject.get_attributes_for_oid(x509.oid.NameOID.COMMON_NAME)[0].value} failed due to signature verification failure.")
+                info_log.error(
+                    f"\t\tThe ocsp response response for certificate {cert_common_name} failed due to signature verification failure."
+                )
                 return False
             elif i == end_index - 1:
                 settings.mark_gpu_certificate_ocsp_signature_as_verified()
 
             # Verifying the nonce in the ocsp response message.
             if nonce is not None and nonce != ocsp_response.extensions.get_extension_for_class(OCSPNonce).value.nonce:
-                info_log.error("\t\tThe nonce in the OCSP response message is not matching with the one passed in the OCSP request message.")
+                info_log.error(
+                    "\t\tThe nonce in the OCSP response message is not matching with the one passed in the OCSP request message."
+                )
                 return False
             elif i == end_index - 1:
                 settings.mark_gpu_certificate_ocsp_nonce_as_matching()
 
+            # Verifying the ocsp response status.
             if ocsp_response.response_status != ocsp.OCSPResponseStatus.SUCCESSFUL:
                 info_log.error("\t\tCouldn't receive a proper response from the OCSP server.")
                 return False
 
+            # Verifying the ocsp response certificate status.
             if ocsp_response.certificate_status != ocsp.OCSPCertStatus.GOOD:
-                if x509.ReasonFlags.certificate_hold == ocsp_response.revocation_reason and \
-                BaseSettings.allow_hold_cert and \
-                (mode == BaseSettings.Certificate_Chain_Verification_Mode.DRIVER_RIM_CERT or BaseSettings.Certificate_Chain_Verification_Mode.VBIOS_RIM_CERT):
-                    info_log.warning(f"\t\t\tWARNING: THE CERTIFICATE {cert_chain[i].subject.get_attributes_for_oid(x509.oid.NameOID.COMMON_NAME)[0].value} IS REVOKED WITH THE STATUS AS 'CERTIFICATE_HOLD'.")
+                if (
+                    x509.ReasonFlags.certificate_hold == ocsp_response.revocation_reason
+                    and BaseSettings.allow_hold_cert
+                    and (
+                        mode == BaseSettings.Certificate_Chain_Verification_Mode.DRIVER_RIM_CERT
+                        or BaseSettings.Certificate_Chain_Verification_Mode.VBIOS_RIM_CERT
+                    )
+                ):
+                    info_log.warning(
+                        f"\t\t\tWARNING: THE CERTIFICATE {cert_common_name} IS REVOKED WITH THE STATUS AS 'CERTIFICATE_HOLD'."
+                    )
                     revoked_status = True
                 else:
-                    info_log.error(f"\t\t\tTHE {cert_chain[i].subject.get_attributes_for_oid(x509.oid.NameOID.COMMON_NAME)[0].value} IS REVOKED FOR REASON : {ocsp_response.revocation_reason}")
+                    info_log.error(
+                        f"\t\t\tTHE {cert_common_name} IS REVOKED FOR REASON : {ocsp_response.revocation_reason}"
+                    )
                     return False
 
         if not revoked_status:
             info_log.info(f"\t\t\tThe certificate chain revocation status verification successful.")
         else:
-            info_log.warning(f"\t\t\tThe certificate chain revocation status verification was not successful but continuing.")
+            info_log.warning(
+                f"\t\t\tThe certificate chain revocation status verification was not successful but continuing."
+            )
 
         return True
 
