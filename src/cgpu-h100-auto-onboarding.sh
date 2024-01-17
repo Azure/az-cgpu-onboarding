@@ -9,6 +9,7 @@
 #                          It will create the Resource Group if it is not found under given subscription
 #	-p <public key path>: your id_rsa.pub path 
 #	-i <private key path>: your id_rsa path
+#   -d <disk encryption id>: customer managed disk encryption id
 #	-c <CustomerOnboardingPackage path>: Customer onboarding package path
 #	-a <admin user name>: administrator username for the VM
 #	-v <vm name>: your VM name
@@ -21,14 +22,15 @@
 # -r "confidential-gpu-rg" \
 # -p "/home/username/.ssh/id_rsa.pub" \
 # -i "/home/username/.ssh/id_rsa"  \
+# -d "/subscriptions/85c61f94-8912-4e82-900e-6ab44de9bdf8/resourceGroups/CGPU-CMK-KV/providers/Microsoft.Compute/diskEncryptionSets/CMK-Test-Des-03-01"  \
 # -c "/home/username/cgpu-onboarding-package.tar.gz" \
 # -a "azuretestuser" \
 # -v "confidential-test-vm"  \
 # -n 1
 
 # Auto Create and Onboard Multiple CGPU VM with Nvidia Driver pre-installed image. 
-auto_onboard_cgpu_multi_vm() {
-	while getopts t:s:r:p:i:c:a:v:n: flag
+cgpu_h100_onboarding() {
+	while getopts t:s:r:p:i:d:c:a:v:n: flag
 	do
 	    case "${flag}" in
 			t) tenant_id=${OPTARG};;
@@ -36,6 +38,7 @@ auto_onboard_cgpu_multi_vm() {
 	        r) rg=${OPTARG};;
 	        p) public_key_path=${OPTARG};;
 	        i) private_key_path=${OPTARG};;
+			d) des_id=${OPTARG};;
 	        c) cgpu_package_path=${OPTARG};;
 	        a) adminuser_name=${OPTARG};;
 	        v) vmname_prefix=${OPTARG};;
@@ -65,6 +68,8 @@ auto_onboard_cgpu_multi_vm() {
     	return
 	fi
 
+	echo "Disk encryption Id: ${des_id}"
+
 	echo "Cgpu onboarding package path:  ${cgpu_package_path}"
 	if [ ! -f "${cgpu_package_path}" ]; then
     	echo "${cgpu_package_path} does not exist, please verify file path"
@@ -88,9 +93,6 @@ auto_onboard_cgpu_multi_vm() {
 	fi
 	echo "prepare subscription and resource group success."
 
-	# Check for direct share image access
-	check_image_access >> "$log_dir/login-operation.log"
-	
 	# Start VM creation with number of specified VMs.
 	successCount=0
 	for ((current_vm_count=1; current_vm_count <= total_vm_number; current_vm_count++))
@@ -128,7 +130,7 @@ auto_onboard_cgpu_multi_vm() {
 	echo "Please execute the below command to try attestation:"
 	echo "cd cgpu-onboarding-package; bash step-2-attestation.sh";
 	echo "Please execute the below command to try a sample workload:"
-	echo "cd; bash mnist_example.sh pytorch";
+	echo "sudo docker run --gpus all -v /home/${adminuser_name}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:23.09-tf2-py3 python /home/mnist-sample-workload.py";
 	echo "******************************************************************************************"
 
 	az account clear
@@ -156,10 +158,21 @@ prepare_subscription_and_rg() {
 	
 	print_error "SubscriptionId validation success."
 	print_error "Checking resource group...."
-	if [ $(az group exists --name $rg) == false ]; then
+	
+	# azure cli return invisible char, removing it.
+	is_resource_group_exist="$(az group exists --name $rg)"
+	is_resource_group_exist=$(echo "$is_resource_group_exist" | tr -cd '[:alnum:]-/,.:@')
+	
+	if [ $is_resource_group_exist == "false" ]; then
     	print_error "Resource group ${rg} does not exits, start creating resource group ${rg}"
+    	
     	az group create --name ${rg} --location eastus2
-		if [ $(az group exists --name $rg) == false ]; then
+
+    	# azure cli return invisible char, removing it.
+    	is_resource_group_exist="$(az group exists --name $rg)"
+    	is_resource_group_exist=$(echo "$is_resource_group_exist" | tr -cd '[:alnum:]-/,.:@')
+		
+		if [ $is_resource_group_exist == "false" ]; then
 			print_error "rg creation failed, please check if your subscription is correct."
 			is_success="failed"
 			return
@@ -179,38 +192,75 @@ auto_onboard_cgpu_single_vm() {
 		return
 	fi
 	ip=$(az vm show -d -g $rg -n $vmname --query publicIps -o tsv)
-	vm_ssh_info=$adminuser_name@$ip
-	
+
+	# azure cli return invisible char, removing it.
+	vm_ssh_info="${adminuser_name}@${ip}"
+	vm_ssh_info=$(echo "$vm_ssh_info" | tr -cd '[:alnum:]-/,.:@')
+
 	echo "VM creation finished"
 	echo $vm_ssh_info
 
 	# Upload customer onboarding package.
 	upload_package
 	
+	# Update kernel
+	update_kernel
+
+	# Install Nvidia gpu driver
+	install_gpu_driver
+
 	# Attestation.
 	attestation
 
+	# Install docker gpu tools
+	install_gpu_tool
+	
 	vm_ssh_info_arr[$current_vm_count]=$vm_ssh_info
-
-
 }
 
 # Upload package to VM.
 upload_package() {
-	echo "Start uploading package..."
 	try_connect
+
+	echo "Start uploading package..."
 	scp -i $private_key_path $cgpu_package_path $vm_ssh_info:/home/$adminuser_name
+	echo "Finished uploading package."
 
 	echo "Start extracting package..."
-	ssh -i $private_key_path $vm_ssh_info "tar -zxvf cgpu-onboarding-package.tar.gz;" > /dev/null
+	ssh -i $private_key_path $vm_ssh_info "tar -zxvf cgpu-onboarding-package.tar.gz;"
+	echo "Finished extracting package."
+}
+
+# Upload package to VM.
+update_kernel() {
+	try_connect
+	echo "Start update kernel."
+	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; bash step-0-prepare-kernel.sh;" 
+	echo "Finished update kernel."
+	echo "Rebooting.."
+}
+
+install_gpu_driver() {
+	try_connect
+	echo "Start install gpu driver"
+	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; bash step-1-install-gpu-driver.sh;" 
+	echo "Finished install gpu driver"
 }
 
 # Do attestation in the created VMs.
 attestation() {
-	echo "Start verifier installation and attestation. Please wait, this process can take up to 2 minutes."
 	try_connect
-	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh;" > "$log_dir/attestation.log"
-	ssh -i $private_key_path $vm_ssh_info 'cd cgpu-onboarding-package/$(ls -1 cgpu-onboarding-package | grep verifier | head -1); sudo python3 cc_admin.py'
+	echo "Start verifier installation and attestation. Please wait, this process can take up to 2 minutes."
+	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh;"
+	#ssh -i $private_key_path $vm_ssh_info 'cd cgpu-onboarding-package/$(ls -1 cgpu-onboarding-package | grep verifier | head -1); sudo python3 cc_admin.py'
+	echo "Finished attestation."
+}
+
+install_gpu_tool() {
+	try_connect
+	echo "Start install gpu tool."
+	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; echo Y | bash step-3-install-gpu-tools.sh;" 
+	echo "Finished install gpu tool."
 }
 
 # Try to connect to VM with 50 maximum retry.
@@ -221,7 +271,7 @@ try_connect() {
    connectionoutput=""
    while [[ "$connectionoutput" != "Connected to VM" ]] && [[ $retries -lt $MAX_RETRY ]];
    do
-       connectionoutput=$(ssh -i $private_key_path -o "StrictHostKeyChecking no" $vm_ssh_info "echo 'Connected to VM';")
+       connectionoutput=$(ssh -i "${private_key_path}" -o "StrictHostKeyChecking=no" "${vm_ssh_info}" "echo 'Connected to VM';")
        echo $connectionoutput
        retries=$((retries+1))
    done
@@ -234,19 +284,42 @@ create_vm() {
 
 	public_key_path_with_at="@$public_key_path"
 	
-	az vm create \
-	--resource-group $rg \
-	--name $vmname \
-	--image "/SharedGalleries/85c61f94-8912-4e82-900e-6ab44de9bdf8-testGalleryDeirectShare/Images/trustedLaunchSupported/Versions/latest" \
-	--public-ip-sku Standard \
-	--admin-username $adminuser_name \
-	--ssh-key-values $public_key_path_with_at \
-	--security-type "TrustedLaunch" \
-	--enable-secure-boot true \
-	--enable-vtpm true \
-	--size Standard_NCC24ads_A100_v4 \
-	--os-disk-size-gb 100 \
-	--verbose
+	if [ -n "$des_id" ]; then
+	    echo "Disk encryption set ID has been set, using Customer Managed Key for VM creation:"
+	    echo "Provisioning VM..."
+	    az vm create \
+			--resource-group $rg \
+			--name $vmname \
+			--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:latest \
+			--public-ip-sku Standard \
+			--admin-username $adminuser_name \
+			--ssh-key-values $public_key_path_with_at \
+			--security-type ConfidentialVM \
+			--os-disk-security-encryption-type DiskWithVMGuestState \
+			--os-disk-secure-vm-disk-encryption-set $des_id \
+			--enable-secure-boot true \
+			--enable-vtpm true \
+			--size Standard_NCC40ads_H100_v5 \
+			--os-disk-size-gb 100 \
+			--verbose
+	else
+	    echo "Disk encryption set ID is not set, using Platform Managed Key for VM creation:"
+	    echo "Provisioning VM..."
+	    az vm create \
+			--resource-group $rg \
+			--name $vmname \
+			--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:latest \
+			--public-ip-sku Standard \
+			--admin-username $adminuser_name \
+			--ssh-key-values $public_key_path_with_at \
+			--security-type ConfidentialVM \
+			--os-disk-security-encryption-type DiskWithVMGuestState \
+			--enable-secure-boot true \
+			--enable-vtpm true \
+			--size Standard_NCC40ads_H100_v5 \
+			--os-disk-size-gb 100 \
+			--verbose
+	fi
 
 	if [[ $? -ne 0 ]]; then
 		is_success="failed"
@@ -257,15 +330,6 @@ validation() {
 	echo "Validate Confidential GPU capability."	
 	try_connect
 	
-	kernel_version=$(ssh -i $private_key_path $vm_ssh_info "sudo uname -r;")
-	if [ "$kernel_version" != "5.15.0-1019-azure" ];
-	then
-		is_success="failed"
-		echo "Failed: kernel validation. Current kernel: ${kernel_version}"
-	else
-		echo "Passed: kernel validation. Current kernel: ${kernel_version}"
-	fi
-
 	secure_boot_state=$(ssh -i $private_key_path $vm_ssh_info "mokutil --sb-state;")
 	if [ "$secure_boot_state" != "SecureBoot enabled" ];
 	then
@@ -293,15 +357,6 @@ validation() {
 		echo "Passed: Confidential Compute environment validation. Current Confidential Compute environment: ${cc_environment}"
 
 	fi
-
-	attestation_result=$(ssh -i $private_key_path $vm_ssh_info 'cd cgpu-onboarding-package/$(ls -1 cgpu-onboarding-package | grep verifier | head -1); sudo python3 cc_admin.py' | tail -1 | sed -e 's/^[[:space:]]*//')
-	if [ "$attestation_result" != "GPU 0 verified successfully." ];
-	then
-		is_success="failed"
-		echo "Failed: Attestation validation failed. Last attestation message: ${attestation_result}"
-	else 
-		echo "Passed: Attestation validation passed. Last attestation message: ${attestation_result}"
-	fi
 }
 
 print_error() {
@@ -314,7 +369,7 @@ if [[ "${#BASH_SOURCE[@]}" -eq 1 ]]; then
 	log_dir="logs/$log_time"
 	mkdir -p "$log_dir"
 
-	auto_onboard_cgpu_multi_vm "$@" 2>&1 > "$log_dir/current-operation.log" &
+	cgpu_h100_onboarding "$@" 2>&1 > "$log_dir/current-operation.log" &
 	last_pid=$!
 	tail -f "$log_dir/current-operation.log" &
 	wait $last_pid && kill $!

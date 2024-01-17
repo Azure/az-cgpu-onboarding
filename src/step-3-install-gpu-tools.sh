@@ -2,13 +2,13 @@
 ##
 ## Requirements: 
 ##      nvdia driver:       APM_470.10.12_5.15.0-1014.17.tar
-##      kernel version:     5.15.0-1014-azure
+##      nvdia driver:       v535.129.03
 ##
 ## Example:
 ##      bash step-3-install-gpu-tools.sh
 ##
 
-ATTESTATION_SUCCESS_MESSAGE="GPU 0 verified successfully."
+ATTESTATION_SUCCESS_MESSAGE="GPU Attested Successfully"
 MAX_RETRY=3
 
 ## install dockder dependency.
@@ -52,7 +52,7 @@ install_gpu_tools(){
       sudo apt-get install -y nvidia-docker2
       sudo systemctl restart docker
 
-      sudo docker run --rm --gpus all nvidia/cuda:11.4.0-base nvidia-smi
+      sudo docker run --rm --gpus all nvidia/cuda:12.2.0-base-ubuntu22.04 nvidia-smi
 
       lockError=$(cat logs/current-operation.log | grep "Could not get lock")
       if [ "$lockError" != "" ] && [ $MAX_RETRY \> 0 ];
