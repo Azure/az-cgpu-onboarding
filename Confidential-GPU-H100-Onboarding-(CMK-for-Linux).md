@@ -35,6 +35,9 @@ cd <Repo Path>/src/cmk_module
 
 2. Call the bash script
 ```
+# Replace with your own subscription ID and tenant ID here
+# The region, policy path and DES ARM template path are default parameters
+# The resource group name, key name, key vault name, des name, des deployment name are auto-generated from the current time
 bash Linux/cgpu-deploy-cmk-des.sh \
 -s "<your subscription ID>" \
 -t "<your tenant ID>" \
