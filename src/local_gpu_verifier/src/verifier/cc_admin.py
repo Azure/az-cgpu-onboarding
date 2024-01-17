@@ -419,6 +419,7 @@ def attest(arguments_as_dictionary):
                     
                     vbios_rim_content = function_wrapper_with_timeout([CcAdminUtils.fetch_rim_file,
                                                                        vbios_rim_file_id,
+                                                                        BaseSettings.RIM_SERVICE_RETRY_COUNT,
                                                                        'fetch_rim_file'],
                                                                        BaseSettings.MAX_NETWORK_TIME_DELAY)
                     
