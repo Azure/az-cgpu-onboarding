@@ -74,7 +74,7 @@ function Make-Cgpu-Onboarding-Package {
 	Move-Item $cgpuOnboardingPackage $DropFolder -Force
 
 	# Clean up local verifier tar
-	# Remove-Item "$DropFolder\local_gpu_verifier.tar" -Force -Recurse
+	Remove-Item "$DropFolder\local_gpu_verifier.tar" -Force -Recurse
 }
 
 function Make-H100-Packages {
