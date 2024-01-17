@@ -273,7 +273,7 @@ function VM-Creation {
 	$publickeypath="@${publickeypath}"
 
 	if (!$desid) {
-		Write-Host "Disk encryption set ID is not set, using Platform Managed Key for VM creation:"
+		Write-Host "Disk encryption set ID is not set, using Platform Managed Key for VM creation"
 		$result=az vm create `
 			--resource-group $rg `
 			--name $vmname `
