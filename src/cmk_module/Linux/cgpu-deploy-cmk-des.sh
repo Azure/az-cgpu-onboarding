@@ -38,6 +38,11 @@ cvmAgentId="bf7b6499-ff71-4aa2-97a4-f372087be7f0"
 # Set MgServicePrincipal
 SET-SERVICEPRINCIPAL() {
 
+   # Update the list of packages
+   sudo apt-get update
+
+   sudo apt-get install -y jq
+
    # TODO Add check for service principal
    servicePrincipalExists=$(az ad sp list --filter "appId eq '$cvmAgentId'" | jq -r '.[].appId')
    if [ "$servicePrincipalExists" == "$cvmAgentId" ]; then
@@ -46,9 +51,6 @@ SET-SERVICEPRINCIPAL() {
    else
       echo "---------------------------------- Creating service principal [$cvmAgentId] ----------------------------------"
       
-      # Update the list of packages
-      sudo apt-get update
-
       # Install pre-requisite packages
       sudo apt-get install -y wget apt-transport-https software-properties-common
 
@@ -57,9 +59,6 @@ SET-SERVICEPRINCIPAL() {
 
       # Register the Microsoft repository GPG keys
       sudo dpkg -i packages-microsoft-prod.deb
-
-      # Update the list of products
-      sudo apt-get update
 
       # Enable the "universe" repositories
       sudo add-apt-repository universe
