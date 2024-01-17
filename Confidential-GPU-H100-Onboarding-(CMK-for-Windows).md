@@ -29,7 +29,9 @@ This page is using a customer managed keys. More information about customer mana
 ## Prepare-Customer-Managed-Key
 
 0. If you already have a cmk, you can get desId by desName and Resource Group
+```
   az disk-encryption-set show -n $desName -g $resourceGroup --query [id] -o tsv
+```
 
 1. Open Powershell as Admin
 
