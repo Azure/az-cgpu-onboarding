@@ -37,7 +37,7 @@ Import-Module -Name .\Windows\cgpu-deploy-cmk-des.psm1 -Force -DisableNameChecki
 ```
 3. Define your parameters
 ```
-  # Replace with your own subsctripionId and tenantId here
+  # Replace with your own subscription ID and tenant ID here
   $subscriptionId = "<your subscription ID>"
   $tenantId = "<your tenant ID>"
 
