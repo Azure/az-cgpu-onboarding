@@ -71,11 +71,11 @@ class BaseSettings:
     OCSP_URL_NVIDIA = 'https://ocsp.ndis.nvidia.com/'
     OCSP_HASH_FUNCTION = sha384
     OCSP_RETRY_COUNT = 1
-    OCSP_RETRY_DELAY = 1
+    OCSP_RETRY_DELAY = 0.1
     RIM_SERVICE_BASE_URL = 'https://thimpft2.thim.azure-test.net/nvidia/v1/rim/'
     RIM_SERVICE_BASE_URL_NVIDIA = 'https://rim.attestation.nvidia.com/v1/rim/'
     RIM_SERVICE_RETRY_COUNT = 1
-    RIM_SERVICE_RETRY_DELAY = 1
+    RIM_SERVICE_RETRY_DELAY = 0.1
     Certificate_Chain_Verification_Mode = Enum("CERT CHAIN VERIFICATION MODE", ['GPU_ATTESTATION', 'OCSP_RESPONSE', 'DRIVER_RIM_CERT', 'VBIOS_RIM_CERT'])
     NVDEC_STATUS = Enum("NVDEC0 status", [("ENABLED", 0xAA), ("DISABLED", 0x55)])
     INDEX_OF_IK_CERT = 1
