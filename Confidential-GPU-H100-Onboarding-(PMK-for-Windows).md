@@ -91,7 +91,7 @@ CGPU-H100-Onboarding `
 -publickeypath "E:\cgpu\.ssh\id_rsa.pub" `
 -privatekeypath "E:\cgpu\.ssh\id_rsa"  `
 -cgpupackagepath "E:\cgpu\cgpu-onboarding-package.tar.gz" `
--adminusername "admin" `
+-adminusername "adminusername" `
 -vmnameprefix "cgpu-test" `
 -totalvmnumber 1
 

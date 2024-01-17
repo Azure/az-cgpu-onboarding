@@ -140,7 +140,7 @@ CGPU-H100-Onboarding `
 -privatekeypath "E:\cgpu\.ssh\id_rsa"  `
 -desid "/subscriptions/85c61f94-8912-4e82-900e-6ab44de9bdf8/resourceGroups/CGPU-CMK-KV/providers/Microsoft.Compute/diskEncryptionSets/CMK-Test-Des-03-01" `
 -cgpupackagepath "E:\cgpu\cgpu-onboarding-package.tar.gz" `
--adminusername "admin" `
+-adminusername "adminusername" `
 -vmnameprefix "cgpu-test" `
 -totalvmnumber 1
 
