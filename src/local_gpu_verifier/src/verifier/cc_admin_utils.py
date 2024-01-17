@@ -29,6 +29,7 @@
 #
 
 import os
+import time
 import secrets
 import string
 from urllib import request
@@ -304,6 +305,7 @@ class CcAdminUtils:
             if isinstance(e, HTTPError):
                 info_log.debug(f"HTTP Error code : {e.code}")
             if max_retries > 0:
+                time.sleep(BaseSettings.OCSP_RETRY_DELAY)
                 return CcAdminUtils.send_ocsp_request(data, url, max_retries - 1)
             else:
                 return None
@@ -360,6 +362,7 @@ class CcAdminUtils:
             if isinstance(e, HTTPError):
                 info_log.debug(f"HTTP Error code : {e.code}")
             if max_retries > 0:
+                time.sleep(BaseSettings.RIM_SERVICE_RETRY_DELAY)
                 return CcAdminUtils.fetch_rim_file_from_url(rim_id, url, max_retries - 1)
             else:
                 return None
