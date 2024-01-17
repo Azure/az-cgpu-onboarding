@@ -28,20 +28,18 @@ This page is using a customer managed keys. More information about customer mana
 
 ## Create-Customer-Managed-Key
 
-- Open Powershell as Admin
-
-- Import Module
+1. Open Powershell as Admin
+2. Import the CMK module
 ```
 cd <Repo Path>\src\cmk_module
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 Import-Module -Name .\Windows\cgpu-deploy-cmk-des.psm1 -Force -DisableNameChecking
 ```
-
-- Define Parameters
+3. Define your parameters
 ```
-  # Put your own subsctripionId and tenantId here
-  $subscriptionId = "<Your subsctripionId>"
-  $tenantId = "<Your tenantId>"
+  # Replace with your own subsctripionId and tenantId here
+  $subscriptionId = "<your subscription ID>"
+  $tenantId = "<your tenant ID>"
 
   # Default parameters
   $region = "eastus2"
@@ -57,8 +55,7 @@ Import-Module -Name .\Windows\cgpu-deploy-cmk-des.psm1 -Force -DisableNameChecki
   $deployName = "CMK-$($timeString)-desdeploy"
   
 ```
-
-- Call the function with the parameters
+ Call the function with the parameters
 ```
 DEPLOY-CMK-DES `
   -subscriptionId $subscriptionId `
@@ -72,7 +69,6 @@ DEPLOY-CMK-DES `
   -deployName $deployName `
   -desArmTemplate $desArmTemplate
 ```
-
 ----------------------------------------------------
 
 ## Create-CGPU-VM
