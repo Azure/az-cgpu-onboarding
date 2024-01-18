@@ -94,8 +94,6 @@ bash cgpu-h100-auto-onboarding.sh  \
 -c "./cgpu-onboarding-package.tar.gz" \
 -v "cgpu-test"  \
 -n 1
-
-------------------------------------------------------------------------------------------
 ```
 
 - This is a sample output that you will see at the end of a successful deployment: 

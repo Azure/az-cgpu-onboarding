@@ -94,8 +94,6 @@ CGPU-H100-Onboarding `
 -adminusername "adminusername" `
 -vmnameprefix "cgpu-test" `
 -totalvmnumber 1
-
-------------------------------------------------------------------------------------------
 ```
 
 - This is a sample output that you will see at the end of a successful deployment: 
