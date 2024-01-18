@@ -20,21 +20,17 @@ attestation(){
         echo "Current gpu driver version: ($current_driver_interface_version), Expected: ($REQUIRED_DRIVER_INTERFACE_VERSION)."
         echo "Please retry step-1-install-gpu-driver."
     else
-        sudo rm -rf ~/verifier && echo "Clean up ~/verifier succsessfully!"
-        git clone https://github.com/nvidia/nvtrust ~/verifier && echo "Clone folder succsessfully!"
-        
         pushd . 
-        cd ~/verifier/guest_tools/gpu_verifiers/local_gpu_verifier && echo "Open verifier folder succsessfully!"
+        cd local_gpu_verifier && echo "Open verifier folder succsessfully!"
         
         #sudo cp -f  ~/cgpu-onboarding-package/cc_admin.py ~/verifier/guest_tools/gpu_verifiers/local_gpu_verifier/src/verifier/cc_admin.py && echo "Replace cc_admin.py successfully!"
         sudo apt install -y python3-pip
         sudo pip install -U pip
         sudo apt install -y python3.10-venv
+        
         #source ./prodtest/bin/activate
         sudo pip3 install .
         sudo python3 -m verifier.cc_admin
-
-        sudo rm -rf ~/verifier 
         popd > /dev/null
 
         lockError=$(cat logs/current-operation.log | grep "Could not get lock")

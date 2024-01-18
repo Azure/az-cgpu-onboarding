@@ -52,7 +52,9 @@ function Build-Packages {
 
 function Make-Cgpu-Onboarding-Package {
 	# Make .tar of verifier
-	tar -cvf "$DropFolder\local_gpu_verifier.tar" -C "$PSScriptRoot\..\local_gpu_verifier" .
+	cd "$PSScriptRoot\.."
+	tar -cvf "$DropFolder\local_gpu_verifier.tar" -C "local_gpu_verifier" .
+	cd "$PSScriptRoot"
 
 	# Lists out all files to be included in .tar.gz archive
 	[String[]]$files = "$PSScriptRoot\..\step-0-prepare-kernel.sh", "$PSScriptRoot\..\step-1-install-gpu-driver.sh", 
