@@ -40,7 +40,7 @@ Please make sure to follow all steps exactly as detailed. If you run into issues
 
 ## Choose your Configuration 
 
-We support the options to create confidential GPUs with Windows and Linux hosts, as well as with customer (CMK) and platform (PMK) managed keys. We strongly suggest for first time users to try out the PMK option since it's much simple to onboard.
+We support the options to create confidential GPUs with Windows and Linux hosts, as well as with customer (CMK) and platform (PMK) managed keys. We recommend for first time users to try out the PMK option since it's simpler to onboard.
 
 - [Onboarding Docs (Windows host with PMK)](Confidential-GPU-H100-Onboarding-(PMK-for-Windows).md)
 
