@@ -26,15 +26,22 @@ This page is using a customer managed keys. More information about customer mana
 
 -------------------------------------------
 
-## Create-Customer-Managed-Key
+## Prepare-Customer-Managed-Key
+
+0. If you already have a cmk, you can get desId by desName and Resource Group
+```
+  az disk-encryption-set show -n $desName -g $resourceGroup --query [id] -o tsv
+```
 
 1. Open Powershell as Admin
+
 2. Import the CMK module
 ```
 cd <Repo Path>\src\cmk_module
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 Import-Module -Name .\Windows\cgpu-deploy-cmk-des.psm1 -Force -DisableNameChecking
 ```
+
 3. Define your parameters
 ```
   # Replace with your own subscription ID and tenant ID here

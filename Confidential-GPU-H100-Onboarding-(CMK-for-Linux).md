@@ -26,7 +26,12 @@ This page is using a customer managed keys. More information about customer mana
 
 -------------------------------------------
 
-## Create-Customer-Managed-Key
+## Prepare-Customer-Managed-Key
+
+0. If you already have a cmk, you can get desId by desName and Resource Group
+```
+az disk-encryption-set show -n $desName -g $resourceGroup --query [id] -o tsv
+```
 
 1. Open the CMK module
 ```
@@ -113,7 +118,7 @@ cd cgpu-h100-auto-onboarding-linux
 # -v <vm name>: your VM name
 # -n <vm number>: number of VMs to be generated
 
-bash secureboot-enable-onboarding-from-vmi.sh  \
+bash cgpu-h100-auto-onboarding.sh  \
 -t "<your Tenant ID>" \
 -s "<your subscription ID>" \
 -r "confidential-gpu-rg" \
