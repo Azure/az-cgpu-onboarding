@@ -96,8 +96,10 @@ bash cgpu-h100-auto-onboarding.sh  \
 -n 1
 
 ------------------------------------------------------------------------------------------
-Sample output:
+```
 
+- This is a sample output that you will see at the end of a successful deployment: 
+```
 Finish install gpu tools.
 Started C-GPU capable validation.
 Passed: secure boot state validation. Current secure boot state: SecureBoot enabled
@@ -119,12 +121,12 @@ Transcript stopped, output file is D:\repo\PrivatePreview\drops\cgpu-h100-onboar
 
 ------------------------------------------------------------------------------------------
 ```
-
 ### Attestation
 Please run this command every time after rebooting your machine.
 ```
 # In your VM, execute the attestation scripts in cgpu-onboarding-package.
 # You should see: GPU 0 verified successfully.
+
 cd cgpu-onboarding-package 
 bash step-2-attestation.sh
 ```
@@ -133,5 +135,6 @@ bash step-2-attestation.sh
 
 ```
 # In your VM, execute the below command for a pytorch sample execution.
+
 sudo docker run --gpus all -v /home/<adminusername>/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:23.09-tf2-py3 python /home/mnist-sample-workload.py
 ```
