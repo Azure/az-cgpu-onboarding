@@ -156,7 +156,7 @@ Transcript stopped, output file is D:\repo\PrivatePreview\drops\cgpu-h100-onboar
 ```
 
 ## Attestation
-
+Please run this command every time after rebooting your machine.
 ```
 # In your VM, execute the attestation scripts in cgpu-onboarding-package.
 # You should see: GPU 0 verified successfully.

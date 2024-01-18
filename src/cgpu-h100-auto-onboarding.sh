@@ -303,7 +303,7 @@ create_vm() {
 			--os-disk-size-gb 100 \
 			--verbose
 	else
-	    echo "Disk encryption set ID is not set, using Platform Managed Key for VM creation:"
+	    echo "Disk encryption set ID is not set, using Platform Managed Key for VM creation"
 	    echo "Provisioning VM..."
 	    az vm create \
 			--resource-group $rg \
