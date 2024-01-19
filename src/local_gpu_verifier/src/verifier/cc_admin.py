@@ -220,6 +220,8 @@ def attest(arguments_as_dictionary):
             info_log.setLevel(logging.DEBUG)
 
         BaseSettings.get_vm_region()
+        info_log.debug(f"VM Region : {BaseSettings.VM_REGION}")
+
         BaseSettings.allow_hold_cert = arguments_as_dictionary['allow_hold_cert']
 
         if not arguments_as_dictionary["rim_service_url"] is None:
