@@ -223,6 +223,7 @@ def attest(arguments_as_dictionary):
             BaseSettings.set_rim_service_base_url(arguments_as_dictionary["rim_service_url"])
         else:
             BaseSettings.set_thim_rim_service_base_url()
+        info_log.debug(f"RIM service base url : {BaseSettings.RIM_SERVICE_BASE_URL}")
 
         if not arguments_as_dictionary["ocsp_service_url"] is None:
             BaseSettings.set_ocsp_service_url(arguments_as_dictionary["ocsp_service_url"])
@@ -230,6 +231,7 @@ def attest(arguments_as_dictionary):
         else:
             BaseSettings.set_thim_ocsp_service_url()
             BaseSettings.OCSP_NONCE_ENABLED = False
+        info_log.debug(f"OCSP service url : {BaseSettings.OCSP_SERVICE_URL}")
 
         if arguments_as_dictionary['verbose']:
             info_log.setLevel(logging.DEBUG)
