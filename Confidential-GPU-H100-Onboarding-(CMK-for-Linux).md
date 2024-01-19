@@ -32,6 +32,7 @@ This page is using a customer managed keys. More information about customer mana
 ```
 az disk-encryption-set show -n $desName -g $resourceGroup --query [id] -o tsv
 ```
+Please follow the steps below to create a new CMK only if you don't have it
 
 1. Open the CMK module
 ```
