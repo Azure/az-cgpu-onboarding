@@ -28,7 +28,7 @@ This page is using a customer managed keys. More information about customer mana
 
 ## Prepare-Customer-Managed-Key
 
-0. If you already have a cmk, you can get desId by desName and Resource Group
+0. If you already have a CMK, you can get your desId through your desName and Resource Group name
 ```
 az disk-encryption-set show -n $desName -g $resourceGroup --query [id] -o tsv
 ```
@@ -66,33 +66,8 @@ bash Linux/cgpu-deploy-cmk-des.sh \
 # id_rsa.pub will used as ssh-key-values for VM creation.
 # id_rsa will be used for ssh in your vm.
 # replace <your email here> with your email address.
+
 E:\cgpu\.ssh>ssh-keygen -t rsa -b 4096 -C <your email here>
-Generating public/private rsa key pair.
-
-Enter file in which to save the key (C:\Users\*****/.ssh/id_rsa): E:\cgpu\.ssh\id_rsa
-e:\cgpu/.ssh/id_rsa already exists.
-
-Overwrite (y/n)? y
-
-Enter passphrase (empty for no passphrase):
-Enter same passphrase again:
-
-Your identification has been saved in E:\cgpu\.ssh\id_rsa.
-Your public key has been saved in E:\cgpu\.ssh\id_rsa.pub.
-The key fingerprint is:
-SHA256:YiPxu6SEIlIXmYKUzprXDhXqI13gLYmcyQzGNYGmdtk example@microsoft.com
-The key's randomart image is:
-+---[RSA 4096]----+
-|..++.            |
-|oB. oo           |
-|%o+=B.           |
-|oX=++E           |
-|o+o=o = S        |
-|+.*o.o +         |
-|+o.+. o          |
-|o. ..o .         |
-|    . .          |
-+----[SHA256]-----+
 ```
 
 2. Create VM using powershell script
@@ -129,10 +104,10 @@ bash cgpu-h100-auto-onboarding.sh  \
 -c "./cgpu-onboarding-package.tar.gz" \
 -v "confidential-test-vm"  \
 -n 1
+```
 
-------------------------------------------------------------------------------------------
-Sample output:
-
+- This is a sample output that you will see at the end of a successful deployment: 
+```
 Finish install gpu tools.
 Started C-GPU capable validation.
 Passed: secure boot state validation. Current secure boot state: SecureBoot enabled
@@ -160,6 +135,7 @@ Please run this command every time after rebooting your machine.
 ```
 # In your VM, execute the attestation scripts in cgpu-onboarding-package.
 # You should see: GPU 0 verified successfully.
+
 cd cgpu-onboarding-package 
 bash step-2-attestation.sh
 ```
@@ -168,5 +144,6 @@ bash step-2-attestation.sh
 
 ```
 # In your VM, execute the below command for a pytorch sample execution.
+
 sudo docker run --gpus all -v /home/<adminusername>/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:23.09-tf2-py3 python /home/mnist-sample-workload.py
 ```
