@@ -74,7 +74,7 @@ class BaseSettings:
     THIM_ENDPOINT_DICT = {
         "eastus2": 'https://thimpft2.thim.azure-test.net',
         "centraluseuap": 'https://thimpft2.thim.azure-test.net',
-        "lab111": 'https://thimpft2.thim.azure-test.net'
+        "lab": 'https://thimpft2.thim.azure-test.net'
     }
     OCSP_URL = ''
     OCSP_URL_NVIDIA = 'https://ocsp.ndis.nvidia.com/'
