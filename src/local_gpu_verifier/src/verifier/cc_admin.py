@@ -231,7 +231,7 @@ def attest(arguments_as_dictionary):
         else:
             BaseSettings.set_thim_ocsp_service_url()
         info_log.debug(
-            f"OCSP service url with Nonce {'ENABLED' if BaseSettings.OCSP_NONCE_ENABLED else 'DISABLED'}: {BaseSettings.OCSP_SERVICE_URL}"
+            f"OCSP service url with Nonce {'ENABLED' if BaseSettings.OCSP_NONCE_ENABLED else 'DISABLED'}: {BaseSettings.OCSP_URL}"
         )
 
         if arguments_as_dictionary['verbose']:
