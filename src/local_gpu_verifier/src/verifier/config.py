@@ -181,10 +181,9 @@ class BaseSettings:
             except Exception as e:
                 info_log.error("IMDS exception: " + str(e))
 
-            # If the VM region is not fetched, set it to lab            
+            # If the VM region is not fetched, set it to lab
             info_log.error("Unable to fetch the VM region")
             cls.AZURE_VM_REGION = "lab"
-
 
     @classmethod
     def set_thim_rim_service_base_url(cls):
@@ -199,8 +198,10 @@ class BaseSettings:
         thim_endpoint = cls.THIM_ENDPOINT_DICT.get(cls.AZURE_VM_REGION, "")
         if thim_endpoint:
             cls.OCSP_URL = cls.THIM_ENDPOINT_DICT[cls.AZURE_VM_REGION] + "/nvidia/ocsp/"
+            cls.OCSP_NONCE_ENABLED = False
         else:
             cls.OCSP_URL = cls.OCSP_URL_NVIDIA
+            cls.OCSP_NONCE_ENABLED = True
 
     def __init__(self):
         self.measurement_comparison = False
