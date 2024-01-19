@@ -130,12 +130,12 @@ def main():
     )
     parser.add_argument(
         "--ocsp_validity_extension",
-        help="If the OCSP response is expired within the validity extension period in hours, treat the OCSP response as valid and continue the attestation.",
+        help="If the OCSP response is expired within the validity extension in hours, treat the OCSP response as valid and continue the attestation.",
         default=168,
     )
     parser.add_argument(
         "--ocsp_cert_revoked_extension",
-        help="If the OCSP response indicate the certificate is revoked within the extension period in hours, treat the cert as good and continue the attestation.",
+        help="If the OCSP response indicate the certificate is revoked within the extension grace period in hours, treat the cert as good and continue the attestation.",
         default=168,
     )
 
@@ -216,20 +216,22 @@ def attest(arguments_as_dictionary):
     overall_status = False
     verified_claims = {}
     try:
+        # Set log level to DEBUG if verbose flag is set
         if arguments_as_dictionary['verbose']:
             info_log.setLevel(logging.DEBUG)
 
+        # Get Azure VM Region
         BaseSettings.get_vm_region()
         info_log.debug(f"VM Region : {BaseSettings.AZURE_VM_REGION}")
 
-        BaseSettings.allow_hold_cert = arguments_as_dictionary['allow_hold_cert']
-
+        # Set RIM service url
         if not arguments_as_dictionary["rim_service_url"] is None:
             BaseSettings.set_rim_service_base_url(arguments_as_dictionary["rim_service_url"])
         else:
             BaseSettings.set_thim_rim_service_base_url()
         info_log.debug(f"RIM service url: {BaseSettings.RIM_SERVICE_BASE_URL}")
 
+        # Set OCSP service url
         if not arguments_as_dictionary["ocsp_service_url"] is None:
             BaseSettings.set_ocsp_service_url(arguments_as_dictionary["ocsp_service_url"])
             BaseSettings.OCSP_NONCE_ENABLED = arguments_as_dictionary.get("ocsp_nonce_enabled", False)
@@ -239,6 +241,22 @@ def attest(arguments_as_dictionary):
             f"OCSP service url: {BaseSettings.OCSP_URL}\nOCSP Nonce: {'ENABLED' if BaseSettings.OCSP_NONCE_ENABLED else 'DISABLED'}"
         )
 
+        # Set allow OCSP cert hold flag
+        BaseSettings.allow_hold_cert = arguments_as_dictionary["allow_hold_cert"]
+
+        # Set OCSP validity extension
+        if arguments_as_dictionary["ocsp_validity_extension"] is not None:
+            BaseSettings.OCSP_VALIDITY_EXTENSION_HRS = arguments_as_dictionary["ocsp_validity_extension"]
+
+        # Set OCSP cert revoked extension
+        if arguments_as_dictionary["ocsp_cert_revoked_extension"] is not None:
+            BaseSettings.OCSP_CERT_REVOKED_EXTENSION_HRS = arguments_as_dictionary["ocsp_cert_revoked_extension"]
+
+        # Set the RIM root certificate path
+        if not arguments_as_dictionary['rim_root_cert'] is None:
+            BaseSettings.set_rim_root_certificate(arguments_as_dictionary['rim_root_cert'])
+
+        # Set test mode if test_no_gpu flag is set, and get the number of available GPUs
         if arguments_as_dictionary['test_no_gpu']:
             event_log.info("Running in test_no_gpu mode.")
             number_of_available_gpus = NvmlHandlerTest.get_number_of_gpus()
@@ -252,12 +270,9 @@ def attest(arguments_as_dictionary):
             raise NoGpuFoundError(err_msg)
 
         BaseSettings.mark_gpu_as_available()
-
-        if not arguments_as_dictionary['rim_root_cert'] is None:
-            BaseSettings.set_rim_root_certificate(arguments_as_dictionary['rim_root_cert'])
-
         info_log.info(f'Number of GPUs available : {number_of_available_gpus}')
 
+        # Run attestation for each GPU
         for i in range(number_of_available_gpus):
             info_log.info("-----------------------------------")
             info_log.info(f'Fetching GPU {i} information from GPU driver.')

@@ -82,6 +82,8 @@ class BaseSettings:
     OCSP_HASH_FUNCTION = sha384
     OCSP_RETRY_COUNT = 1
     OCSP_RETRY_DELAY = 0.1
+    OCSP_VALIDITY_EXTENSION_HR = 7 * 24
+    OCSP_CERT_REVOKED_EXTENSION_HRS = 7 * 24
     RIM_SERVICE_BASE_URL = ''
     RIM_SERVICE_BASE_URL_NVIDIA = 'https://rim.attestation.nvidia.com/v1/rim/'
     RIM_SERVICE_RETRY_COUNT = 1
