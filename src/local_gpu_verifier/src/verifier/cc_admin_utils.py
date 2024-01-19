@@ -32,6 +32,7 @@ import os
 import time
 import secrets
 import string
+from datetime import datetime, timezone, timedelta
 from urllib import request
 from urllib.error import HTTPError
 import json
@@ -188,8 +189,12 @@ class CcAdminUtils:
         for i in range(start_index, end_index):
             cert_common_name = cert_chain[i].subject.get_attributes_for_oid(x509.oid.NameOID.COMMON_NAME)[0].value
 
-            # Build OCSP Request.
-            nonce = CcAdminUtils.generate_nonce(BaseSettings.SIZE_OF_NONCE_IN_BYTES) if BaseSettings.OCSP_NONCE_ENABLED else None
+            # Get OCSP Response, fallback to Nvidia OCSP Service if fetch fails, raise error if both fails
+            nonce = (
+                CcAdminUtils.generate_nonce(BaseSettings.SIZE_OF_NONCE_IN_BYTES)
+                if BaseSettings.OCSP_NONCE_ENABLED
+                else None
+            )
             ocsp_request = CcAdminUtils.build_ocsp_request(cert_chain[i], cert_chain[i + 1], nonce)
             ocsp_response = function_wrapper_with_timeout(
                 [
@@ -202,7 +207,6 @@ class CcAdminUtils:
                 BaseSettings.MAX_OCSP_TIME_DELAY,
             )
 
-            # Checking if the ocsp response is received or not, falling back to Nvidia ocsp server if the response is not received.
             if ocsp_response is None:
                 nonce = CcAdminUtils.generate_nonce(BaseSettings.SIZE_OF_NONCE_IN_BYTES)
                 ocsp_request = CcAdminUtils.build_ocsp_request(cert_chain[i], cert_chain[i + 1], nonce)
@@ -217,11 +221,40 @@ class CcAdminUtils:
                     BaseSettings.MAX_OCSP_TIME_DELAY,
                 )
 
-            # Raise error if OCSP response is still not received.
             if ocsp_response is None:
                 error_msg = f"Failed to fetch the ocsp response for certificate {cert_common_name}"
                 info_log.error(f"\t\t\t{error_msg}")
                 raise OCSPFetchError(error_msg)
+
+            # Verify the OCSP response status
+            if ocsp_response.response_status != ocsp.OCSPResponseStatus.SUCCESSFUL:
+                info_log.error("\t\tCouldn't receive a proper response from the OCSP server.")
+                return False
+
+            # Verify the Nonce in the OCSP response
+            if nonce is not None and nonce != ocsp_response.extensions.get_extension_for_class(OCSPNonce).value.nonce:
+                info_log.error(
+                    "\t\tThe nonce in the OCSP response message is not matching with the one passed in the OCSP request message."
+                )
+                return False
+            elif i == end_index - 1:
+                settings.mark_gpu_certificate_ocsp_nonce_as_matching()
+
+            # Verify the OCSP response is within the validity period
+            this_update = ocsp_response.this_update.replace(tzinfo=timezone.utc)
+            next_update = ocsp_response.next_update.replace(tzinfo=timezone.utc)
+            next_update_extended = next_update + timedelta(hours=BaseSettings.OCSP_VALIDITY_EXTENSION_HR)
+            utc_now = datetime.now(timezone.utc)
+            time_format = "%Y/%m/%d %H:%M:%S"
+            info_log.debug(f"Current time: {utc_now.strftime(time_format)}")
+            info_log.debug(f"OCSP this update: {this_update.strftime(time_format)}")
+            info_log.debug(f"OCSP next update: {next_update.strftime(time_format)}")
+            info_log.debug(f"OCSP next update extended: {next_update_extended.strftime(time_format)}")
+            if not (this_update <= utc_now <= next_update):
+                info_log.warning(f"\t\tWARNING: OCSP is expired after {next_update.strftime(time_format)}")
+            if not (this_update <= utc_now <= next_update_extended):
+                info_log.error(f"\t\tOCSP is expired with extended period after {next_update.strftime(time_format)}")
+                return False
 
             # Verifying the ocsp response certificate chain.
             ocsp_response_leaf_cert = crypto.load_certificate(
@@ -249,20 +282,6 @@ class CcAdminUtils:
                 return False
             elif i == end_index - 1:
                 settings.mark_gpu_certificate_ocsp_signature_as_verified()
-
-            # Verifying the nonce in the ocsp response message.
-            if nonce is not None and nonce != ocsp_response.extensions.get_extension_for_class(OCSPNonce).value.nonce:
-                info_log.error(
-                    "\t\tThe nonce in the OCSP response message is not matching with the one passed in the OCSP request message."
-                )
-                return False
-            elif i == end_index - 1:
-                settings.mark_gpu_certificate_ocsp_nonce_as_matching()
-
-            # Verifying the ocsp response status.
-            if ocsp_response.response_status != ocsp.OCSPResponseStatus.SUCCESSFUL:
-                info_log.error("\t\tCouldn't receive a proper response from the OCSP server.")
-                return False
 
             # Verifying the ocsp response certificate status.
             if ocsp_response.certificate_status != ocsp.OCSPCertStatus.GOOD:
