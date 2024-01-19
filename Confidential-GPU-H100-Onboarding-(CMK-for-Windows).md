@@ -28,12 +28,12 @@ This page is using a customer managed keys. More information about customer mana
 
 ## Prepare-Customer-Managed-Key
 
-0. If you already have a CMK, you can get your desId through your desName and Resource Group name
+0. If you already have a CMK, you can get your desId through your desName and resourceGroup
 ```
   az disk-encryption-set show -n $desName -g $resourceGroup --query [id] -o tsv
 ```
 
-1. Open Powershell as Admin
+1. If you do not have an existing CMK, please follow steps below to create a new one. Firstly, open Powershell as Admin
 
 2. Import the CMK module
 ```
