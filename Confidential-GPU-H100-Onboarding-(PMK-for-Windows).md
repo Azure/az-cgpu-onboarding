@@ -33,33 +33,8 @@ This page is using platform managed keys. More information about platform manage
 # id_rsa.pub will used as ssh-key-values for VM creation.
 # id_rsa will be used for ssh in your vm.
 # replace <your email here> with your email address.
+
 E:\cgpu\.ssh>ssh-keygen -t rsa -b 4096 -C <your email here>
-Generating public/private rsa key pair.
-
-Enter file in which to save the key (C:\Users\*****/.ssh/id_rsa): E:\cgpu\.ssh\id_rsa
-e:\cgpu/.ssh/id_rsa already exists.
-
-Overwrite (y/n)? y
-
-Enter passphrase (empty for no passphrase):
-Enter same passphrase again:
-
-Your identification has been saved in E:\cgpu\.ssh\id_rsa.
-Your public key has been saved in E:\cgpu\.ssh\id_rsa.pub.
-The key fingerprint is:
-SHA256:YiPxu6SEIlIXmYKUzprXDhXqI13gLYmcyQzGNYGmdtk example@microsoft.com
-The key's randomart image is:
-+---[RSA 4096]----+
-|..++.            |
-|oB. oo           |
-|%o+=B.           |
-|oX=++E           |
-|o+o=o = S        |
-|+.*o.o +         |
-|+o.+. o          |
-|o. ..o .         |
-|    . .          |
-+----[SHA256]-----+
 ```
 
 2. Create the VM using a powershell script
@@ -90,7 +65,7 @@ CGPU-H100-Onboarding `
 -rg "cgpu-test-rg" `
 -publickeypath "E:\cgpu\.ssh\id_rsa.pub" `
 -privatekeypath "E:\cgpu\.ssh\id_rsa"  `
--cgpupackagepath "E:\cgpu\cgpu-onboarding-package.tar.gz" `
+-cgpupackagepath "cgpu-onboarding-package.tar.gz" `
 -adminusername "adminusername" `
 -vmnameprefix "cgpu-test" `
 -totalvmnumber 1
