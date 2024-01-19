@@ -20,6 +20,8 @@ attestation(){
         echo "Current gpu driver version: ($current_driver_interface_version), Expected: ($REQUIRED_DRIVER_INTERFACE_VERSION)."
         echo "Please retry step-1-install-gpu-driver."
     else
+        mkdir local_gpu_verifier
+        tar -xvf local_gpu_verifier.tar -C local_gpu_verifier
         pushd . 
         cd local_gpu_verifier && echo "Open verifier folder successfully!"
         
