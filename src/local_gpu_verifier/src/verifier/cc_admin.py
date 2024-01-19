@@ -216,14 +216,20 @@ def attest(arguments_as_dictionary):
     overall_status = False
     verified_claims = {}
     try:
+        BaseSettings.get_vm_region()
         BaseSettings.allow_hold_cert = arguments_as_dictionary['allow_hold_cert']
 
         if not arguments_as_dictionary["rim_service_url"] is None:
             BaseSettings.set_rim_service_base_url(arguments_as_dictionary["rim_service_url"])
+        else:
+            BaseSettings.set_thim_rim_service_base_url()
 
         if not arguments_as_dictionary["ocsp_service_url"] is None:
             BaseSettings.set_ocsp_service_url(arguments_as_dictionary["ocsp_service_url"])
             BaseSettings.OCSP_NONCE_ENABLED = arguments_as_dictionary.get("ocsp_nonce_enabled", False)
+        else:
+            BaseSettings.set_thim_ocsp_service_url()
+            BaseSettings.OCSP_NONCE_ENABLED = False
 
         if arguments_as_dictionary['verbose']:
             info_log.setLevel(logging.DEBUG)
