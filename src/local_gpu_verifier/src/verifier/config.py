@@ -177,12 +177,12 @@ class BaseSettings:
                 if response.status_code == 200:
                     data = json.loads(response.text)
                     cls.AZURE_VM_REGION = data.get("compute", {}).get("location", "")
-                    info_log.debug("VM region is " + cls.AZURE_VM_REGION)
+                    event_log.debug("VM region is " + cls.AZURE_VM_REGION)
             except Exception as e:
-                info_log.error("IMDS exception: " + str(e))
+                event_log.error("IMDS exception: " + str(e))
 
             # If the VM region is not fetched, set it to lab
-            info_log.error("Unable to fetch the VM region")
+            event_log.error("Unable to fetch the VM region")
             cls.AZURE_VM_REGION = "lab"
 
     @classmethod

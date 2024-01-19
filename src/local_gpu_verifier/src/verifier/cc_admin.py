@@ -216,6 +216,9 @@ def attest(arguments_as_dictionary):
     overall_status = False
     verified_claims = {}
     try:
+        if arguments_as_dictionary['verbose']:
+            info_log.setLevel(logging.DEBUG)
+
         BaseSettings.get_vm_region()
         BaseSettings.allow_hold_cert = arguments_as_dictionary['allow_hold_cert']
 
@@ -233,9 +236,6 @@ def attest(arguments_as_dictionary):
         info_log.debug(
             f"OCSP service url with Nonce {'ENABLED' if BaseSettings.OCSP_NONCE_ENABLED else 'DISABLED'}: {BaseSettings.OCSP_URL}"
         )
-
-        if arguments_as_dictionary['verbose']:
-            info_log.setLevel(logging.DEBUG)
 
         if arguments_as_dictionary['test_no_gpu']:
             event_log.info("Running in test_no_gpu mode.")
