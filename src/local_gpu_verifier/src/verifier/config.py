@@ -58,6 +58,11 @@ event_log.debug("----------STARTING----------")
 class BaseSettings:
     AZURE_VM_REGION = ""
     AZURE_IMDS_URL = "http://169.254.169.254/metadata/instance?api-version=2021-02-01"
+    AZURE_THIM_ENDPOINT_DICT = {
+        "eastus2": 'https://thimpft2.thim.azure-test.net',
+        "centraluseuap": 'https://thimpft2.thim.azure-test.net',
+        "lab": 'https://thimpft2.thim.azure-test.net'
+    }
     SIZE_OF_NONCE_IN_BYTES = 32
     SIZE_OF_NONCE_IN_HEX_STR = 64
     gpu_availability = False
@@ -71,11 +76,6 @@ class BaseSettings:
     MAX_NVML_TIME_DELAY = 5
     MAX_OCSP_TIME_DELAY = 10
     MAX_NETWORK_TIME_DELAY = 10
-    THIM_ENDPOINT_DICT = {
-        "eastus2": 'https://thimpft2.thim.azure-test.net',
-        "centraluseuap": 'https://thimpft2.thim.azure-test.net',
-        "lab": 'https://thimpft2.thim.azure-test.net'
-    }
     OCSP_URL = ''
     OCSP_URL_NVIDIA = 'https://ocsp.ndis.nvidia.com/'
     OCSP_NONCE_ENABLED = False
@@ -187,17 +187,17 @@ class BaseSettings:
 
     @classmethod
     def set_thim_rim_service_base_url(cls):
-        thim_endpoint = cls.THIM_ENDPOINT_DICT.get(cls.AZURE_VM_REGION, "")
+        thim_endpoint = cls.AZURE_THIM_ENDPOINT_DICT.get(cls.AZURE_VM_REGION, "")
         if thim_endpoint:
-            cls.RIM_SERVICE_BASE_URL = thim_endpoint + "/nvidia/v1/rim/"
+            cls.RIM_SERVICE_BASE_URL = f"{thim_endpoint}/nvidia/v1/rim/"
         else:
             cls.RIM_SERVICE_BASE_URL = cls.RIM_SERVICE_BASE_URL_NVIDIA
 
     @classmethod
     def set_thim_ocsp_service_url(cls):
-        thim_endpoint = cls.THIM_ENDPOINT_DICT.get(cls.AZURE_VM_REGION, "")
+        thim_endpoint = cls.AZURE_THIM_ENDPOINT_DICT.get(cls.AZURE_VM_REGION, "")
         if thim_endpoint:
-            cls.OCSP_URL = cls.THIM_ENDPOINT_DICT[cls.AZURE_VM_REGION] + "/nvidia/ocsp/"
+            cls.OCSP_URL = f"{thim_endpoint}/nvidia/ocsp/"
             cls.OCSP_NONCE_ENABLED = False
         else:
             cls.OCSP_URL = cls.OCSP_URL_NVIDIA
