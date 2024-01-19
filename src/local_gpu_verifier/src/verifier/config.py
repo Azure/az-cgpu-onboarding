@@ -170,20 +170,21 @@ class BaseSettings:
     @classmethod
     def get_vm_region(cls):
         if not cls.AZURE_VM_REGION:
-            headers = {"Metadata": "true"}
-            response = requests.get(cls.AZURE_IMDS_URL, headers=headers)
-            region = ""
-            if response.status_code == 200:
-                data = json.loads(response.text)
-                region = data.get("compute", {}).get("location", "")
+            # Fetch the VM region from IMDS
+            try:
+                headers = {"Metadata": "true"}
+                response = requests.get(cls.AZURE_IMDS_URL, headers=headers)
+                if response.status_code == 200:
+                    data = json.loads(response.text)
+                    cls.AZURE_VM_REGION = data.get("compute", {}).get("location", "")
+                    info_log.debug("VM region is " + cls.AZURE_VM_REGION)
+            except Exception as e:
+                info_log.error("IMDS exception: " + str(e))
 
-            if region:
-                info_log.debug("VM region is " + cls.AZURE_VM_REGION)
-            else:
-                info_log.error("Unable to fetch the VM region from IMDS.")
-                region = "lab"
+            # If the VM region is not fetched, set it to lab            
+            info_log.error("Unable to fetch the VM region")
+            cls.AZURE_VM_REGION = "lab"
 
-            cls.AZURE_VM_REGION = region
 
     @classmethod
     def set_thim_rim_service_base_url(cls):
