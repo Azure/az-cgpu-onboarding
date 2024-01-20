@@ -256,8 +256,8 @@ class CcAdminUtils:
                 )
             if not (this_update <= utc_now <= next_update_extended):
                 info_log.error(
-                    f"\t\tOCSP is expired with {BaseSettings.OCSP_VALIDITY_EXTENSION_HRS} hours extension period \
-                      after {next_update_extended.strftime(time_format)} for {cert_common_name}"
+                    f"\t\tOCSP is expired with {BaseSettings.OCSP_VALIDITY_EXTENSION_HRS} hours extension period "
+                    f"after {next_update_extended.strftime(time_format)} for {cert_common_name}"
                 )
                 return False
 
