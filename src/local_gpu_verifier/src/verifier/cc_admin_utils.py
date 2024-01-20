@@ -244,7 +244,7 @@ class CcAdminUtils:
             this_update = ocsp_response.this_update.replace(tzinfo=timezone.utc)
             next_update = ocsp_response.next_update.replace(tzinfo=timezone.utc)
             next_update_extended = next_update + timedelta(hours=BaseSettings.OCSP_VALIDITY_EXTENSION_HRS)
-            utc_now = datetime.now(timezone.utc)
+            utc_now = datetime.now(timezone.utc) - timedelta(days=1.5)
             time_format = "%Y/%m/%d %H:%M:%S UTC"
             info_log.debug(f"Current time: {utc_now.strftime(time_format)}")
             info_log.debug(f"OCSP this update: {this_update.strftime(time_format)}")
