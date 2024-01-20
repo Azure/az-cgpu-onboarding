@@ -253,7 +253,7 @@ class CcAdminUtils:
 
             if not (this_update <= utc_now <= next_update_extended):
                 info_log.error(
-                    f"\t\tOCSP is expired for {cert_common_name} "
+                    f"\t\tOCSP for {cert_common_name} is expired "
                     f"after {next_update_extended.strftime(time_format)} "
                     f"with {BaseSettings.OCSP_VALIDITY_EXTENSION_HRS} hours extension period"
                 )
@@ -261,7 +261,7 @@ class CcAdminUtils:
             
             if not (this_update <= utc_now <= next_update):
                 info_log.warning(
-                    f"\t\tWARNING: OCSP is expired after {next_update.strftime(time_format)} for {cert_common_name}"
+                    f"\t\tWARNING: OCSP for {cert_common_name} is expired after {next_update.strftime(time_format)}"
                 )
 
             # Verifying the ocsp response certificate chain.
