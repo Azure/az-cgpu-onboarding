@@ -244,7 +244,7 @@ class CcAdminUtils:
             this_update = ocsp_response.this_update.replace(tzinfo=timezone.utc)
             next_update = ocsp_response.next_update.replace(tzinfo=timezone.utc)
             next_update_extended = next_update + timedelta(hours=BaseSettings.OCSP_VALIDITY_EXTENSION_HRS)
-            utc_now = datetime.now(timezone.utc) + timedelta(days=10)
+            utc_now = datetime.now(timezone.utc)
             time_format = "%Y/%m/%d %H:%M:%S UTC"
             info_log.debug(f"Current time: {utc_now.strftime(time_format)}")
             info_log.debug(f"OCSP this update: {this_update.strftime(time_format)}")
@@ -258,7 +258,7 @@ class CcAdminUtils:
                     f"with {BaseSettings.OCSP_VALIDITY_EXTENSION_HRS} hours extension period"
                 )
                 return False
-            
+
             if not (this_update <= utc_now <= next_update):
                 info_log.warning(
                     f"\t\tWARNING: OCSP for {cert_common_name} is expired after {next_update.strftime(time_format)}"
