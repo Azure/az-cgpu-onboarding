@@ -131,11 +131,13 @@ def main():
     parser.add_argument(
         "--ocsp_validity_extension",
         help="If the OCSP response is expired within the validity extension in hours, treat the OCSP response as valid and continue the attestation.",
+        type=int,
         default=168,
     )
     parser.add_argument(
         "--ocsp_cert_revoked_extension",
         help="If the OCSP response indicate the certificate is revoked within the extension grace period in hours, treat the cert as good and continue the attestation.",
+        type=int,
         default=168,
     )
 
