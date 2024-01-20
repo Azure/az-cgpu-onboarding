@@ -248,11 +248,11 @@ def attest(arguments_as_dictionary):
 
         # Set OCSP validity extension
         if arguments_as_dictionary["ocsp_validity_extension"] is not None:
-            BaseSettings.OCSP_VALIDITY_EXTENSION_HRS = arguments_as_dictionary["ocsp_validity_extension"]
+            BaseSettings.OCSP_VALIDITY_EXTENSION_HRS = max(0, arguments_as_dictionary["ocsp_validity_extension"])
 
         # Set OCSP cert revoked extension
         if arguments_as_dictionary["ocsp_cert_revoked_extension"] is not None:
-            BaseSettings.OCSP_CERT_REVOKED_EXTENSION_HRS = arguments_as_dictionary["ocsp_cert_revoked_extension"]
+            BaseSettings.OCSP_CERT_REVOKED_EXTENSION_HRS = max(0, arguments_as_dictionary["ocsp_cert_revoked_extension"])
 
         # Set the RIM root certificate path
         if not arguments_as_dictionary['rim_root_cert'] is None:
