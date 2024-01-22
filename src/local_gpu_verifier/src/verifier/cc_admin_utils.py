@@ -251,20 +251,19 @@ class CcAdminUtils:
             info_log.debug(f"OCSP next update: {next_update.strftime(timestamp_format)}")
             info_log.debug(f"OCSP next update extended: {next_update_extended.strftime(timestamp_format)}")
 
-            # Outside extended validity period
-            if not (this_update <= utc_now <= next_update_extended):
-                info_log.error(
-                    f"\t\tOCSP FOR {cert_common_name} IS EXPIRED AFTER {next_update.strftime(timestamp_format)}\n"
-                    f"\t\tAND IS NO LONGER GOOD FOR ATTESTATION AFTER {next_update_extended.strftime(timestamp_format)} "
-                    f"WITH {BaseSettings.OCSP_VALIDITY_EXTENSION_HRS} HOURS EXTENSION PERIOD"
-                )
-                return False
-
             # Outside validity period, print warning
             if not (this_update <= utc_now <= next_update):
                 info_log.warning(
                     f"\t\tWARNING: OCSP FOR {cert_common_name} IS EXPIRED AFTER {next_update.strftime(timestamp_format)}"
                 )
+
+            # Outside extended validity period
+            if not (this_update <= utc_now <= next_update_extended):
+                info_log.error(
+                    f"\t\tOCSP FOR {cert_common_name} IS NO LONGER GOOD FOR ATTESTATION AFTER {next_update_extended.strftime(timestamp_format)} "
+                    f"WITH {BaseSettings.OCSP_VALIDITY_EXTENSION_HRS} HOURS EXTENSION PERIOD"
+                )
+                return False
 
             # Verifying the ocsp response certificate chain.
             ocsp_response_leaf_cert = crypto.load_certificate(
