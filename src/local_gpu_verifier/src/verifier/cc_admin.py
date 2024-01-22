@@ -253,7 +253,7 @@ def attest(arguments_as_dictionary):
             )
 
         # Set OCSP cert revoked extension
-        if arguments_as_dictionary["ocsp_cert_revoked_extension"] is not None:
+        if arguments_as_dictionary["ocsp_cert_revocation_extension"] is not None:
             BaseSettings.OCSP_CERT_REVOCATION_EXTENSION_HRS = max(
                 0, arguments_as_dictionary["ocsp_cert_revocation_extension"]
             )
