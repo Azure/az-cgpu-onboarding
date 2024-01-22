@@ -135,7 +135,7 @@ def main():
         default=168,
     )
     parser.add_argument(
-        "--ocsp_cert_revoked_extension",
+        "--ocsp_cert_revocation_extension",
         help="If the OCSP response indicate the certificate is revoked within the extension grace period in hours, treat the cert as good and continue the attestation.",
         type=int,
         default=168,
@@ -248,11 +248,15 @@ def attest(arguments_as_dictionary):
 
         # Set OCSP validity extension
         if arguments_as_dictionary["ocsp_validity_extension"] is not None:
-            BaseSettings.OCSP_VALIDITY_EXTENSION_HRS = max(0, arguments_as_dictionary["ocsp_validity_extension"])
+            BaseSettings.OCSP_VALIDITY_EXTENSION_HRS = max(
+                0, arguments_as_dictionary["ocsp_validity_extension"]
+            )
 
         # Set OCSP cert revoked extension
         if arguments_as_dictionary["ocsp_cert_revoked_extension"] is not None:
-            BaseSettings.OCSP_CERT_REVOKED_EXTENSION_HRS = max(0, arguments_as_dictionary["ocsp_cert_revoked_extension"])
+            BaseSettings.OCSP_CERT_REVOCATION_EXTENSION_HRS = max(
+                0, arguments_as_dictionary["ocsp_cert_revocation_extension"]
+            )
 
         # Set the RIM root certificate path
         if not arguments_as_dictionary['rim_root_cert'] is None:

@@ -241,27 +241,29 @@ class CcAdminUtils:
                 settings.mark_gpu_certificate_ocsp_nonce_as_matching()
 
             # Verify the OCSP response is within the validity period
+            timestamp_format = "%Y/%m/%d %H:%M:%S UTC"
             this_update = ocsp_response.this_update.replace(tzinfo=timezone.utc)
             next_update = ocsp_response.next_update.replace(tzinfo=timezone.utc)
             next_update_extended = next_update + timedelta(hours=BaseSettings.OCSP_VALIDITY_EXTENSION_HRS)
             utc_now = datetime.now(timezone.utc)
-            time_format = "%Y/%m/%d %H:%M:%S UTC"
-            info_log.debug(f"Current time: {utc_now.strftime(time_format)}")
-            info_log.debug(f"OCSP this update: {this_update.strftime(time_format)}")
-            info_log.debug(f"OCSP next update: {next_update.strftime(time_format)}")
-            info_log.debug(f"OCSP next update extended: {next_update_extended.strftime(time_format)}")
+            info_log.debug(f"Current time: {utc_now.strftime(timestamp_format)}")
+            info_log.debug(f"OCSP this update: {this_update.strftime(timestamp_format)}")
+            info_log.debug(f"OCSP next update: {next_update.strftime(timestamp_format)}")
+            info_log.debug(f"OCSP next update extended: {next_update_extended.strftime(timestamp_format)}")
 
+            # Outside extended validity period
             if not (this_update <= utc_now <= next_update_extended):
                 info_log.error(
-                    f"\t\tOCSP for {cert_common_name} is expired "
-                    f"after {next_update_extended.strftime(time_format)} "
-                    f"with {BaseSettings.OCSP_VALIDITY_EXTENSION_HRS} hours extension period"
+                    f"\t\tOCSP FOR {cert_common_name} IS EXPIRED AFTER {next_update.strftime(timestamp_format)}\n"
+                    f"\t\tAND IS NO LONGER GOOD FOR ATTESTATION AFTER {next_update_extended.strftime(timestamp_format)} "
+                    f"WITH {BaseSettings.OCSP_VALIDITY_EXTENSION_HRS} HOURS EXTENSION PERIOD"
                 )
                 return False
 
+            # Outside validity period, print warning
             if not (this_update <= utc_now <= next_update):
                 info_log.warning(
-                    f"\t\tWARNING: OCSP for {cert_common_name} is expired after {next_update.strftime(time_format)}"
+                    f"\t\tWARNING: OCSP FOR {cert_common_name} IS EXPIRED AFTER {next_update.strftime(timestamp_format)}"
                 )
 
             # Verifying the ocsp response certificate chain.
@@ -293,24 +295,40 @@ class CcAdminUtils:
 
             # Verifying the ocsp response certificate status.
             if ocsp_response.certificate_status != ocsp.OCSPCertStatus.GOOD:
+                # Get cert revoke timestamp
+                cert_revocation_time = ocsp_response.revocation_time.replace(tzinfo=timezone.utc)
+                cert_revocation_reason = ocsp_response.revocation_reason
+                cert_revocation_time_extended = cert_revocation_time + timedelta(hours=BaseSettings.OCSP_CERT_REVOCATION_EXTENSION_HRS)
+
+                # Allow hold cert
                 if (
-                    x509.ReasonFlags.certificate_hold == ocsp_response.revocation_reason
+                    x509.ReasonFlags.certificate_hold == cert_revocation_reason
                     and BaseSettings.allow_hold_cert
-                    and (
-                        mode == BaseSettings.Certificate_Chain_Verification_Mode.DRIVER_RIM_CERT
-                        or BaseSettings.Certificate_Chain_Verification_Mode.VBIOS_RIM_CERT
-                    )
                 ):
                     info_log.warning(
-                        f"\t\t\tWARNING: THE CERTIFICATE {cert_common_name} IS REVOKED WITH THE STATUS AS 'CERTIFICATE_HOLD'."
+                        f"\t\t\tWARNING: THE CERTIFICATE {cert_common_name} IS REVOKED "
+                        f"WITH THE STATUS AS 'CERTIFICATE_HOLD' AT {cert_revocation_time.strftime(timestamp_format)}."
                     )
                     revoked_status = True
+
+                # Cert if revoked but within the extension period, print warning
+                elif cert_revocation_time <= utc_now <= cert_revocation_time_extended:
+                    info_log.warning(
+                        f"\t\t\tWARNING: THE CERTIFICATE {cert_common_name} IS REVOKED FOR REASON: {cert_revocation_reason} "
+                        f"AT {cert_revocation_time.strftime(timestamp_format)}"
+                    )
+                    revoked_status = True
+
+                # Cert is revoked and outside the extension period
                 else:
                     info_log.error(
-                        f"\t\t\tTHE {cert_common_name} IS REVOKED FOR REASON : {ocsp_response.revocation_reason}"
+                        f"\t\t\tTHE {cert_common_name} IS REVOKED FOR REASON : {cert_revocation_reason}"
+                        f"AT {cert_revocation_time.strftime(timestamp_format)}\n"
+                        f"\t\t\tAND IS NO LONGER GOOD FOR ATTESTATION AFTER {cert_revocation_time_extended.strftime(timestamp_format)} "
+                        f"WITH {BaseSettings.OCSP_CERT_REVOCATION_EXTENSION_HRS} HOURS EXTENSION PERIOD"
                     )
                     return False
-
+                
         if not revoked_status:
             info_log.info(f"\t\t\tThe certificate chain revocation status verification successful.")
         else:
