@@ -245,7 +245,7 @@ class CcAdminUtils:
             this_update = ocsp_response.this_update.replace(tzinfo=timezone.utc)
             next_update = ocsp_response.next_update.replace(tzinfo=timezone.utc)
             next_update_extended = next_update + timedelta(hours=BaseSettings.OCSP_VALIDITY_EXTENSION_HRS)
-            utc_now = datetime.now(timezone.utc) + timedelta(hours=24)
+            utc_now = datetime.now(timezone.utc) + timedelta(hours=48)
             info_log.debug(f"Current time: {utc_now.strftime(timestamp_format)}")
             info_log.debug(f"OCSP this update: {this_update.strftime(timestamp_format)}")
             info_log.debug(f"OCSP next update: {next_update.strftime(timestamp_format)}")
@@ -296,7 +296,7 @@ class CcAdminUtils:
             # Verifying the ocsp response certificate status.
             if ocsp_response.certificate_status != ocsp.OCSPCertStatus.GOOD or True:
                 # Get cert revoke timestamp
-                cert_revocation_time = datetime.now(timezone.utc) - timedelta(hours=24) #ocsp_response.revocation_time.replace(tzinfo=timezone.utc)
+                cert_revocation_time = datetime.now(timezone.utc) - timedelta(hours=48) #ocsp_response.revocation_time.replace(tzinfo=timezone.utc)
                 cert_revocation_reason = x509.ReasonFlags.certificate_hold #ocsp_response.revocation_reason
                 cert_revocation_time_extended = cert_revocation_time + timedelta(
                     hours=BaseSettings.OCSP_CERT_REVOCATION_EXTENSION_HRS
