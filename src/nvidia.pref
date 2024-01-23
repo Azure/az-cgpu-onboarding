@@ -37,3 +37,11 @@ Pin-Priority: -1
 Package: nvidia-driver* 
 Pin: release * 
 Pin-Priority: -1 
+
+Package: libnvidia-common-* 
+Pin: release * 
+Pin-Priority: -1 
+
+Package: libnvidia-compute-* 
+Pin: release * 
+Pin-Priority: -1 
