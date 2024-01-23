@@ -44,12 +44,11 @@ install_gpu_driver(){
         # sudo ./NVIDIA-Linux-x86_64-535.129.03.run -m=kernel-open -sn
         # sudo apt install -y nvidia-driver-535-server-open linux-modules-nvidia-535-server-open-azure
         
-        mkdir driver_package
-        cd driver_package
-        wget -i ../driver-package-list.txt
+        tar -xvf 535-driver-package.tar
+        cd 535-driver-package
         sudo apt -f -y install ./*.deb
-
         cd ..
+        
         # capture transient couldn't get lock issue and retry the operation with maximum retry count of 3.
         lockError=$(cat logs/current-operation.log | grep "Could not get lock")
         if [ "$lockError" != "" ] && [ $MAX_RETRY \> 0 ];
