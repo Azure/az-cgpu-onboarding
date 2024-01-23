@@ -298,7 +298,7 @@ class CcAdminUtils:
                 # Get cert revoke timestamp
                 # cert_revocation_time = ocsp_response.revocation_time.replace(tzinfo=timezone.utc)
                 # cert_revocation_reason = ocsp_response.revocation_reason
-                cert_revocation_reason = x509.ReasonFlags.certificate_hold
+                cert_revocation_reason = x509.ReasonFlags.key_compromise
                 cert_revocation_time = datetime.now(timezone.utc) - timedelta(hours=48)
 
                 cert_revocation_time_extended = cert_revocation_time + timedelta(
@@ -308,7 +308,7 @@ class CcAdminUtils:
                 # Cert is revoked, print warning
                 info_log.warning(
                     f"\t\t\tWARNING: THE CERTIFICATE {cert_common_name} IS REVOKED "
-                    f"WITH THE STATUS AS '{cert_revocation_reason}' AT {cert_revocation_time.strftime(timestamp_format)}."
+                    f"WITH THE STATUS AS '{cert_revocation_reason.value}' AT {cert_revocation_time.strftime(timestamp_format)}."
                 )
 
                 # Allow hold cert, or cert is revoked but within the extension period
