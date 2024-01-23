@@ -9,13 +9,23 @@
 function Download-Blobs {
     $resourceGroup="cgpu-resources"
     $storageAccountName="cgpu"
-    $container="cgpucontainer"
+    $container="h100resources"
     $destination="$PSScriptRoot\..\..\packages"
 
     # Creates destination directory if it doesn't exist
     if (-not (Test-Path -Path $destination -PathType Container)) {
         New-Item -Path $destination -ItemType Directory
     }
+
+    # Gets storage account with container to download blobs from
+    $storageAccount = Get-AzStorageAccount -Name $storageAccountName -ResourceGroupName $resourceGroup
+
+    # Get all blobs from container
+    $blobs = Get-AzStorageBlob -Container $container -Context $storageAccount.Context | Where-Object {$_.BlobType -eq "BlockBlob"}
+
+    # Downloads each blob into given destination
+    $blobs | Get-AzStorageBlobContent -Destination $destination -Force
+    echo "Downloaded all blobs to ${destination}"
 }
 
 # Ensures pre-reqs are installed: Azure CLI
