@@ -254,14 +254,15 @@ class CcAdminUtils:
             # Outside validity period, print warning
             if not (this_update <= utc_now <= next_update):
                 info_log.warning(
-                    f"\t\tWARNING: OCSP FOR {cert_common_name} IS EXPIRED AFTER {next_update.strftime(timestamp_format)}"
+                    f"\t\tWARNING: OCSP FOR {cert_common_name} IS EXPIRED AFTER {next_update.strftime(timestamp_format)}."
                 )
 
             # Outside extended validity period
             if not (this_update <= utc_now <= next_update_extended):
                 info_log.error(
-                    f"\t\tOCSP FOR {cert_common_name} IS NO LONGER GOOD FOR ATTESTATION AFTER {next_update_extended.strftime(timestamp_format)} "
-                    f"WITH {BaseSettings.OCSP_VALIDITY_EXTENSION_HRS} HOURS EXTENSION PERIOD"
+                    f"\t\tOCSP FOR {cert_common_name} IS NO LONGER GOOD FOR ATTESTATION "
+                    f"AFTER {next_update_extended.strftime(timestamp_format)} "
+                    f"WITH {BaseSettings.OCSP_VALIDITY_EXTENSION_HRS} HOURS EXTENSION PERIOD."
                 )
                 return False
 
@@ -297,37 +298,31 @@ class CcAdminUtils:
                 # Get cert revoke timestamp
                 cert_revocation_time = ocsp_response.revocation_time.replace(tzinfo=timezone.utc)
                 cert_revocation_reason = ocsp_response.revocation_reason
-                cert_revocation_time_extended = cert_revocation_time + timedelta(hours=BaseSettings.OCSP_CERT_REVOCATION_EXTENSION_HRS)
+                cert_revocation_time_extended = cert_revocation_time + timedelta(
+                    hours=BaseSettings.OCSP_CERT_REVOCATION_EXTENSION_HRS
+                )
 
-                # Allow hold cert
-                if (
-                    x509.ReasonFlags.certificate_hold == cert_revocation_reason
-                    and BaseSettings.allow_hold_cert
+                # Cert is revoked, print warning
+                info_log.warning(
+                    f"\t\t\tWARNING: THE CERTIFICATE {cert_common_name} IS REVOKED "
+                    f"WITH THE STATUS AS '{cert_revocation_reason}' AT {cert_revocation_time.strftime(timestamp_format)}."
+                )
+
+                # Allow hold cert, or cert is revoked but within the extension period
+                if (x509.ReasonFlags.certificate_hold == cert_revocation_reason and BaseSettings.allow_hold_cert) or (
+                    cert_revocation_time <= utc_now <= cert_revocation_time_extended
                 ):
-                    info_log.warning(
-                        f"\t\t\tWARNING: THE CERTIFICATE {cert_common_name} IS REVOKED "
-                        f"WITH THE STATUS AS 'CERTIFICATE_HOLD' AT {cert_revocation_time.strftime(timestamp_format)}."
-                    )
-                    revoked_status = True
-
-                # Cert if revoked but within the extension period, print warning
-                elif cert_revocation_time <= utc_now <= cert_revocation_time_extended:
-                    info_log.warning(
-                        f"\t\t\tWARNING: THE CERTIFICATE {cert_common_name} IS REVOKED FOR REASON: {cert_revocation_reason} "
-                        f"AT {cert_revocation_time.strftime(timestamp_format)}"
-                    )
                     revoked_status = True
 
                 # Cert is revoked and outside the extension period
                 else:
                     info_log.error(
-                        f"\t\t\tTHE {cert_common_name} IS REVOKED FOR REASON : {cert_revocation_reason}"
-                        f"AT {cert_revocation_time.strftime(timestamp_format)}\n"
-                        f"\t\t\tAND IS NO LONGER GOOD FOR ATTESTATION AFTER {cert_revocation_time_extended.strftime(timestamp_format)} "
-                        f"WITH {BaseSettings.OCSP_CERT_REVOCATION_EXTENSION_HRS} HOURS EXTENSION PERIOD"
+                        f"\t\t\tTHE CERTIFICATE {cert_common_name} IS NO LONGER GOOD FOR ATTESTATION "
+                        f"AFTER {cert_revocation_time_extended.strftime(timestamp_format)} "
+                        f"WITH {BaseSettings.OCSP_CERT_REVOCATION_EXTENSION_HRS} HOURS GRACE PERIOD."
                     )
                     return False
-                
+
         if not revoked_status:
             info_log.info(f"\t\t\tThe certificate chain revocation status verification successful.")
         else:
