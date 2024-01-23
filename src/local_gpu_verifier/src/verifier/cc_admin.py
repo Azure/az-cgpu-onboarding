@@ -142,9 +142,9 @@ def main():
         "--ocsp_attestation_settings",
         choices=["default", "strict"],
         default="default",
-        help=("The OCSP attestation settings to be used for the attestation. ",
-              "The default settings are to allow hold cert, validity extension of 7 days and cert revocation extension of 7 days. "
-              "The strict settings are to not allow hold cert, validity extension of 0 days and cert revocation extension of 0 days."),
+        help="""The OCSP attestation settings to be used for the attestation.
+                The default settings are to allow hold cert, validity extension and cert revocation extension of 7 days.
+                The strict settings are to not allow hold cert, validity extension and cert revocation extension of 0 days.""",
     )
 
     args = parser.parse_args()
