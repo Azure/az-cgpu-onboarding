@@ -131,14 +131,20 @@ def main():
     parser.add_argument(
         "--ocsp_validity_extension",
         help="If the OCSP response is expired within the validity extension in hours, treat the OCSP response as valid and continue the attestation.",
-        type=int,
-        default=168,
+        type=int
     )
     parser.add_argument(
         "--ocsp_cert_revocation_extension",
         help="If the OCSP response indicate the certificate is revoked within the extension grace period in hours, treat the cert as good and continue the attestation.",
-        type=int,
-        default=168,
+        type=int
+    )
+    parser.add_argument(
+        "--ocsp_attestation_settings",
+        choices=["default", "strict"],
+        default="default",
+        help=("The OCSP attestation settings to be used for the attestation. ",
+              "The default settings are to allow hold cert, validity extension of 7 days and cert revocation extension of 7 days. "
+              "The strict settings are to not allow hold cert, validity extension of 0 days and cert revocation extension of 0 days."),
     )
 
     args = parser.parse_args()
@@ -243,8 +249,19 @@ def attest(arguments_as_dictionary):
             f"OCSP service url: {BaseSettings.OCSP_URL}\nOCSP Nonce: {'ENABLED' if BaseSettings.OCSP_NONCE_ENABLED else 'DISABLED'}"
         )
 
+        # Set OCSP attestation settings
+        if arguments_as_dictionary["ocsp_attestation_settings"] == "strict":
+            BaseSettings.allow_hold_cert = False
+            BaseSettings.OCSP_VALIDITY_EXTENSION_HRS = 0
+            BaseSettings.OCSP_CERT_REVOCATION_EXTENSION_HRS = 0
+        elif arguments_as_dictionary["ocsp_attestation_settings"] == "default":
+            BaseSettings.allow_hold_cert = True
+            BaseSettings.OCSP_VALIDITY_EXTENSION_HRS = 168
+            BaseSettings.OCSP_CERT_REVOCATION_EXTENSION_HRS = 168
+
         # Set allow OCSP cert hold flag
-        BaseSettings.allow_hold_cert = arguments_as_dictionary["allow_hold_cert"]
+        if arguments_as_dictionary["allow_hold_cert"] is not None:
+            BaseSettings.allow_hold_cert = arguments_as_dictionary["allow_hold_cert"]
 
         # Set OCSP validity extension
         if arguments_as_dictionary["ocsp_validity_extension"] is not None:
