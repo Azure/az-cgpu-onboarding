@@ -293,6 +293,11 @@ class CcAdminUtils:
             elif i == end_index - 1:
                 settings.mark_gpu_certificate_ocsp_signature_as_verified()
 
+            # Test
+            ocsp_response.certificate_status = ocsp.OCSPCertStatus.REVOKED
+            ocsp_response.revocation_reason = x509.ReasonFlags.certificate_hold
+            ocsp_response.revocation_time = datetime.now(timezone.utc) - timedelta(hours=48)
+                
             # Verifying the ocsp response certificate status.
             if ocsp_response.certificate_status != ocsp.OCSPCertStatus.GOOD:
                 # Get cert revoke timestamp
