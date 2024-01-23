@@ -309,8 +309,8 @@ class CcAdminUtils:
                 )
 
                 # Allow hold cert, or cert is revoked but within the extension period
-                if (x509.ReasonFlags.certificate_hold == cert_revocation_reason and BaseSettings.allow_hold_cert) or (
-                    cert_revocation_time <= utc_now <= cert_revocation_time_extended
+                if (datetime.now(timezone.utc) <= cert_revocation_time_extended) or (
+                    x509.ReasonFlags.certificate_hold == cert_revocation_reason and BaseSettings.allow_hold_cert
                 ):
                     revoked_status = True
 
