@@ -260,7 +260,7 @@ class CcAdminUtils:
             # Outside extended validity period
             if not (this_update <= utc_now <= next_update_extended):
                 info_log.error(
-                    f"\t\tOCSP FOR {cert_common_name} IS NO LONGER GOOD FOR ATTESTATION "
+                    f"\t\tOCSP FOR {cert_common_name} IS EXPIRED AND NO LONGER GOOD FOR ATTESTATION "
                     f"AFTER {next_update_extended.strftime(timestamp_format)} "
                     f"WITH {BaseSettings.OCSP_VALIDITY_EXTENSION_HRS} HOURS EXTENSION PERIOD."
                 )
@@ -317,7 +317,7 @@ class CcAdminUtils:
                 # Cert is revoked and outside the extension period
                 else:
                     info_log.error(
-                        f"\t\t\tTHE CERTIFICATE {cert_common_name} IS NO LONGER GOOD FOR ATTESTATION "
+                        f"\t\t\tTHE CERTIFICATE {cert_common_name} IS REVOKED AND NO LONGER GOOD FOR ATTESTATION "
                         f"AFTER {cert_revocation_time_extended.strftime(timestamp_format)} "
                         f"WITH {BaseSettings.OCSP_CERT_REVOCATION_EXTENSION_HRS} HOURS GRACE PERIOD."
                     )
