@@ -296,7 +296,7 @@ class CcAdminUtils:
             # Verifying the ocsp response certificate status.
             if ocsp_response.certificate_status != ocsp.OCSPCertStatus.GOOD or True:
                 # Get cert revoke timestamp
-                cert_revocation_time = ocsp_response.revocation_time.replace(tzinfo=timezone.utc) - timedelta(hours=24)
+                cert_revocation_time = datetime.now(timezone.utc) - timedelta(hours=24) #ocsp_response.revocation_time.replace(tzinfo=timezone.utc)
                 cert_revocation_reason = x509.ReasonFlags.certificate_hold #ocsp_response.revocation_reason
                 cert_revocation_time_extended = cert_revocation_time + timedelta(
                     hours=BaseSettings.OCSP_CERT_REVOCATION_EXTENSION_HRS
