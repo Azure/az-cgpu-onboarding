@@ -458,7 +458,7 @@ function Try-Connect {
 			$global:issuccess = "succeeded"
 			return
 		}
-
+		Start-sleep -Seconds 1
 		$currentRetry++
 	}
 	$global:issuccess = "failed"
