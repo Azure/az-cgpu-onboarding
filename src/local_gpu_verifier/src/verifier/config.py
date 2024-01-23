@@ -59,9 +59,9 @@ class BaseSettings:
     AZURE_VM_REGION = ""
     AZURE_IMDS_URL = "http://169.254.169.254/metadata/instance?api-version=2021-02-01"
     AZURE_THIM_ENDPOINT_DICT = {
-        "eastus2": 'https://useast2.thim.azure.net',
-        "centraluseuap": 'https://uscentraleuap.thim.azure.net',
-        "lab": 'https://thimpft2.thim.azure-test.net'
+        "eastus2": '',
+        "centraluseuap": '',
+        "lab": ''
     }
     SIZE_OF_NONCE_IN_BYTES = 32
     SIZE_OF_NONCE_IN_HEX_STR = 64
