@@ -59,7 +59,7 @@ function Make-Cgpu-Onboarding-Package {
 	# Lists out all files to be included in .tar.gz archive
 	[String[]]$files = "$PSScriptRoot\..\step-0-prepare-kernel.sh", "$PSScriptRoot\..\step-1-install-gpu-driver.sh", 
 		"$PSScriptRoot\..\step-2-attestation.sh", "$PSScriptRoot\..\step-3-install-gpu-tools.sh", "$PSScriptRoot\..\utilities-update-kernel.sh", "$PSScriptRoot\..\nvidia-lkca.conf",
-		"$PSScriptRoot\..\mnist-sample-workload.py", "$PSScriptRoot\..\nvidia.pref", "$DropFolder\local_gpu_verifier.tar"
+		"$PSScriptRoot\..\mnist-sample-workload.py", "$PSScriptRoot\..\nvidia.pref", "$PSScriptRoot\..\driver-package-list.txt", "$DropFolder\local_gpu_verifier.tar"
 
 	# Ensures each file will be in correct UNIX format
 	foreach($file in $files) {
