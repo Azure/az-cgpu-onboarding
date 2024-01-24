@@ -21,10 +21,7 @@ install_gpu_driver(){
         echo "Current kernel version: ($current_kernel), expected: (>= $MINIMUM_KERNEL_VERSION)."
         # echo "Please try utilities-update-kernel.sh 5.15.0-1014-azure."
     else 
-        # lock the current kernel version from update.
-        # sudo cp nvidia-lkca.conf /etc/modprobe.d/nvidia-lkca.conf
-        # sudo chmod 0644 /etc/apt/preferences.d/nvidia.pref
-        # sudo cat /etc/apt/preferences.d/nvidia.pref
+        sudo cp nvidia-lkca.conf /etc/modprobe.d/nvidia-lkca.conf
 
         # verify secure boot and key enrollment.        
         secure_boot_status=$(mokutil --sb)
@@ -45,8 +42,13 @@ install_gpu_driver(){
         sudo apt -y install gcc g++ make
         # sudo chmod +x NVIDIA-Linux-x86_64-535.129.03.run
         # sudo ./NVIDIA-Linux-x86_64-535.129.03.run -m=kernel-open -sn
-        sudo apt install -y nvidia-driver-535-server-open linux-modules-nvidia-535-server-open-azure
-
+        # sudo apt install -y nvidia-driver-535-server-open linux-modules-nvidia-535-server-open-azure
+        
+        tar -xvf 535-driver-package.tar
+        cd 535-driver-package
+        sudo apt -f -y install ./*.deb
+        cd ..
+        
         # capture transient couldn't get lock issue and retry the operation with maximum retry count of 3.
         lockError=$(cat logs/current-operation.log | grep "Could not get lock")
         if [ "$lockError" != "" ] && [ $MAX_RETRY \> 0 ];
@@ -63,6 +65,14 @@ install_gpu_driver(){
             if [ "$lockError" == "" ];
             then
                 sudo nvidia-smi -pm 1
+                echo "add nvidia persitenced on reboot."
+                sudo bash -c 'echo "#!/bin/bash" > /etc/rc.local; echo "nvidia-smi -pm 1" >>/etc/rc.local; echo "nvidia-smi conf-compute -srs 1" >> /etc/rc.local;'
+                sudo chmod +x /etc/rc.local
+
+                # Prevent apt upgrade from touching nvidia
+                echo "Marking the following Nvidia packages. They will not be updated with apt upgrade: "
+                apt list --installed | grep 'nvidia' | cut -d/ -f1
+                sudo apt-mark hold $(apt list --installed | grep 'nvidia' | cut -d/ -f1)
                 echo "not reboot"
             else 
                 echo "Couldn't resolve lock issue with 3 time retries. Please restart the VM and try it again."

@@ -273,6 +273,7 @@ try_connect() {
    do
        connectionoutput=$(ssh -i "${private_key_path}" -o "StrictHostKeyChecking=no" "${vm_ssh_info}" "echo 'Connected to VM';")
        echo $connectionoutput
+	   sleep 1
        retries=$((retries+1))
    done
 }
@@ -303,7 +304,7 @@ create_vm() {
 			--os-disk-size-gb 100 \
 			--verbose
 	else
-	    echo "Disk encryption set ID is not set, using Platform Managed Key for VM creation:"
+	    echo "Disk encryption set ID is not set, using Platform Managed Key for VM creation"
 	    echo "Provisioning VM..."
 	    az vm create \
 			--resource-group $rg \

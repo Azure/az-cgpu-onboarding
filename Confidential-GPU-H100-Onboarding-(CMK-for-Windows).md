@@ -26,15 +26,22 @@ This page is using a customer managed keys. More information about customer mana
 
 -------------------------------------------
 
-## Create-Customer-Managed-Key
+## Prepare-Customer-Managed-Key
 
-1. Open Powershell as Admin
+0. If you already have a CMK, you can get your desId through your desName and resourceGroup
+```
+  az disk-encryption-set show -n $desName -g $resourceGroup --query [id] -o tsv
+```
+
+1. If you do not have an existing CMK, please follow steps below to create a new one. Firstly, open Powershell as Admin
+
 2. Import the CMK module
 ```
 cd <Repo Path>\src\cmk_module
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 Import-Module -Name .\Windows\cgpu-deploy-cmk-des.psm1 -Force -DisableNameChecking
 ```
+
 3. Define your parameters
 ```
   # Replace with your own subscription ID and tenant ID here
@@ -79,33 +86,9 @@ DEPLOY-CMK-DES `
 # id_rsa.pub will used as ssh-key-values for VM creation.
 # id_rsa will be used for ssh in your vm.
 # replace <your email here> with your email address.
+
 E:\cgpu\.ssh>ssh-keygen -t rsa -b 4096 -C <your email here>
-Generating public/private rsa key pair.
 
-Enter file in which to save the key (C:\Users\*****/.ssh/id_rsa): E:\cgpu\.ssh\id_rsa
-e:\cgpu/.ssh/id_rsa already exists.
-
-Overwrite (y/n)? y
-
-Enter passphrase (empty for no passphrase):
-Enter same passphrase again:
-
-Your identification has been saved in E:\cgpu\.ssh\id_rsa.
-Your public key has been saved in E:\cgpu\.ssh\id_rsa.pub.
-The key fingerprint is:
-SHA256:YiPxu6SEIlIXmYKUzprXDhXqI13gLYmcyQzGNYGmdtk example@microsoft.com
-The key's randomart image is:
-+---[RSA 4096]----+
-|..++.            |
-|oB. oo           |
-|%o+=B.           |
-|oX=++E           |
-|o+o=o = S        |
-|+.*o.o +         |
-|+o.+. o          |
-|o. ..o .         |
-|    . .          |
-+----[SHA256]-----+
 ```
 
 2. Create VM using powershell script
@@ -139,14 +122,14 @@ CGPU-H100-Onboarding `
 -publickeypath "E:\cgpu\.ssh\id_rsa.pub" `
 -privatekeypath "E:\cgpu\.ssh\id_rsa"  `
 -desid "/subscriptions/85c61f94-8912-4e82-900e-6ab44de9bdf8/resourceGroups/CGPU-CMK-KV/providers/Microsoft.Compute/diskEncryptionSets/CMK-Test-Des-03-01" `
--cgpupackagepath "E:\cgpu\cgpu-onboarding-package.tar.gz" `
--adminusername "admin" `
+-cgpupackagepath "cgpu-onboarding-package.tar.gz" `
+-adminusername "adminusername" `
 -vmnameprefix "cgpu-test" `
 -totalvmnumber 1
+```
 
-------------------------------------------------------------------------------------------
-Sample output:
-
+- This is a sample output that you will see at the end of a successful deployment: 
+```
 Finish install gpu tools.
 Started C-GPU capable validation.
 Passed: secure boot state validation. Current secure boot state: SecureBoot enabled
@@ -170,10 +153,11 @@ Transcript stopped, output file is D:\repo\PrivatePreview\drops\cgpu-h100-onboar
 ```
 
 ## Attestation
-
+Please run this command every time after rebooting your machine.
 ```
 # In your VM, execute the attestation scripts in cgpu-onboarding-package.
 # You should see: GPU 0 verified successfully.
+
 cd cgpu-onboarding-package 
 bash step-2-attestation.sh
 ```
@@ -182,5 +166,6 @@ bash step-2-attestation.sh
 
 ```
 # In your VM, execute the below command for a pytorch sample execution.
+
 sudo docker run --gpus all -v /home/<adminusername>/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:23.09-tf2-py3 python /home/mnist-sample-workload.py
 ```
