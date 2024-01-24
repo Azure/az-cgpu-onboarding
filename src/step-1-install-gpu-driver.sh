@@ -69,12 +69,10 @@ install_gpu_driver(){
                 sudo bash -c 'echo "#!/bin/bash" > /etc/rc.local; echo "nvidia-smi -pm 1" >>/etc/rc.local; echo "nvidia-smi conf-compute -srs 1" >> /etc/rc.local;'
                 sudo chmod +x /etc/rc.local
 
-                # lock the current kernel version from update.
-                echo "add nvidia.perf to lock current driver and kernel version."
-                sudo cp nvidia.pref /etc/apt/preferences.d/nvidia.pref
-                sudo chmod 0644 /etc/apt/preferences.d/nvidia.pref
-                sudo cat /etc/apt/preferences.d/nvidia.pref
-                
+                # Prevent apt upgrade from touching nvidia
+                echo "Marking the following Nvidia packages. They will not be updated with apt upgrade: "
+                apt list --installed | grep 'nvidia' | cut -d/ -f1
+                sudo apt-mark hold $(apt list --installed | grep 'nvidia' | cut -d/ -f1)
                 echo "not reboot"
             else 
                 echo "Couldn't resolve lock issue with 3 time retries. Please restart the VM and try it again."
