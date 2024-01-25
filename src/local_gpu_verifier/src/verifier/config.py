@@ -183,9 +183,10 @@ class BaseSettings:
             except Exception as e:
                 event_log.error("IMDS exception: " + str(e))
 
-            # If the VM region is not fetched, set it to lab
-            event_log.error("Unable to fetch the VM region")
-            cls.AZURE_VM_REGION = "lab"
+            # If the VM region is still not fetched, set it to lab
+            if not cls.AZURE_VM_REGION:
+                event_log.error("Unable to fetch the VM region")
+                cls.AZURE_VM_REGION = "lab"
 
     @classmethod
     def set_thim_rim_service_base_url(cls):
