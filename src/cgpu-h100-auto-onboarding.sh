@@ -291,11 +291,11 @@ create_vm() {
 	    az vm create \
 			--resource-group $rg \
 			--name $vmname \
-			--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:latest \
+			--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:22.04.202312070 \
 			--public-ip-sku Standard \
 			--admin-username $adminuser_name \
 			--ssh-key-values $public_key_path_with_at \
-			--security-type ConfidentialVM \
+			--secur ity-type ConfidentialVM \
 			--os-disk-security-encryption-type DiskWithVMGuestState \
 			--os-disk-secure-vm-disk-encryption-set $des_id \
 			--enable-secure-boot true \
@@ -309,7 +309,7 @@ create_vm() {
 	    az vm create \
 			--resource-group $rg \
 			--name $vmname \
-			--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:latest \
+			--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:22.04.202312070 \
 			--public-ip-sku Standard \
 			--admin-username $adminuser_name \
 			--ssh-key-values $public_key_path_with_at \
