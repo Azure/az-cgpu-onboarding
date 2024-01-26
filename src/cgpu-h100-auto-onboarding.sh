@@ -295,7 +295,7 @@ create_vm() {
 			--public-ip-sku Standard \
 			--admin-username $adminuser_name \
 			--ssh-key-values $public_key_path_with_at \
-			--secur ity-type ConfidentialVM \
+			--security-type ConfidentialVM \
 			--os-disk-security-encryption-type DiskWithVMGuestState \
 			--os-disk-secure-vm-disk-encryption-set $des_id \
 			--enable-secure-boot true \
