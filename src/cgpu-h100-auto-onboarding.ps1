@@ -56,12 +56,17 @@ function CGPU-H100-Onboarding{
 			Write-Host "Created log file directory"
 		}
 		
-		if ( "$(az --version | Select-String 'azure-cli')" -eq "" ) {
+		try {
+		    # Attempt to get the version of Azure CLI
+		    $azVersion = az --version
+		    # If the command runs successfully, it means Azure CLI is installed
+		    Write-Output "Azure Cli is installed current on ${azVersion}"
+		} catch {
 			Write-Host "Azure CLI is not installed, please try install Azure CLI first: https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-windows?tabs=powershell"
 			Write-Host "Note: you might need to restart powershell after install."
 			return
 		}
-
+		
 		Start-Transcript -Path .\logs\$logpath\current-operation.log -Append
 		Auto-Onboard-CGPU-Multi-VM 
 		trap {Stop-Transcript; break}
