@@ -107,7 +107,7 @@ bash step-2-attestation.sh
 ### Workload-Running
 
 ```
-# In your VM, execute the below command for a pytorch sample execution.
+# In your VM, execute the below command for a tensorflow sample execution.
 
 sudo docker run --gpus all -v /home/<adminusername>/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:23.09-tf2-py3 python /home/mnist-sample-workload.py
 ```
