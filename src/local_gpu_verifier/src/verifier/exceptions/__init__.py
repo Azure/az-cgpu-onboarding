@@ -249,3 +249,8 @@ class InvalidNonceError(Error):
     """ It is raised if user specified Nonce is not 32 bytes in length.
     """
     pass
+
+class OCSPFetchError(VerifierError):
+    """ It is raised in case of any issues in fetching the OCSP response.
+    """
+    pass

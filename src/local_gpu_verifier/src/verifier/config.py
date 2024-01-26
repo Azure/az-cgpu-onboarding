@@ -1,7 +1,7 @@
 #
 # SPDX-FileCopyrightText: Copyright (c) 2021-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #
@@ -32,6 +32,8 @@ import os
 from enum import Enum
 import logging
 import sys
+import json
+import requests
 from verifier.__about__ import __author__, __copyright__, __version__
 
 info_log = logging.getLogger('INFO')
@@ -54,6 +56,13 @@ event_log.addHandler(fhandler)
 event_log.debug("----------STARTING----------")
 
 class BaseSettings:
+    AZURE_VM_REGION = ""
+    AZURE_IMDS_URL = "http://169.254.169.254/metadata/instance?api-version=2021-02-01"
+    AZURE_THIM_ENDPOINT_DICT = {
+        "eastus2": 'https://useast2.thim.azure.net',
+        "centraluseuap": '',
+        "lab": ''
+    }
     SIZE_OF_NONCE_IN_BYTES = 32
     SIZE_OF_NONCE_IN_HEX_STR = 64
     gpu_availability = False
@@ -67,9 +76,18 @@ class BaseSettings:
     MAX_NVML_TIME_DELAY = 5
     MAX_OCSP_TIME_DELAY = 10
     MAX_NETWORK_TIME_DELAY = 10
-    OCSP_URL = 'https://ocsp.ndis.nvidia.com/'
+    OCSP_URL = ''
+    OCSP_URL_NVIDIA = 'https://ocsp.ndis.nvidia.com/'
+    OCSP_NONCE_ENABLED = False
     OCSP_HASH_FUNCTION = sha384
-    RIM_SERVICE_BASE_URL = 'https://rim.attestation.nvidia.com/v1/rim/'
+    OCSP_RETRY_COUNT = 1
+    OCSP_RETRY_DELAY = 0.1
+    OCSP_VALIDITY_EXTENSION_HRS = 7 * 24
+    OCSP_CERT_REVOCATION_EXTENSION_HRS = 7 * 24
+    RIM_SERVICE_BASE_URL = ''
+    RIM_SERVICE_BASE_URL_NVIDIA = 'https://rim.attestation.nvidia.com/v1/rim/'
+    RIM_SERVICE_RETRY_COUNT = 1
+    RIM_SERVICE_RETRY_DELAY = 0.1
     Certificate_Chain_Verification_Mode = Enum("CERT CHAIN VERIFICATION MODE", ['GPU_ATTESTATION', 'OCSP_RESPONSE', 'DRIVER_RIM_CERT', 'VBIOS_RIM_CERT'])
     NVDEC_STATUS = Enum("NVDEC0 status", [("ENABLED", 0xAA), ("DISABLED", 0x55)])
     INDEX_OF_IK_CERT = 1
@@ -120,6 +138,12 @@ class BaseSettings:
         cls.RIM_SERVICE_BASE_URL = url
 
     @classmethod
+    def set_ocsp_service_url(cls, url):
+        if not isinstance(url, str):
+            raise ValueError("Incorrect data type for the URL.")
+        cls.OCSP_URL = url
+
+    @classmethod
     def get_sku(cls):
         return cls.SKU
 
@@ -144,6 +168,43 @@ class BaseSettings:
     @classmethod
     def set_nonce(cls, nonce):
         cls.NONCE = nonce
+
+    @classmethod
+    def get_vm_region(cls):
+        if not cls.AZURE_VM_REGION:
+            # Fetch the VM region from IMDS
+            try:
+                headers = {"Metadata": "true"}
+                response = requests.get(cls.AZURE_IMDS_URL, headers=headers)
+                if response.status_code == 200:
+                    data = json.loads(response.text)
+                    cls.AZURE_VM_REGION = data.get("compute", {}).get("location", "")
+                    event_log.debug("VM region is " + cls.AZURE_VM_REGION)
+            except Exception as e:
+                event_log.error("IMDS exception: " + str(e))
+
+            # If the VM region is still not fetched, set it to lab
+            if not cls.AZURE_VM_REGION:
+                event_log.error("Unable to fetch the VM region")
+                cls.AZURE_VM_REGION = "lab"
+
+    @classmethod
+    def set_thim_rim_service_base_url(cls):
+        thim_endpoint = cls.AZURE_THIM_ENDPOINT_DICT.get(cls.AZURE_VM_REGION, "")
+        if thim_endpoint:
+            cls.RIM_SERVICE_BASE_URL = f"{thim_endpoint}/nvidia/v1/rim/"
+        else:
+            cls.RIM_SERVICE_BASE_URL = cls.RIM_SERVICE_BASE_URL_NVIDIA
+
+    @classmethod
+    def set_thim_ocsp_service_url(cls):
+        thim_endpoint = cls.AZURE_THIM_ENDPOINT_DICT.get(cls.AZURE_VM_REGION, "")
+        if thim_endpoint:
+            cls.OCSP_URL = f"{thim_endpoint}/nvidia/ocsp/"
+            cls.OCSP_NONCE_ENABLED = False
+        else:
+            cls.OCSP_URL = cls.OCSP_URL_NVIDIA
+            cls.OCSP_NONCE_ENABLED = True
 
     def __init__(self):
         self.measurement_comparison = False
@@ -174,7 +235,6 @@ class BaseSettings:
         self.gpu_certificate_ocsp_signature_verification  = False
         self.gpu_certificate_ocsp_cert_chain_verification = False
         self.gpu_cert_check_complete                      = False
-
 
     @classmethod
     def set_rim_root_certificate(cls, path):
@@ -251,7 +311,7 @@ class BaseSettings:
     def mark_driver_rim_fetched(self):
         event_log.debug("mark_driver_rim_fetched called")
         self.fetch_driver_rim = True
-    
+
     def check_if_vbios_rim_fetched(self):
         return self.fetch_vbios_rim
 
@@ -265,7 +325,7 @@ class BaseSettings:
     def mark_driver_rim_signature_verified(self):
         event_log.debug("mark_driver_rim_signature_verified called.")
         self.driver_rim_signature_verification = True
-    
+
     def check_if_vbios_rim_signature_verified(self):
         return self.vbios_rim_signature_verification
 
@@ -279,7 +339,7 @@ class BaseSettings:
     def mark_driver_rim_schema_validated(self):
         event_log.debug("mark_driver_rim_schema_validated called.")
         self.driver_rim_schema_validation = True
-    
+
     def check_if_vbios_rim_schema_validated(self):
         return self.vbios_rim_schema_validation
 
@@ -344,7 +404,7 @@ class BaseSettings:
     def mark_driver_rim_cert_extracted_successfully(self):
         event_log.debug("mark_driver_rim_cert_extracted_successfully called.")
         self.driver_rim_certificate_extraction = True
-    
+
     def check_if_vbios_rim_cert_extracted(self):
         return self.vbios_rim_certificate_extraction
 
@@ -379,21 +439,21 @@ class BaseSettings:
     def mark_attestation_report_driver_version_as_matching(self):
         event_log.debug("mark_attestation_report_driver_version_as_matching called.")
         self.attestation_report_driver_version_match = True
-    
+
     def check_if_attestation_report_vbios_version_matches(self):
         return self.attestation_report_vbios_version_match
-    
+
     def mark_attestation_report_vbios_version_as_matching(self):
         event_log.debug("mark_attestation_report_vbios_version_as_matching called.")
         self.attestation_report_vbios_version_match = True
-    
+
     def check_if_no_driver_vbios_measurement_index_conflict(self):
         return self.no_driver_vbios_measurement_index_conflict
-    
+
     def mark_no_driver_vbios_measurement_index_conflict(self):
         event_log.debug("mark_no_driver_vbios_measurement_conflict called.")
         self.no_driver_vbios_measurement_index_conflict = True
-  
+
     def check_status(self):
         self.claims["x-nv-gpu-available"] = self.check_gpu_availability()
         self.claims["x-nv-gpu-attestation-report-available"] = self.check_if_attestation_report_available()

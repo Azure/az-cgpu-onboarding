@@ -29,8 +29,10 @@
 #
 
 import os
+import time
 import secrets
 import string
+from datetime import datetime, timezone, timedelta
 from urllib import request
 from urllib.error import HTTPError
 import json
@@ -63,6 +65,7 @@ from verifier.exceptions import (
     SignatureVerificationError,
     VBIOSVersionMismatchError,
     RIMFetchError,
+    OCSPFetchError,
     InvalidNonceError
 )
 
@@ -138,6 +141,24 @@ class CcAdminUtils:
         return crypto.load_certificate(type=crypto.FILETYPE_ASN1, buffer = cert.public_bytes(serialization.Encoding.DER))
 
     @staticmethod
+    def build_ocsp_request(cert, issuer, nonce=None):
+        """ A static method to build the ocsp request message.
+
+        Args:
+            cert (OpenSSL.crypto.X509): the input certificate object.
+            issuer (OpenSSL.crypto.X509): the issuer certificate object.
+            nonce (bytes, optional): the nonce to be added in the ocsp request message. Defaults to None.
+
+        Returns:
+            [bytes]: the raw ocsp request message.
+        """
+        request_builder = ocsp.OCSPRequestBuilder()
+        request_builder = request_builder.add_certificate(cert, issuer, SHA384())
+        if nonce is not None:
+            request_builder = request_builder.add_extension(extval=OCSPNonce(nonce), critical=True)
+        return request_builder.build()
+
+    @staticmethod
     def ocsp_certificate_chain_validation(cert_chain, settings, mode):
         """ A static method to perform the ocsp status check of the input certificate chain along with the
         signature verification and the cert chain verification if the ocsp response message received.
@@ -164,95 +185,188 @@ class CcAdminUtils:
 
         for i, cert in enumerate(cert_chain):
             cert_chain[i] = cert.to_cryptography()
-        
+
         for i in range(start_index, end_index):
-            request_builder = ocsp.OCSPRequestBuilder()
-            request_builder = request_builder.add_certificate(cert_chain[i], cert_chain[i + 1], SHA384())
-            nonce  = CcAdminUtils.generate_nonce(BaseSettings.SIZE_OF_NONCE_IN_BYTES)
-            request_builder = request_builder.add_extension(extval = OCSPNonce(nonce),
-                                                            critical = True)
-            request = request_builder.build()
-            # Making the network call in a separate thread.
-            ocsp_response = function_wrapper_with_timeout([CcAdminUtils.send_ocsp_request,
-                                                           request.public_bytes(serialization.Encoding.DER),
-                                                           "send_ocsp_request"],
-                                                           BaseSettings.MAX_OCSP_TIME_DELAY)
+            cert_common_name = cert_chain[i].subject.get_attributes_for_oid(x509.oid.NameOID.COMMON_NAME)[0].value
+
+            # Get OCSP Response, fallback to Nvidia OCSP Service if fetch fails, raise error if both fails
+            nonce = (
+                CcAdminUtils.generate_nonce(BaseSettings.SIZE_OF_NONCE_IN_BYTES)
+                if BaseSettings.OCSP_NONCE_ENABLED
+                else None
+            )
+            ocsp_request = CcAdminUtils.build_ocsp_request(cert_chain[i], cert_chain[i + 1], nonce)
+            ocsp_response = function_wrapper_with_timeout(
+                [
+                    CcAdminUtils.send_ocsp_request,
+                    ocsp_request.public_bytes(serialization.Encoding.DER),
+                    BaseSettings.OCSP_URL,
+                    BaseSettings.OCSP_RETRY_COUNT,
+                    "send_ocsp_request",
+                ],
+                BaseSettings.MAX_OCSP_TIME_DELAY,
+            )
+
+            if ocsp_response is None:
+                nonce = CcAdminUtils.generate_nonce(BaseSettings.SIZE_OF_NONCE_IN_BYTES)
+                ocsp_request = CcAdminUtils.build_ocsp_request(cert_chain[i], cert_chain[i + 1], nonce)
+                ocsp_response = function_wrapper_with_timeout(
+                    [
+                        CcAdminUtils.send_ocsp_request,
+                        ocsp_request.public_bytes(serialization.Encoding.DER),
+                        BaseSettings.OCSP_URL_NVIDIA,
+                        BaseSettings.OCSP_RETRY_COUNT,
+                        "send_ocsp_request",
+                    ],
+                    BaseSettings.MAX_OCSP_TIME_DELAY,
+                )
+
+            if ocsp_response is None:
+                error_msg = f"Failed to fetch the ocsp response for certificate {cert_common_name}"
+                info_log.error(f"\t\t\t{error_msg}")
+                raise OCSPFetchError(error_msg)
+
+            # Verify the OCSP response status
+            if ocsp_response.response_status != ocsp.OCSPResponseStatus.SUCCESSFUL:
+                info_log.error("\t\tCouldn't receive a proper response from the OCSP server.")
+                return False
+
+            # Verify the Nonce in the OCSP response
+            if nonce is not None and nonce != ocsp_response.extensions.get_extension_for_class(OCSPNonce).value.nonce:
+                info_log.error(
+                    "\t\tThe nonce in the OCSP response message is not matching with the one passed in the OCSP request message."
+                )
+                return False
+            elif i == end_index - 1:
+                settings.mark_gpu_certificate_ocsp_nonce_as_matching()
+
+            # Verify the OCSP response is within the validity period
+            timestamp_format = "%Y/%m/%d %H:%M:%S UTC"
+            this_update = ocsp_response.this_update.replace(tzinfo=timezone.utc)
+            next_update = ocsp_response.next_update.replace(tzinfo=timezone.utc)
+            next_update_extended = next_update + timedelta(hours=BaseSettings.OCSP_VALIDITY_EXTENSION_HRS)
+            utc_now = datetime.now(timezone.utc)
+            info_log.debug(f"Current time: {utc_now.strftime(timestamp_format)}")
+            info_log.debug(f"OCSP this update: {this_update.strftime(timestamp_format)}")
+            info_log.debug(f"OCSP next update: {next_update.strftime(timestamp_format)}")
+            info_log.debug(f"OCSP next update extended: {next_update_extended.strftime(timestamp_format)}")
+
+            # Outside validity period, print warning
+            if not (this_update <= utc_now <= next_update):
+                info_log.warning(
+                    f"\t\tWARNING: OCSP FOR {cert_common_name} IS EXPIRED AFTER {next_update.strftime(timestamp_format)}."
+                )
+
+            # Outside extended validity period
+            if not (this_update <= utc_now <= next_update_extended):
+                info_log.error(
+                    f"\t\tOCSP FOR {cert_common_name} IS EXPIRED AND NO LONGER GOOD FOR ATTESTATION "
+                    f"AFTER {next_update_extended.strftime(timestamp_format)} "
+                    f"WITH {BaseSettings.OCSP_VALIDITY_EXTENSION_HRS} HOURS EXTENSION PERIOD."
+                )
+                return False
 
             # Verifying the ocsp response certificate chain.
-            ocsp_response_leaf_cert = crypto.load_certificate(type=crypto.FILETYPE_ASN1,
-                                                              buffer = ocsp_response.certificates[0].public_bytes(serialization.Encoding.DER))
-
+            ocsp_response_leaf_cert = crypto.load_certificate(
+                type=crypto.FILETYPE_ASN1,
+                buffer=ocsp_response.certificates[0].public_bytes(serialization.Encoding.DER),
+            )
             ocsp_cert_chain = [ocsp_response_leaf_cert]
-            
             for j in range(i, len(cert_chain)):
                 ocsp_cert_chain.append(CcAdminUtils.convert_cert_from_cryptography_to_pyopenssl(cert_chain[j]))
-
-            ocsp_cert_chain_verification_status = CcAdminUtils.verify_certificate_chain(ocsp_cert_chain,
-                                                                                        settings,
-                                                                                        BaseSettings.Certificate_Chain_Verification_Mode.OCSP_RESPONSE)
+            ocsp_cert_chain_verification_status = CcAdminUtils.verify_certificate_chain(
+                ocsp_cert_chain, settings, BaseSettings.Certificate_Chain_Verification_Mode.OCSP_RESPONSE
+            )
 
             if not ocsp_cert_chain_verification_status:
-                info_log.error(f"\t\tThe ocsp response certificate chain verification failed for {cert_chain[i].subject.get_attributes_for_oid(x509.oid.NameOID.COMMON_NAME)[0].value}.")
+                info_log.error(f"\t\tThe ocsp response certificate chain verification failed for {cert_common_name}.")
                 return False
             elif i == end_index - 1:
                 settings.mark_gpu_certificate_ocsp_cert_chain_as_verified(mode)
 
             # Verifying the signature of the ocsp response message.
             if not CcAdminUtils.verify_ocsp_signature(ocsp_response):
-                info_log.error(f"\t\tThe ocsp response response for certificate {cert_chain[i].subject.get_attributes_for_oid(x509.oid.NameOID.COMMON_NAME)[0].value} failed due to signature verification failure.")
+                info_log.error(
+                    f"\t\tThe ocsp response response for certificate {cert_common_name} failed due to signature verification failure."
+                )
                 return False
             elif i == end_index - 1:
                 settings.mark_gpu_certificate_ocsp_signature_as_verified()
 
-            if nonce != ocsp_response.extensions.get_extension_for_class(OCSPNonce).value.nonce:
-                info_log.error("\t\tThe nonce in the OCSP response message is not matching with the one passed in the OCSP request message.")
-                return False
-            elif i == end_index - 1:
-                settings.mark_gpu_certificate_ocsp_nonce_as_matching()
-
-            if ocsp_response.response_status != ocsp.OCSPResponseStatus.SUCCESSFUL:
-                info_log.error("\t\tCouldn't receive a proper response from the OCSP server.")
-                return False
-
+            # Verifying the ocsp response certificate status.
             if ocsp_response.certificate_status != ocsp.OCSPCertStatus.GOOD:
-                if x509.ReasonFlags.certificate_hold == ocsp_response.revocation_reason and \
-                BaseSettings.allow_hold_cert and \
-                (mode == BaseSettings.Certificate_Chain_Verification_Mode.DRIVER_RIM_CERT or BaseSettings.Certificate_Chain_Verification_Mode.VBIOS_RIM_CERT):
-                    info_log.warning(f"\t\t\tWARNING: THE CERTIFICATE {cert_chain[i].subject.get_attributes_for_oid(x509.oid.NameOID.COMMON_NAME)[0].value} IS REVOKED WITH THE STATUS AS 'CERTIFICATE_HOLD'.")
+                # Get cert revoke timestamp
+                cert_revocation_time = ocsp_response.revocation_time.replace(tzinfo=timezone.utc)
+                cert_revocation_reason = ocsp_response.revocation_reason
+                cert_revocation_time_extended = cert_revocation_time + timedelta(
+                    hours=BaseSettings.OCSP_CERT_REVOCATION_EXTENSION_HRS
+                )
+
+                # Cert is revoked, print warning
+                info_log.warning(
+                    f"\t\t\tWARNING: THE CERTIFICATE {cert_common_name} IS REVOKED "
+                    f"WITH THE STATUS AS '{cert_revocation_reason.value}' AT {cert_revocation_time.strftime(timestamp_format)}."
+                )
+
+                # Allow hold cert, or cert is revoked but within the extension period
+                if (datetime.now(timezone.utc) <= cert_revocation_time_extended) or (
+                    x509.ReasonFlags.certificate_hold == cert_revocation_reason and BaseSettings.allow_hold_cert
+                ):
                     revoked_status = True
+
+                # Cert is revoked and outside the extension period
                 else:
-                    info_log.error(f"\t\t\tTHE {cert_chain[i].subject.get_attributes_for_oid(x509.oid.NameOID.COMMON_NAME)[0].value} IS REVOKED FOR REASON : {ocsp_response.revocation_reason}")
+                    info_log.error(
+                        f"\t\t\tTHE CERTIFICATE {cert_common_name} IS REVOKED AND NO LONGER GOOD FOR ATTESTATION "
+                        f"AFTER {cert_revocation_time_extended.strftime(timestamp_format)} "
+                        f"WITH {BaseSettings.OCSP_CERT_REVOCATION_EXTENSION_HRS} HOURS GRACE PERIOD."
+                    )
                     return False
 
         if not revoked_status:
             info_log.info(f"\t\t\tThe certificate chain revocation status verification successful.")
         else:
-            info_log.warning(f"\t\t\tThe certificate chain revocation status verification was not successful but continuing.")
+            info_log.warning(
+                f"\t\t\tThe certificate chain revocation status verification was not successful but continuing."
+            )
 
         return True
 
     @staticmethod
-    def send_ocsp_request(data):
+    def send_ocsp_request(data, url, max_retries=3):
         """ A static method to prepare http request and send it to the ocsp server
-        and returns the ocsp response message.
+            and returns the ocsp response message.
 
         Args:
             data (bytes): the raw ocsp request message.
+            url (str): the url of the ocsp service.
+            max_retries (int, optional): the maximum number of retries to be performed in case of any error. Defaults to 5.
 
         Returns:
             [cryptography.hazmat.backends.openssl.ocsp._OCSPResponse]: the ocsp response message object.
         """
-        if not BaseSettings.OCSP_URL.lower().startswith('https'):
-            # Raising exception in case of url not starting with http, and not FTP, etc. 
-            raise ValueError from None
+        if not url.lower().startswith("https"):
+            # Raising exception in case of url not starting with http, and not FTP, etc.
+            raise ValueError("The OCSP service url should start with https")
 
-        https_request = request.Request(BaseSettings.OCSP_URL, data)
-        https_request.add_header("Content-Type", "application/ocsp-request")
+        try:
+            ocsp_request = request.Request(url, data)
+            ocsp_request.add_header("Content-Type", "application/ocsp-request")
 
-        with request.urlopen(https_request) as https_response:      #nosec taken care of the security issue by checking for the url to start with "http"
-            ocsp_response = ocsp.load_der_ocsp_response(https_response.read())
+            with request.urlopen(ocsp_request) as ocsp_response_raw:
+                ocsp_response = ocsp.load_der_ocsp_response(ocsp_response_raw.read())
+                info_log.debug(f"Successfully fetched the ocsp response from {url}")
+                return ocsp_response
 
-        return ocsp_response
+        except Exception as e:
+            info_log.debug(f"Error while fetching the ocsp response from {url}")
+            if isinstance(e, HTTPError):
+                info_log.debug(f"HTTP Error code : {e.code}")
+            if max_retries > 0:
+                time.sleep(BaseSettings.OCSP_RETRY_DELAY)
+                return CcAdminUtils.send_ocsp_request(data, url, max_retries - 1)
+            else:
+                return None
 
     @staticmethod
     def verify_ocsp_signature(ocsp_response):
@@ -281,24 +395,66 @@ class CcAdminUtils:
             return False
 
     @staticmethod
-    def fetch_rim_file(file_id):
-        """ A static method to fetch the RIM file with the given file id from the RIM service.
+    def fetch_rim_file_from_url(rim_id, url, max_retries=3):
+        """ A static method to fetch the RIM file with the given file id from the given url.
+            If the fetch fails, it retries for the maximum number of times specified by the max_retries parameter.
+            If the max_retries is set to 0, it does not retry on failure and return None.
 
         Args:
-            file_id (str): the RIM file id which need to be fetched from the RIM service.
+            rim_id (str): the RIM file id which need to be fetched from the given url.
+            url (str): the url from which the RIM file needs to be fetched.
+            max_retries (int, optional): the maximum number of retries to be performed in case of any error. Defaults to 5.
 
         Returns:
             [str]: the content of the required RIM file as a string.
         """
         try:
-            with request.urlopen(BaseSettings.RIM_SERVICE_BASE_URL + file_id) as https_response:
+            with request.urlopen(url + rim_id) as https_response:
                 data = https_response.read()
                 json_object = json.loads(data)
-                base64_data = json_object['rim']
-                decoded_str = base64.b64decode(base64_data)
-                return decoded_str.decode('utf-8')
-        except HTTPError:
-            raise RIMFetchError("Could not fetch the rim file : " + file_id)        
+                base64_data = json_object["rim"]
+                decoded_str = base64.b64decode(base64_data).decode("utf-8")
+                info_log.debug(f"Successfully fetched the RIM file from {url + rim_id}")
+                return decoded_str
+        except Exception as e:
+            info_log.debug(f"Error while fetching the RIM file from {url + rim_id}")
+            if isinstance(e, HTTPError):
+                info_log.debug(f"HTTP Error code : {e.code}")
+            if max_retries > 0:
+                time.sleep(BaseSettings.RIM_SERVICE_RETRY_DELAY)
+                return CcAdminUtils.fetch_rim_file_from_url(rim_id, url, max_retries - 1)
+            else:
+                return None
+
+    @staticmethod
+    def fetch_rim_file(rim_id, max_retries=3):
+        """ A static method to fetch the RIM file with the given file id from the RIM service.
+            It tries to fetch the RIM file from provided RIM service, and fallback to the Nvidia RIM service if the fetch fails.
+
+        Args:
+            rim_id (str): the RIM file id which need to be fetched from the RIM service.
+
+        Raises:
+            RIMFetchError: it is raised in case the RIM fetch is failed.
+
+        Returns:
+            [str]: the content of the required RIM file as a string.
+        """
+        # Fetching the RIM file from the provided RIM service
+        rim_result = CcAdminUtils.fetch_rim_file_from_url(rim_id, BaseSettings.RIM_SERVICE_BASE_URL, max_retries)
+        if rim_result is not None:
+            return rim_result
+
+        # Fallback to the Nvidia RIM service if the fetch fails
+        rim_result = CcAdminUtils.fetch_rim_file_from_url(
+            rim_id, BaseSettings.RIM_SERVICE_BASE_URL_NVIDIA, max_retries
+        )
+        if rim_result is not None:
+            return rim_result
+
+        # Raise error if RIM file is not fetched from both the RIM services
+        info_log.error(f"Failed to fetch the required RIM file : {rim_id} from the RIM service.")
+        raise RIMFetchError(f"Could not fetch the required RIM file : {rim_id} from the RIM service.")
 
     @staticmethod
     def get_vbios_rim_file_id(project, project_sku, chip_sku, vbios_version):
@@ -328,7 +484,6 @@ class CcAdminUtils:
         """
         base_str = 'NV_GPU_DRIVER_GH100_'
         return base_str + driver_version
-
 
     @staticmethod
     def get_vbios_rim_path(settings, attestation_report):
@@ -394,14 +549,14 @@ class CcAdminUtils:
         assert isinstance(gpu_leaf_certificate, crypto.X509)
         assert isinstance(nonce, bytes) and len(nonce) == settings.SIZE_OF_NONCE_IN_BYTES
 
-        # Here the attestation report is the concatenated SPDM GET_MEASUREMENTS request with the SPDM GET_MEASUREMENT response message. 
+        # Here the attestation report is the concatenated SPDM GET_MEASUREMENTS request with the SPDM GET_MEASUREMENT response message.
         request_nonce = attestation_report_obj.get_request_message().get_nonce()
-        
+
         if len(nonce) > settings.SIZE_OF_NONCE_IN_BYTES or len(request_nonce) > settings.SIZE_OF_NONCE_IN_BYTES:
             err_msg = "\t\t Length of Nonce is greater than max nonce size allowed."
             event_log.error(err_msg)
             raise InvalidNonceError(err_msg)
-        
+
         # compare the generated nonce with the nonce of SPDM GET MEASUREMENT request message in the attestation report.
         if request_nonce != nonce:
             err_msg = "\t\tThe nonce in the SPDM GET MEASUREMENT request message is not matching with the generated nonce."
@@ -482,7 +637,7 @@ class CcAdminUtils:
             return bytes.fromhex(nonce_hex_string)
         else :
             raise InvalidNonceError("Invalid Nonce Size. The nonce should be 32 bytes in length represented as Hex String")
-            
+
     def __init__(self, number_of_gpus):
         """ It is the constructor for the CcAdminUtils.
 
