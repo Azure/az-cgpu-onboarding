@@ -1,34 +1,39 @@
 ## This module helps install associate dependency and  do attestation against CGPU driver.
 ##
 ## Requirements:
-##      nvdia driver:       APM_470.10.12_5.15.0-1014.17.tar
-##      kernel version:     5.15.0-1014-azure
-##      verifier:           verifier_apm_pid3_5_1.tar
+##      nvdia driver:       v535.129.03
+##      minimum kernel version:     6.2.0-1012-azure
 ##
 ## Example:
 ##      bash step-2-attestation.sh
 ## 
 
-REQUIRED_DRIVER_INTERFACE_VERSION="NVIDIA System Management Interface -- v470.10.12"
+REQUIRED_DRIVER_INTERFACE_VERSION="NVIDIA System Management Interface -- v535.129.03"
 MAX_RETRY=3
 
 attestation(){
     # verify nvdia gpu driver has been install correctly.
+    sudo nvidia-smi -pm 1
     current_driver_interface_version=$(sudo nvidia-smi -h | head -1)
     if [ "$current_driver_interface_version" != "$REQUIRED_DRIVER_INTERFACE_VERSION" ]; 
     then
         echo "Current gpu driver version: ($current_driver_interface_version), Expected: ($REQUIRED_DRIVER_INTERFACE_VERSION)."
         echo "Please retry step-1-install-gpu-driver."
-    else 
-        echo "Driver verified successfully, start attestation."
-        tar -xvf verifier_apm_pid3_5_1.tar
-        cd verifier_apm_pid3_5_1
-        sudo apt install python3-pip
-        sudo pip3 install -r requirements.txt
-        sudo pip3 install -e pynvml_src/
+    else
+        mkdir local_gpu_verifier
+        tar -xvf local_gpu_verifier.tar -C local_gpu_verifier
+        pushd . 
+        cd local_gpu_verifier && echo "Open verifier folder successfully!"
+        
+        sudo apt install -y python3-pip
+        sudo pip install -U pip
+        sudo apt install -y python3.10-venv
+        
+        #source ./prodtest/bin/activate
+        sudo pip3 install .
+        sudo python3 -m verifier.cc_admin
+        popd > /dev/null
 
-        sudo python3 cc_admin.py
-        cd ..
         lockError=$(cat logs/current-operation.log | grep "Could not get lock")
         if [ "$lockError" != "" ] && [ $MAX_RETRY \> 0 ];
         then

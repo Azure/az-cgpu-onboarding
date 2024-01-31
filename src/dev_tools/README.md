@@ -1,17 +1,17 @@
 # Table of Contents
-1. [Dev Tools Overview](https://github.com/Azure-Confidential-Computing/PrivatePreview/tree/dev-branch/src/dev_tools#dev-tools-overview)
-2. [Instructions for Contributions](https://github.com/Azure-Confidential-Computing/PrivatePreview/tree/dev-branch/src/dev_tools#instructions-for-contributions)
+1. [Dev Tools Overview](https://github.com/Azure-Confidential-Computing/PrivatePreview/blob/main/src/dev_tools/README.md#dev-tools-overview)
+
+2. [Instructions for Contributions](https://github.com/Azure-Confidential-Computing/PrivatePreview/blob/main/src/dev_tools/README.md#instructions-for-contributions)
 
 ## Dev Tools Overview
 
 The following scripts were created to help automate the process of creating and testing
 drop packages:
 
-`init.ps1` -> logs in to your Azure account to download the driver and verifier from an Azure storage container
-into a local 'packages' folder
+`init.ps1` -> makes sure your environment is set up with the az module installed and logs into your Azure account
 
 `build.ps1` -> will generate the 3 packages into a 'drops' folder: cgpu-onboarding-package.tar.gz, 
-cgpu-sb-enable-vmi-onboarding.zip, and cgpu-sb-enable-vmi-onboarding.tar.gz
+cgpu-h100-auto-onboarding-windows.zip, and cgpu-h100-auto-onboarding-linux.tar.gz
 
 ## Instructions for Contributions
 
