@@ -36,6 +36,8 @@ install_gpu_tools(){
           "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
           $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
+
+
       sudo apt-get update -y
       sudo apt-get install -y docker-ce docker-ce-cli containerd.io
 
@@ -50,6 +52,8 @@ install_gpu_tools(){
 
       sudo apt-get update
       sudo apt-get install -y nvidia-docker2
+
+      sudo echo "{ \"exec-opts\": [\"native.cgroupdriver=cgroupfs\"]} " | sudo tee /etc/docker/daemon.json
       sudo systemctl restart docker
 
       sudo docker run --rm --gpus all nvidia/cuda:12.2.0-base-ubuntu22.04 nvidia-smi
