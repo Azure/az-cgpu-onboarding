@@ -57,10 +57,17 @@ function CGPU-H100-Onboarding{
 		}
 		
 		try {
-		    # Attempt to get the version of Azure CLI
-		    $azVersion = az --version
-		    # If the command runs successfully, it means Azure CLI is installed
-		    Write-Output "Azure Cli is installed current on $(az --version | Select-String 'azure-cli')"
+			# Attempt to get the version of Azure CLI
+			$azVersion = az --version
+			# If the command runs successfully, it means Azure CLI is installed
+			Write-Output "Azure Cli is installed current on $(az --version | Select-String 'azure-cli')"
+      			# Make sure minimum Azure CLI version is met
+	 		$currentAzCLIVersion = (az --version | Select-String -Pattern 'azure-cli.*?([0-9\.]+)').Matches.Groups[1].Value
+	 		$minimumAzCLIVersion="2.47.0"
+			if ([System.Version]$minimumAzCLIVersion -gt [System.Version]$currentAzCLIVersion) {
+				Write-Host "Current Azure CLI version found: $currentAzCLIVersion, expected >=$minimumAzCLIVersion"
+    				az upgrade
+			}
 		} catch {
 			Write-Host "Azure CLI is not installed, please try install Azure CLI first: https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-windows?tabs=powershell"
 			Write-Host "Note: you might need to restart powershell after install."
