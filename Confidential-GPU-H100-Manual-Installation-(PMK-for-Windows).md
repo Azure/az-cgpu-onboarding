@@ -34,19 +34,19 @@ Please make sure you have these requirements before performing the following ste
 - $publickeypath = the path to your local public key 
 ```
 az vm create `
-			--resource-group $rg `
-			--name $vmname `
-		  --image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:22.04.202312070 `
-			--public-ip-sku Standard `
-			--admin-username $adminusername `
-			--ssh-key-values $publickeypath `
-			--security-type ConfidentialVM `
-			--os-disk-security-encryption-type DiskWithVMGuestState `
-			--enable-secure-boot $true `
-			--enable-vtpm $true `
-			--size Standard_NCC40ads_H100_v5 `
-			--os-disk-size-gb 100 `
-			--verbose
+--resource-group $rg `
+--name $vmname `
+--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:22.04.202312070 `
+--public-ip-sku Standard `
+--admin-username $adminusername `
+--ssh-key-values $publickeypath `
+--security-type ConfidentialVM `
+--os-disk-security-encryption-type DiskWithVMGuestState `
+--enable-secure-boot $true `
+--enable-vtpm $true `
+--size Standard_NCC40ads_H100_v5 `
+--os-disk-size-gb 100 `
+--verbose
 ```
 
 ----------------------------------------------------
