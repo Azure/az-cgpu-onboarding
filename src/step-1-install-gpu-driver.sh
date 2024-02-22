@@ -78,6 +78,9 @@ install_gpu_driver(){
                 echo "Couldn't resolve lock issue with 3 time retries. Please restart the VM and try it again."
             fi 
         fi
+
+        # Add libnvidia-pkcs11.so.535.129.03 to mitigate the Ubuntu 20.04 container image CUDA issue
+        sudo cp ./535-driver-package/libnvidia-pkcs11.so.535.129.03 /usr/lib/x86_64-linux-gnu/
     fi
 }
 
