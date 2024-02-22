@@ -81,6 +81,7 @@ install_gpu_driver(){
 
         # Add libnvidia-pkcs11.so.535.129.03 to mitigate the Ubuntu 20.04 container image CUDA issue
         sudo cp ./535-driver-package/libnvidia-pkcs11.so.535.129.03 /usr/lib/x86_64-linux-gnu/
+        ldconfig
     fi
 }
 
