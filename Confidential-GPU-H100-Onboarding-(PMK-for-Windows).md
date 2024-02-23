@@ -50,7 +50,7 @@ cd cgpu-h100-auto-onboarding-windows
 # tenantid: your tenant ID, also known as your directory ID
 # subscriptionid: your subscription ID
 # rg: name of your resource group
-# adminusername: your adminusername
+# adminusername: the username you'll use to log in 
 # publickeypath: your public key path
 # privatekeypath: your private key path
 # cgpupackagepath: your cgpu-onboarding-package.tar.gz path
@@ -66,7 +66,7 @@ CGPU-H100-Onboarding `
 -publickeypath "E:\cgpu\.ssh\id_rsa.pub" `
 -privatekeypath "E:\cgpu\.ssh\id_rsa"  `
 -cgpupackagepath "cgpu-onboarding-package.tar.gz" `
--adminusername "adminusername" `
+-adminusername "<your login username>" `
 -vmnameprefix "cgpu-test" `
 -totalvmnumber 1
 ```
