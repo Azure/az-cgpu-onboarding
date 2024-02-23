@@ -61,6 +61,7 @@ bash Linux/cgpu-deploy-cmk-des.sh \
 ## Create-CGPU-VM
 
 1. Prepare ssh key for creating VM (if you don't have one)
+- Make sure to store your passphrase for later if using one
 
 ```
 # id_rsa.pub will used as ssh-key-values for VM creation.
