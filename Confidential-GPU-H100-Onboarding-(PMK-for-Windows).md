@@ -40,7 +40,7 @@ $ ssh-keygen -t rsa -b 4096 -C <your email here>
 2. Create the VM using a powershell script
 - This will create a Standard_NCC40ads_H100_v5 Confidential VM with a Platform Managed Key (PMK) with secure boot enabled in your specified resource group. If the resource group doesn't exist, it will create it with the specified name under the target subscription.
 
-- Decompress downloaded [cgpu-h100-auto-onboarding-windows.zip](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V3.0.1/cgpu-h100-auto-onboarding-windows.zip) and enter the folder through powershell.
+- Decompress downloaded [cgpu-h100-auto-onboarding-windows.zip](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V3.0.2/cgpu-h100-auto-onboarding-windows.zip) and enter the folder through powershell.
 ```
 cd cgpu-h100-auto-onboarding-windows
 ```
