@@ -17,11 +17,11 @@ This page is using platform managed keys. More information about platform manage
 
 ## Check-Requirements
 
-- Powershell: version 5.1.19041.1682 and above (please run windows powershell as administrator)
+- [Powershell](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-windows?view=powershell-7.4#msi): version 5.1.19041.1682 and above (please run windows powershell as administrator)
+- [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
 - [Azure Subscription](https://docs.microsoft.com/en-us/azure/cost-management-billing/manage/create-subscription)
 - [Azure Tenant ID](https://learn.microsoft.com/en-us/azure/active-directory/fundamentals/active-directory-how-to-find-tenant#find-tenant-id-with-powershell)
-- [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
-- Download [cgpu-h100-auto-onboarding-windows.zip](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V3.0.2/cgpu-h100-auto-onboarding-windows.zip) from [Azure-Confidential-Computing-CGPUPrivatePreview-V3.0.2](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V3.0.2)
+- Download [cgpu-h100-auto-onboarding-windows.zip](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V3.0.1/cgpu-h100-auto-onboarding-windows.zip) from [Azure-Confidential-Computing-CGPUPrivatePreview-V3.0.1](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V3.0.1)
 
 ----------------------------------------------------
 
@@ -34,7 +34,7 @@ This page is using platform managed keys. More information about platform manage
 # id_rsa will be used for ssh in your vm.
 # replace <your email here> with your email address.
 
-E:\cgpu\.ssh>ssh-keygen -t rsa -b 4096 -C <your email here>
+$ ssh-keygen -t rsa -b 4096 -C <your email here>
 ```
 
 2. Create the VM using a powershell script
@@ -51,8 +51,8 @@ cd cgpu-h100-auto-onboarding-windows
 # subscriptionid: your subscription ID
 # rg: name of your resource group
 # adminusername: your adminusername
-# publickeypath: your public key path
-# privatekeypath: your private key path
+# publickeypath: the path to your public key file on your local file system
+# privatekeypath: the path to your private key file on your local file system
 # cgpupackagepath: your cgpu-onboarding-package.tar.gz path
 # vmnameprefix: the prefix of your vm. It will create from prefix1, prefix2, prefix3 till the number of VMs specified;
 # totalvmnumber: the number of VMs you want to create
@@ -63,8 +63,8 @@ CGPU-H100-Onboarding `
 -tenantid "<your Tenant ID>" `
 -subscriptionid "<your subscription ID>" `
 -rg "cgpu-test-rg" `
--publickeypath "E:\cgpu\.ssh\id_rsa.pub" `
--privatekeypath "E:\cgpu\.ssh\id_rsa"  `
+-publickeypath "...\.ssh\id_rsa.pub" `
+-privatekeypath "...\.ssh\id_rsa"  `
 -cgpupackagepath "cgpu-onboarding-package.tar.gz" `
 -adminusername "adminusername" `
 -vmnameprefix "cgpu-test" `
