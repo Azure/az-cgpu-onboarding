@@ -61,6 +61,7 @@ bash Linux/cgpu-deploy-cmk-des.sh \
 ## Create-CGPU-VM
 
 1. Prepare ssh key for creating VM (if you don't have one)
+- Make sure to store your passphrase for later if using one
 
 ```
 # id_rsa.pub will used as ssh-key-values for VM creation.
@@ -89,7 +90,7 @@ cd cgpu-h100-auto-onboarding-linux
 # -i <private key path>: your id_rsa path
 # -d <disk encryption id>: customer managed disk encryption id (if not set, your VM will be created using a platform managed key)
 # -c <CustomerOnboardingPackage path>: Customer onboarding package path
-# -a <admin user name>: administrator username for the VM
+# -a <admin user name>: the username you'll use to log in to the VM
 # -v <vm name>: your VM name
 # -n <vm number>: number of VMs to be generated
 
@@ -97,7 +98,7 @@ bash cgpu-h100-auto-onboarding.sh  \
 -t "<your Tenant ID>" \
 -s "<your subscription ID>" \
 -r "confidential-gpu-rg" \
--a "azuretestuser" \
+-a "<your login username>" \
 -p "/home/username/.ssh/id_rsa.pub" \
 -i "/home/username/.ssh/id_rsa"  \
 -d "/subscriptions/85c61f94-8912-4e82-900e-6ab44de9bdf8/resourceGroups/CGPU-CMK-KV/providers/Microsoft.Compute/diskEncryptionSets/CMK-Test-Des-03-01"  \

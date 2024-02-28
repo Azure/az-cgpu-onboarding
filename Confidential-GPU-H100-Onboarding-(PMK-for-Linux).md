@@ -28,6 +28,7 @@ This page is using platform managed keys. More information about platform manage
 ### Create-CGPU-VM
 
 1. Prepare ssh key for creating VM (if you don't have one)
+- Make sure to store your passphrase for later if using one
 
 ```
 # id_rsa.pub will used as ssh-key-values for VM creation.
@@ -55,7 +56,7 @@ cd cgpu-h100-auto-onboarding-linux
 #	-p <public key path>: your id_rsa.pub path 
 #	-i <private key path>: your id_rsa path
 #	-c <CustomerOnboardingPackage path>: Customer onboarding package path
-#	-a <admin user name>: administrator username for the VM
+#	-a <admin user name>: the username you'll use to log in to the VM
 #	-v <vm name>: your VM name
 #	-n <vm number>: number of VMs to be generated
 
@@ -63,7 +64,7 @@ bash cgpu-h100-auto-onboarding.sh  \
 -t "<your Tenant ID>" \
 -s "<your subscription ID>" \
 -r "confidential-gpu-rg" \
--a "azuretestuser" \
+-a "<your login username>" \
 -p "/home/username/.ssh/id_rsa.pub" \
 -i "/home/username/.ssh/id_rsa"  \
 -c "./cgpu-onboarding-package.tar.gz" \

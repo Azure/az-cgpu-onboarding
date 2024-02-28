@@ -284,39 +284,45 @@ function VM-Creation {
 
 	$publickeypath="@${publickeypath}"
 
-	if (!$desid) {
-		Write-Host "Disk encryption set ID is not set, using Platform Managed Key for VM creation"
-		$result=az vm create `
-			--resource-group $rg `
-			--name $vmname `
-		    --image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:22.04.202312070 `
-			--public-ip-sku Standard `
-			--admin-username $adminusername `
-			--ssh-key-values $publickeypath `
-			--security-type ConfidentialVM `
-			--os-disk-security-encryption-type DiskWithVMGuestState `
-			--enable-secure-boot $true `
-			--enable-vtpm $true `
-			--size Standard_NCC40ads_H100_v5 `
-			--os-disk-size-gb 100 `
-			--verbose
+	# Check if VM name already exists within given resource group
+	$getvm = Get-AzVM -Name $vmname -ResourceGroupName $rg -ErrorVariable notPresent -ErrorAction SilentlyContinue
+	if ($notPresent) {
+		if (!$desid) {
+			Write-Host "Disk encryption set ID is not set, using Platform Managed Key for VM creation"
+			$result=az vm create `
+				--resource-group $rg `
+				--name $vmname `
+				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:22.04.202312070 `
+				--public-ip-sku Standard `
+				--admin-username $adminusername `
+				--ssh-key-values $publickeypath `
+				--security-type ConfidentialVM `
+				--os-disk-security-encryption-type DiskWithVMGuestState `
+				--enable-secure-boot $true `
+				--enable-vtpm $true `
+				--size Standard_NCC40ads_H100_v5 `
+				--os-disk-size-gb 100 `
+				--verbose
+		} else {
+			Write-Host "Disk encryption set ID has been set, using Customer Managed Key for VM creation:"
+			$result=az vm create `
+				--resource-group $rg `
+				--name $vmname `
+				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:22.04.202312070 `
+				--public-ip-sku Standard `
+				--admin-username $adminusername `
+				--ssh-key-values $publickeypath `
+				--security-type ConfidentialVM `
+				--os-disk-security-encryption-type DiskWithVMGuestState `
+				--enable-secure-boot $true `
+				--enable-vtpm $true `
+				--size Standard_NCC40ads_H100_v5 `
+				--os-disk-size-gb 100 `
+				--os-disk-secure-vm-disk-encryption-set $desid `
+				--verbose
+		}
 	} else {
-		Write-Host "Disk encryption set ID has been set, using Customer Managed Key for VM creation:"
-		$result=az vm create `
-			--resource-group $rg `
-			--name $vmname `
-		    --image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:22.04.202312070 `
-			--public-ip-sku Standard `
-			--admin-username $adminusername `
-			--ssh-key-values $publickeypath `
-			--security-type ConfidentialVM `
-			--os-disk-security-encryption-type DiskWithVMGuestState `
-			--enable-secure-boot $true `
-			--enable-vtpm $true `
-			--size Standard_NCC40ads_H100_v5 `
-			--os-disk-size-gb 100 `
-			--os-disk-secure-vm-disk-encryption-set $desid `
-			--verbose
+		Write-Host "A virtual machine with the name $vmname already exists in $rg - please choose a unique name."
 	}
 
 	Write-Host $result
