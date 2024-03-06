@@ -22,17 +22,25 @@ Please make sure you have these requirements before performing the following ste
 - [Azure Tenant ID](https://learn.microsoft.com/en-us/azure/active-directory/fundamentals/active-directory-how-to-find-tenant#find-tenant-id-with-powershell)
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
   - Note: minimum version 2.46.0 is required, run `az --version` to check your version and run `az upgrade` to install the latest version if your version is older
-- Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V3.0.3/cgpu-onboardingpackage.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-V3.0.3](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V3.0.3)
+- Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V3.0.3/cgpu-onboarding-package.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-V3.0.3](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V3.0.3)
 
 -------------------------------------------
 
 ## Create-CGPU-VM
 
-1. Replace the following parameters with your own:
+1. Log in to your azure account and ensure you are under the right subscription that has quota for this VM:
+```
+az login
+az account set --subscription <your subscription ID>
+```
+
+2. Deploy an NCC40 CGPU VM by replacing the following parameters with your own:
 - $rg = your resource group name. If it does not already exist, it will create a new one
 - $vmname = the name of the virtual machine you want to deploy
 - $adminusername = the username you will use to log in to your virtual machine
 - $publickeypath = the path to your local public key 
+
+Please note that this step may take a few minutes to complete. You can track your deployment in the portal under your resource group.
 ```
 az vm create `
 --resource-group $rg `
@@ -56,7 +64,7 @@ az vm create `
 
 1. Once your virtual machine is created, manually upload the cgpu-onboarding-package that you downloaded from the release:
 - $privatekeypath = the path to your local private key 
-- $cgpupackagepath = where you downloaded the onboarding package to
+- $cgpupackagepath = the location where you downloaded the onboarding package to (ex: "C:\Users\username\Downloads\cgpu-onboarding-package.tar.gz")
 - $adminusername = the username you set to log in
 - $vmip = the public IP address of your deployed virtual machine
 
@@ -78,38 +86,47 @@ tar -zxvf cgpu-onboarding-package.tar.gz
 cd cgpu-onboarding-package
 bash step-0-prepare-kernel.sh
 ```
+Note: this step requires a reboot, so once your VM status is back to 'running' please re-connect and re-enter the onboarding package to continue:
+```
+ssh -i ${privatekeypath} $adminusername@$vmip
+cd cgpu-onboarding-package
+```
 
 2. The next step will install the GPU driver. Please note that this step will involve a reboot
 ```
 bash step-1-install-gpu-driver.sh
 ```
 
-3. Once your virtual machine is up and running again, we are able to perform attestation by running the next step. You will be able to see the attestation message printed at the bottom
+3. Now we are finally able to run attestation - you will be able to see the attestation message printed at the bottom
 ```
 bash step-2-attestation.sh
 ```
 
 4. Finally, run the last step to install the GPU tools. These are tools and packages that will allow you to run various workloads
 ```
-bash step-3-install-gpu-tools.sh;
+bash step-3-install-gpu-tools.sh
 ```
 
 ## Validation
 In order to confirm that all the steps were performed successfully and to ensure that your CGPU VM is in the proper state, you can use the following commands:
-1. Check whether secureboot is enabled. You should see: "SecureBoot enabled"
+
+1. Check whether secureboot is enabled:
 ```
 mokutil --sb-state
 ```
+You should see: "SecureBoot enabled"
 
-2. Check whether the confidential compute mode (CC Mode) is enabled. You should see: "CC status: ON"
+2. Check whether the confidential compute mode (CC Mode) is enabled:
 ``` 
 nvidia-smi conf-compute -f
 ```
+You should see: "CC status: ON"
 
-3. Check the confidential compute environment. You should see: "CC Environment: INTERNAL"
+3. Check the confidential compute environment:
 ```
 nvidia-smi conf-compute -e
 ```
+You should see: "CC Environment: INTERNAL"
 
 ## Workload-Running
 Once you have finished the validation, you can execute the following commands to try a sample workload:
@@ -117,3 +134,5 @@ Once you have finished the validation, you can execute the following commands to
 ```
 sudo docker run --gpus all -v /home/${adminusername}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:23.09-tf2-py3 python /home/mnist-sample-workload.py
 ```
+
+If you have reached this point, congratulations! You have offically manually created an NCC40 CGPU VM!
