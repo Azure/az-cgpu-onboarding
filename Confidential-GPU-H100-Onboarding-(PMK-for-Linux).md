@@ -21,13 +21,14 @@ This page is using platform managed keys. More information about platform manage
 - [Azure Tenant ID](https://learn.microsoft.com/en-us/azure/active-directory/fundamentals/active-directory-how-to-find-tenant#find-tenant-id-with-powershell)
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
   - Note: minimum version 2.42.0 is required, run `az --version` to check your version and run `az upgrade` to install the latest version if your version is older
-- Download [cgpu-h100-auto-onboarding-linux.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V3.0.2/cgpu-h100-auto-onboarding-linux.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-V3.0.2](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V3.0.2)
+- Download [cgpu-h100-auto-onboarding-linux.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V3.0.2/cgpu-h100-auto-onboarding-linux.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-V3.0.3](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V3.0.3)
 
 ----------------------------------------------------
 
 ### Create-CGPU-VM
 
 1. Prepare ssh key for creating VM (if you don't have one)
+- Make sure to store your passphrase for later if using one
 
 ```
 # id_rsa.pub will used as ssh-key-values for VM creation.
@@ -40,7 +41,7 @@ E:\cgpu\.ssh>ssh-keygen -t rsa -b 4096 -C <your email here>
 2. Create VM using powershell script
 - This will create a Standard_NCC40ads_H100_v5 Confidential VM with a Platform Managed Key (PMK) with secure boot enabled in your specified resource group. If the resource group doesn't exist, it will create it with the specified name under the target subscription.
 
-- Decompress downloaded [cgpu-h100-auto-onboarding-linux.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V3.0.2/cgpu-h100-auto-onboarding-linux.tar.gz) and enter the folder through your bash window.
+- Decompress downloaded [cgpu-h100-auto-onboarding-linux.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V3.0.3/cgpu-h100-auto-onboarding-linux.tar.gz) and enter the folder through your bash window.
 ```
 cd cgpu-h100-auto-onboarding-linux
 ```
@@ -55,7 +56,7 @@ cd cgpu-h100-auto-onboarding-linux
 #	-p <public key path>: your id_rsa.pub path 
 #	-i <private key path>: your id_rsa path
 #	-c <CustomerOnboardingPackage path>: Customer onboarding package path
-#	-a <admin user name>: administrator username for the VM
+#	-a <admin user name>: the username you'll use to log in to the VM
 #	-v <vm name>: your VM name
 #	-n <vm number>: number of VMs to be generated
 
@@ -63,7 +64,7 @@ bash cgpu-h100-auto-onboarding.sh  \
 -t "<your Tenant ID>" \
 -s "<your subscription ID>" \
 -r "confidential-gpu-rg" \
--a "azuretestuser" \
+-a "<your login username>" \
 -p "/home/username/.ssh/id_rsa.pub" \
 -i "/home/username/.ssh/id_rsa"  \
 -c "./cgpu-onboarding-package.tar.gz" \

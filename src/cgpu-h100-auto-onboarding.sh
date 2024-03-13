@@ -33,8 +33,8 @@ cgpu_h100_onboarding() {
 	while getopts t:s:r:p:i:d:c:a:v:n: flag
 	do
 	    case "${flag}" in
-			t) tenant_id=${OPTARG};;
-			s) subscription_id=${OPTARG};;
+		t) tenant_id=${OPTARG};;
+		s) subscription_id=${OPTARG};;
 	        r) rg=${OPTARG};;
 	        p) public_key_path=${OPTARG};;
 	        i) private_key_path=${OPTARG};;
@@ -47,10 +47,24 @@ cgpu_h100_onboarding() {
 	done
 	
 	if [ "$(az --version | grep azure-cli)" == "" ]; then
-    	echo "Azure CLI is not installed, please try install Azure CLI first: curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash"
-    	return
+    		echo "Azure CLI is not installed, please try install Azure CLI first: curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash"
+    		return
 	fi
-	
+
+ 	# Make sure Az CLI minimum version is met
+        MINIMUM_AZ_CLI_VERSION="2.47.0"
+        current_az_cli=$(az --version | grep azure-cli)
+        if [[ $current_az_cli =~ [0-9.]+ ]]
+        then
+                az_cli_version="${BASH_REMATCH[0]}"
+        fi
+        echo -e "$MINIMUM_AZ_CLI_VERSION\n$az_cli_version" | sort --check=quiet --version-sort
+        if [ "$?" -ne "0" ];
+        then
+		echo "Current Azure CLI version found: $az_cli_version, expected >=$MINIMUM_AZ_CLI_VERSION"
+                az upgrade
+        fi
+
 	# Log out input information.
 	echo "Tenant id: ${tenant_id}" 
 	echo "subscription id: ${subscription_id}" 
@@ -58,22 +72,22 @@ cgpu_h100_onboarding() {
 
 	echo "Public key path: ${public_key_path}" 
 	if [ ! -f "${public_key_path}" ]; then
-    	echo "${public_key_path} does not exist, please verify file path"
-    	return
+    		echo "${public_key_path} does not exist, please verify file path"
+    		return
 	fi
 
 	echo "Private key path:  ${private_key_path}"
 	if [ ! -f "${private_key_path}" ]; then
-    	echo "${private_key_path} does not exist, please verify file path"
-    	return
+    		echo "${private_key_path} does not exist, please verify file path"
+    		return
 	fi
 
 	echo "Disk encryption Id: ${des_id}"
 
 	echo "Cgpu onboarding package path:  ${cgpu_package_path}"
 	if [ ! -f "${cgpu_package_path}" ]; then
-    	echo "${cgpu_package_path} does not exist, please verify file path"
-    	return
+    		echo "${cgpu_package_path} does not exist, please verify file path"
+    		return
 	fi
 
 	echo "Admin user name:  ${adminuser_name}"
@@ -284,42 +298,49 @@ create_vm() {
 	echo "Start creating VM: '${vmname}'. Please wait, this process can take up to 10 minutes."
 
 	public_key_path_with_at="@$public_key_path"
-	
-	if [ -n "$des_id" ]; then
-	    echo "Disk encryption set ID has been set, using Customer Managed Key for VM creation:"
-	    echo "Provisioning VM..."
-	    az vm create \
-			--resource-group $rg \
-			--name $vmname \
-			--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:22.04.202312070 \
-			--public-ip-sku Standard \
-			--admin-username $adminuser_name \
-			--ssh-key-values $public_key_path_with_at \
-			--security-type ConfidentialVM \
-			--os-disk-security-encryption-type DiskWithVMGuestState \
-			--os-disk-secure-vm-disk-encryption-set $des_id \
-			--enable-secure-boot true \
-			--enable-vtpm true \
-			--size Standard_NCC40ads_H100_v5 \
-			--os-disk-size-gb 100 \
-			--verbose
+
+	# Check if VM name already exists within given resource group (returns 1 if exists, 0 if not)
+	vm_count=$(az vm list --resource-group $rg --query "[?name=='$vmname'] | length(@)")
+	if [ $vm_count -eq 0 ]; then
+		if [ -n "$des_id" ]; then
+			echo "Disk encryption set ID has been set, using Customer Managed Key for VM creation:"
+			echo "Provisioning VM..."
+			az vm create \
+				--resource-group $rg \
+				--name $vmname \
+				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:22.04.202312070 \
+				--public-ip-sku Standard \
+				--admin-username $adminuser_name \
+				--ssh-key-values $public_key_path_with_at \
+				--security-type ConfidentialVM \
+				--os-disk-security-encryption-type DiskWithVMGuestState \
+				--os-disk-secure-vm-disk-encryption-set $des_id \
+				--enable-secure-boot true \
+				--enable-vtpm true \
+				--size Standard_NCC40ads_H100_v5 \
+				--os-disk-size-gb 100 \
+				--verbose
+		else
+			echo "Disk encryption set ID is not set, using Platform Managed Key for VM creation"
+			echo "Provisioning VM..."
+			az vm create \
+				--resource-group $rg \
+				--name $vmname \
+				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:22.04.202312070 \
+				--public-ip-sku Standard \
+				--admin-username $adminuser_name \
+				--ssh-key-values $public_key_path_with_at \
+				--security-type ConfidentialVM \
+				--os-disk-security-encryption-type DiskWithVMGuestState \
+				--enable-secure-boot true \
+				--enable-vtpm true \
+				--size Standard_NCC40ads_H100_v5 \
+				--os-disk-size-gb 100 \
+				--verbose
+		fi
 	else
-	    echo "Disk encryption set ID is not set, using Platform Managed Key for VM creation"
-	    echo "Provisioning VM..."
-	    az vm create \
-			--resource-group $rg \
-			--name $vmname \
-			--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:22.04.202312070 \
-			--public-ip-sku Standard \
-			--admin-username $adminuser_name \
-			--ssh-key-values $public_key_path_with_at \
-			--security-type ConfidentialVM \
-			--os-disk-security-encryption-type DiskWithVMGuestState \
-			--enable-secure-boot true \
-			--enable-vtpm true \
-			--size Standard_NCC40ads_H100_v5 \
-			--os-disk-size-gb 100 \
-			--verbose
+		echo "A virtual machine with the name $vmname already exists in $rg - please choose a unique name."
+		is_success="failed"
 	fi
 
 	if [[ $? -ne 0 ]]; then

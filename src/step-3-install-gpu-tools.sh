@@ -50,6 +50,10 @@ install_gpu_tools(){
 
       sudo apt-get update
       sudo apt-get install -y nvidia-docker2
+      
+      # Nvidia currently having an issue with GPU disappear from docker
+      # Put temp mitigation based on: https://github.com/nvidia/nvidia-container-toolkit/issues/48
+      sudo echo "{ \"exec-opts\": [\"native.cgroupdriver=cgroupfs\"]} " | sudo tee /etc/docker/daemon.json
       sudo systemctl restart docker
 
       sudo docker run --rm --gpus all nvidia/cuda:12.2.0-base-ubuntu22.04 nvidia-smi
