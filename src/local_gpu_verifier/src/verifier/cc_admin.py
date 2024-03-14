@@ -525,19 +525,17 @@ def attest(arguments_as_dictionary):
 
             elif arguments_as_dictionary['test_no_gpu']:
                 pass
+
             else:
-                gpu_state = False
-                ready_str = 'NOT READY'
-                if  NvmlHandler.is_cc_dev_mode(): 
+                if NvmlHandler.is_cc_dev_mode(): 
                     info_log.info('\tGPU is running in DevTools mode!!')
-                    gpu_state = True
-                    ready_str = 'READY'
-                if not arguments_as_dictionary["user_mode"]:
-                    if NvmlHandler.get_gpu_ready_state() != gpu_state:
-                        info_log.info(f'\tSetting the GPU Ready State to {ready_str}')
-                        NvmlHandler.set_gpu_ready_state(gpu_state)
-                    else:
-                        info_log.info(f'\tGPU Ready state is already {ready_str}')
+                    if not arguments_as_dictionary["user_mode"]:
+                        if not NvmlHandler.get_gpu_ready_state():
+                            info_log.info("\tSetting the GPU Ready State to READY")
+                            NvmlHandler.set_gpu_ready_state(True)
+                        else:
+                            info_log.info("\tGPU Ready State is already READY")
+
                 info_log.info(f'The verification of GPU {i} resulted in failure.')
 
             if i == 0:
@@ -555,18 +553,14 @@ def attest(arguments_as_dictionary):
             retry()
 
         else:
-            gpu_state = False
-            ready_str = 'NOT READY'
-            if NvmlHandler.is_cc_dev_mode():
+            if NvmlHandler.is_cc_dev_mode(): 
                 info_log.info('\tGPU is running in DevTools mode!!')
-                gpu_state = True
-                ready_str = 'READY'
-            if not arguments_as_dictionary["user_mode"]:
-                if NvmlHandler.get_gpu_ready_state() != gpu_state:
-                    info_log.info(f'\tSetting the GPU Ready State to {ready_str}')
-                    NvmlHandler.set_gpu_ready_state(gpu_state)
-                else:
-                    info_log.info(f'\tGPU Ready state is already {ready_str}')
+                if not arguments_as_dictionary["user_mode"]:
+                    if not NvmlHandler.get_gpu_ready_state():
+                        info_log.info("\tSetting the GPU Ready State to READY")
+                        NvmlHandler.set_gpu_ready_state(True)
+                    else:
+                        info_log.info("\tGPU Ready State is already READY")
 
     finally:
         global previous_try_status
@@ -628,19 +622,14 @@ def retry():
         attest(arguments_as_dictionary)
         time.sleep(BaseSettings.MAX_TIME_DELAY)
     else:
-        gpu_state = False
-        ready_str = 'NOT READY'
-        init_nvml()
-        if NvmlHandler.is_cc_dev_mode():
+        if NvmlHandler.is_cc_dev_mode(): 
             info_log.info('\tGPU is running in DevTools mode!!')
-            gpu_state = True
-            ready_str = 'READY'
-        if not arguments_as_dictionary["user_mode"]:
-            if NvmlHandler.get_gpu_ready_state() != gpu_state:
-                info_log.info(f'\tSetting the GPU Ready State to {ready_str}')
-                NvmlHandler.set_gpu_ready_state(gpu_state)
-            else:
-                info_log.info(f'\tGPU Ready state is already {ready_str}')
+            if not arguments_as_dictionary["user_mode"]:
+                if not NvmlHandler.get_gpu_ready_state():
+                    info_log.info("\tSetting the GPU Ready State to READY")
+                    NvmlHandler.set_gpu_ready_state(True)
+                else:
+                    info_log.info("\tGPU Ready State is already READY")
 
 
 if __name__ == "__main__":
