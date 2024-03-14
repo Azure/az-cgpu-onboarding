@@ -1,5 +1,5 @@
 #
-# SPDX-FileCopyrightText: Copyright (c) 2021-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2021-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Redistribution and use in source and binary forms, with or without
@@ -349,6 +349,11 @@ def attest(arguments_as_dictionary):
 
             event_log.debug(f'GPU info fetched : \n\t\t{vars(gpu_info_obj)}')
 
+            # Parsing the attestation report.
+            attestation_report_data = gpu_info_obj.get_attestation_report()
+            attestation_report_obj = AttestationReport(attestation_report_data, settings)
+            settings.mark_attestation_report_parsed()
+
             info_log.info("\tValidating GPU certificate chains.")
             gpu_attestation_cert_chain = gpu_info_obj.get_attestation_cert_chain()
 
@@ -363,9 +368,14 @@ def attest(arguments_as_dictionary):
 
             gpu_leaf_cert = (gpu_attestation_cert_chain[0])
             event_log.debug("\t\tverifying attestation certificate chain.")
-            cert_verification_status = CcAdminUtils.verify_certificate_chain(gpu_attestation_cert_chain,
-                                                                             settings,
-                                                                             BaseSettings.Certificate_Chain_Verification_Mode.GPU_ATTESTATION)
+            cert_verification_status = CcAdminUtils.verify_gpu_certificate_chain(
+                gpu_attestation_cert_chain,
+                settings,
+                attestation_report_obj.get_response_message()
+                .get_opaque_data()
+                .get_data("OPAQUE_FIELD_ID_FWID")
+                .hex(),
+            )
 
             if not cert_verification_status:
                 err_msg = "\t\tGPU attestation report certificate chain validation failed."
@@ -387,10 +397,7 @@ def attest(arguments_as_dictionary):
             settings.mark_gpu_cert_check_complete()
 
             info_log.info("\tAuthenticating attestation report")
-            attestation_report_data = gpu_info_obj.get_attestation_report()
-            attestation_report_obj = AttestationReport(attestation_report_data, settings)
             attestation_report_obj.print_obj(info_log)
-            settings.mark_attestation_report_parsed()
             attestation_report_verification_status = CcAdminUtils.verify_attestation_report(attestation_report_obj=attestation_report_obj,
                                                                                             gpu_leaf_certificate=gpu_leaf_cert,
                                                                                             nonce=nonce_for_attestation_report,
