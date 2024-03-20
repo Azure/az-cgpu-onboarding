@@ -78,7 +78,7 @@ Finish install gpu tools.
 Started C-GPU capable validation.
 Passed: secure boot state validation. Current secure boot state: SecureBoot enabled
 Passed: Confidential Compute mode validation passed. Current Confidential Compute retrieve state: CC status: ON
-Passed: Confidential Compute environment validation. Current Confidential Compute environment: CC Environment: INTERNAL
+Passed: Confidential Compute environment validation. Current Confidential Compute environment: CC Environment: PRODUCTION
 Finished C-GPU capable validation.
 Finished creating VM: cgpu-01-12-7-1
 ******************************************************************************************

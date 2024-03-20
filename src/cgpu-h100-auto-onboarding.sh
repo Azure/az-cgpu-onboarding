@@ -371,7 +371,7 @@ validation() {
 	fi
 
 	cc_environment=$(ssh -i $private_key_path $vm_ssh_info "nvidia-smi conf-compute -e;")
-	if [ "$cc_environment" != "CC Environment: INTERNAL" ];
+	if [ "$cc_environment" != "CC Environment: PRODUCTION" ];
 	then
 		is_success="failed"
 		echo "Failed: Confidential Compute environment validation. Current Confidential Compute environment: ${cc_environment}"
