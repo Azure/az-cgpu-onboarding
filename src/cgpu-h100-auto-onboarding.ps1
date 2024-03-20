@@ -292,7 +292,7 @@ function VM-Creation {
 			$result=az vm create `
 				--resource-group $rg `
 				--name $vmname `
-				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:22.04.202312070 `
+				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:latest `
 				--public-ip-sku Standard `
 				--admin-username $adminusername `
 				--ssh-key-values $publickeypath `
@@ -308,7 +308,7 @@ function VM-Creation {
 			$result=az vm create `
 				--resource-group $rg `
 				--name $vmname `
-				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:22.04.202312070 `
+				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:latest `
 				--public-ip-sku Standard `
 				--admin-username $adminusername `
 				--ssh-key-values $publickeypath `
