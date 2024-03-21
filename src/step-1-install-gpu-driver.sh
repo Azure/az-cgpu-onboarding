@@ -19,6 +19,8 @@ install_gpu_driver() {
         echo "Current kernel version: ($current_kernel), expected: (>= $MINIMUM_KERNEL_VERSION)."
         # echo "Please try utilities-update-kernel.sh 6.5.0-1017-azure."
     else
+        sudo cp nvidia-lkca.conf /etc/modprobe.d/nvidia-lkca.conf
+
         # verify secure boot and key enrollment.
         secure_boot_status=$(mokutil --sb)
         nvidia_signing_key=$(mokutil --list-enrolled | grep "NVIDIA")
