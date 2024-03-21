@@ -285,8 +285,7 @@ function VM-Creation {
 	$publickeypath="@${publickeypath}"
 
 	# Check if VM name already exists within given resource group
-	$getvm = Get-AzVM -Name $vmname -ResourceGroupName $rg -ErrorVariable notPresent -ErrorAction SilentlyContinue
-	if ($notPresent) {
+	if( "$(az vm show --resource-group $rg --name $vmname)" -eq "") {
 		if (!$desid) {
 			Write-Host "Disk encryption set ID is not set, using Platform Managed Key for VM creation"
 			$result=az vm create `
