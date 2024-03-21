@@ -1,11 +1,11 @@
-## This module helps install associate dependency and  do attestation against CGPU driver.
+## This module helps install associate dependency and do attestation against CGPU driver.
 ##
 ## Requirements:
-##      nvdia driver:       v550.54.14
-##      minimum kernel version:     6.5.0-1017-azure
+##      Nvidia driver:              v550.54.14
+##      Minimum kernel version:     6.5.0-1017-azure
 ##
 ## Example:
-##      bash step-2-attestation.sh
+##      sudo bash step-2-attestation.sh
 ##
 
 REQUIRED_DRIVER_INTERFACE_VERSION="NVIDIA System Management Interface -- v550.54.14"

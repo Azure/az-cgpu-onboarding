@@ -1,11 +1,10 @@
 ## This module helps install gpu nvdia docker image for helping execute machine learning workload.
 ##
 ## Requirements:
-##      nvdia driver:       APM_470.10.12_5.15.0-1014.17.tar
-##      nvdia driver:       v550.54.14
+##      Nvidia driver:       v550.54.14
 ##
 ## Example:
-##      bash step-3-install-gpu-tools.sh
+##      sudo bash step-3-install-gpu-tools.sh
 ##
 
 ATTESTATION_SUCCESS_MESSAGE="GPU Attested Successfully"
@@ -55,7 +54,7 @@ install_gpu_tools() {
 
         # Nvidia currently having an issue with GPU disappear from docker
         # Put temp mitigation based on: https://github.com/nvidia/nvidia-container-toolkit/issues/48
-        sudo echo "{ \"exec-opts\": [\"native.cgroupdriver=cgroupfs\"]} " | sudo tee /etc/docker/daemon.json
+        sudo echo "{ \"exec-opts\": [\"native.cgroupdriver=cgroupfs\"] }" | sudo tee /etc/docker/daemon.json
         sudo systemctl restart docker
 
         sudo docker run --rm --gpus all nvidia/cuda:12.3.2-base-ubuntu22.04 nvidia-smi
