@@ -10,6 +10,6 @@ sudo sed -i 's/#$nrconf{restart} = '"'"'i'"'"';/$nrconf{restart} = '"'"'a'"'"';/
 echo Y | sudo apt upgrade
 
 sudo cp nvidia-lkca.conf /etc/modprobe.d/nvidia-lkca.conf
-echo Y | sudo update-initramfs -u
+sudo update-initramfs -u
 
 sudo reboot
