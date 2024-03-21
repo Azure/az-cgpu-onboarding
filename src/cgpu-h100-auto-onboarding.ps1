@@ -512,7 +512,7 @@ function Validation {
 	}
 
 	$ccenvironment=$(ssh -i $privatekeypath $vmsshinfo "nvidia-smi conf-compute -e;")
-	if ($ccenvironment -ne "CC Environment: INTERNAL")
+	if ($ccenvironment -ne "CC Environment: PRODUCTION")
 	{
 		$global:issuccess="failed"
 		Write-Host "Failed: Confidential Compute environment validation. Current Confidential Compute environment state: ${ccenvironment}"
