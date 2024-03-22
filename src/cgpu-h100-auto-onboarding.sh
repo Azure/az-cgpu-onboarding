@@ -144,7 +144,7 @@ cgpu_h100_onboarding() {
 	echo "Please execute the below command to try attestation:"
 	echo "cd cgpu-onboarding-package; bash step-2-attestation.sh";
 	echo "Please execute the below command to try a sample workload:"
-	echo "sudo docker run --gpus all -v /home/${adminuser_name}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:23.09-tf2-py3 python /home/mnist-sample-workload.py";
+	echo "sudo docker run --gpus all -v /home/${adminuser_name}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:24.02-tf2-py3 python /home/mnist-sample-workload.py";
 	echo "******************************************************************************************"
 
 	az account clear
@@ -308,7 +308,7 @@ create_vm() {
 			az vm create \
 				--resource-group $rg \
 				--name $vmname \
-				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:22.04.202312070 \
+				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:latest \
 				--public-ip-sku Standard \
 				--admin-username $adminuser_name \
 				--ssh-key-values $public_key_path_with_at \
@@ -326,7 +326,7 @@ create_vm() {
 			az vm create \
 				--resource-group $rg \
 				--name $vmname \
-				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:22.04.202312070 \
+				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:latest \
 				--public-ip-sku Standard \
 				--admin-username $adminuser_name \
 				--ssh-key-values $public_key_path_with_at \
@@ -371,7 +371,7 @@ validation() {
 	fi
 
 	cc_environment=$(ssh -i $private_key_path $vm_ssh_info "nvidia-smi conf-compute -e;")
-	if [ "$cc_environment" != "CC Environment: INTERNAL" ];
+	if [ "$cc_environment" != "CC Environment: PRODUCTION" ];
 	then
 		is_success="failed"
 		echo "Failed: Confidential Compute environment validation. Current Confidential Compute environment: ${cc_environment}"

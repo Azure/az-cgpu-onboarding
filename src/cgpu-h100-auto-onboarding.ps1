@@ -148,7 +148,7 @@ function Auto-Onboard-CGPU-Multi-VM {
 	Write-Host "Please execute the below command to try attestation:"
 	Write-Host "cd cgpu-onboarding-package; bash step-2-attestation.sh";
 	Write-Host "Please execute the below command to try a sample workload:"
-	Write-Host "sudo docker run --gpus all -v /home/${adminusername}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:23.09-tf2-py3 python /home/mnist-sample-workload.py";
+	Write-Host "sudo docker run --gpus all -v /home/${adminusername}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:24.02-tf2-py3 python /home/mnist-sample-workload.py";
 	Write-Host "******************************************************************************************"
 
 	Write-Host "Total VM to onboard: ${totalvmnumber}, total Success: ${successcount}."
@@ -292,7 +292,7 @@ function VM-Creation {
 			$result=az vm create `
 				--resource-group $rg `
 				--name $vmname `
-				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:22.04.202312070 `
+				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:latest `
 				--public-ip-sku Standard `
 				--admin-username $adminusername `
 				--ssh-key-values $publickeypath `
@@ -308,7 +308,7 @@ function VM-Creation {
 			$result=az vm create `
 				--resource-group $rg `
 				--name $vmname `
-				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:22.04.202312070 `
+				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:latest `
 				--public-ip-sku Standard `
 				--admin-username $adminusername `
 				--ssh-key-values $publickeypath `
@@ -512,7 +512,7 @@ function Validation {
 	}
 
 	$ccenvironment=$(ssh -i $privatekeypath $vmsshinfo "nvidia-smi conf-compute -e;")
-	if ($ccenvironment -ne "CC Environment: INTERNAL")
+	if ($ccenvironment -ne "CC Environment: PRODUCTION")
 	{
 		$global:issuccess="failed"
 		Write-Host "Failed: Confidential Compute environment validation. Current Confidential Compute environment state: ${ccenvironment}"
