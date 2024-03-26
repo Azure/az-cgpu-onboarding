@@ -12,11 +12,21 @@ Q: How to update existing Nvidia driver from r535 (535.129.03) to r550 (550.54.1
 
 A: If you have created the VM using previous versions of onboarding packages, you can download the latest onboarding package and follow the steps below to update the Nvidia driver. It will also release the hold of the Linux kernel and update the kernel.
 
+On the host:
+```
+# Download a clean H100 onboarding package from the latest release
+https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V3.0.3/cgpu-onboarding-package.tar.gz
+ 
+# Upload it to your VM
+scp -i <public key path> ".\cgpu-onboarding-package.tar.gz" <username>@<IP>:/home/<username>
+```
+
+Log in to your VM and run the following commands:
 ```
 # Clean up old CGPU onboarding package
-sudo rm -rf ~/cgpu-onboarding-package*
+sudo rm -rf ~/cgpu-onboarding-package
 
-# Upload new CGPU onboarding pacakge to home folder
+# Unzip the new CGPU onboarding pacakge to home folder
 tar -zxvf cgpu-onboarding-package.tar.gz; cd cgpu-onboarding-package
 
 # Uninstall Nvidia r535 driver and unhold Linux kernel
