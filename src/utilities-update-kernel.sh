@@ -64,6 +64,12 @@ update_kernel(){
         echo "Updating to kernel: '$new_kernel'"
     fi
 
+    # Check if the target kernel version is valid before proceeding
+    if ! check_kernel_version_in_apt $new_kernel; then
+        echo "Aborting kernel update due to invalid target version: '$new_kernel'"
+        return 1 # Exit the function if the target version is not valid
+    fi
+
     current_kernel=$(uname -r)
     echo "Current kernel version: $current_kernel"
 
@@ -82,6 +88,18 @@ update_kernel(){
         
     else
         echo "Kernel is already on specified version ($current_kernel)"
+    fi
+}
+
+# Check if the target kernel version is available in APT
+check_kernel_version_in_apt() {
+    echo "Checking if kernel version $1 is available..."
+    if apt-cache search --names-only "^linux-image-$1\$" | grep -q "^linux-image-$1"; then
+        echo "Kernel version $1 is available in APT."
+        return 0 # Version exists
+    else
+        echo "Kernel version $1 is not available in APT. Please check the version and try again."
+        return 1 # Version does not exist
     fi
 }
 
