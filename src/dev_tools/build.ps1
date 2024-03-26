@@ -57,10 +57,15 @@ function Make-Cgpu-Onboarding-Package {
 	cd "$PSScriptRoot"
 
 	# Lists out all files to be included in .tar.gz archive
-	[String[]]$files = "$PSScriptRoot\..\step-0-prepare-kernel.sh", "$PSScriptRoot\..\step-1-install-gpu-driver.sh", 
-		"$PSScriptRoot\..\step-2-attestation.sh", "$PSScriptRoot\..\step-3-install-gpu-tools.sh", "$PSScriptRoot\..\utilities-update-kernel.sh", "$PSScriptRoot\..\nvidia-lkca.conf",
-		"$PSScriptRoot\..\mnist-sample-workload.py", "$PSScriptRoot\..\nvidia.pref", "$DropFolder\local_gpu_verifier.tar",
-		"${PackageFolder}\535-driver-package.tar"
+	[String[]]$files = "$PSScriptRoot\..\step-0-prepare-kernel.sh", 
+		"$PSScriptRoot\..\step-1-install-gpu-driver.sh", 
+		"$PSScriptRoot\..\step-2-attestation.sh", 
+		"$PSScriptRoot\..\step-3-install-gpu-tools.sh", 
+		"$PSScriptRoot\..\utilities-update-kernel.sh",
+		"$PSScriptRoot\..\utilities-uninstall-r535-driver.sh",
+		"$PSScriptRoot\..\nvidia-lkca.conf",
+		"$PSScriptRoot\..\mnist-sample-workload.py", 
+		"$DropFolder\local_gpu_verifier.tar"
 
 	# Ensures each file will be in correct UNIX format
 	foreach($file in $files) {
