@@ -23,7 +23,7 @@ scp -i <public key path> ".\cgpu-onboarding-package.tar.gz" <username>@<IP>:/hom
 
 Log in to your VM and run the following commands:
 ```
-# Clean up old CGPU onboarding package
+# Clean up old CGPU onboarding package folder
 sudo rm -rf ~/cgpu-onboarding-package
 
 # Unzip the new CGPU onboarding pacakge to home folder
