@@ -74,12 +74,18 @@ update_kernel(){
         install_kernel
     elif  [ $result -eq 1 ]; then
         echo "Installed kernel ($current_kernel) is newer than specified kernel ($new_kernel)"
+        install_kernel
+        install_kernel_result=$?
+        if [ $install_kernel_result -ne 0 ]; then
+            echo "Failed to install kernel $new_kernel"
+            return 1
+        fi
         echo "Removing existing kernel"
         sudo DEBIAN_FRONTEND=noninteractive apt-get --yes --force-yes -o \
             Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" remove -y \
             $current_kernel
-        install_kernel 
-        
+        echo "Rebooting system"
+        sudo reboot
     else
         echo "Kernel is already on specified version ($current_kernel)"
     fi
@@ -96,8 +102,6 @@ install_kernel(){
     linux-headers-$new_kernel \
     linux-modules-$new_kernel \
     linux-modules-extra-$new_kernel
-
-    sudo reboot
 }
 
 

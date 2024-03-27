@@ -21,7 +21,7 @@ install_gpu_driver() {
     else
         # Redo update-initramfs, hit some cases where the update-initramfs does not work before reboot
         sudo cp nvidia-lkca.conf /etc/modprobe.d/nvidia-lkca.conf
-        sudo update-initramfs -u
+        sudo update-initramfs -u -k $(uname -r)
 
         # verify secure boot and key enrollment.
         secure_boot_status=$(mokutil --sb)
@@ -62,6 +62,7 @@ install_gpu_driver() {
         else
             if [ "$lockError" == "" ]; then
                 sudo nvidia-smi -pm 1
+                sudo nvidia-smi conf-compute -srs 1
                 echo "add nvidia persitenced on reboot."
                 sudo bash -c 'echo "#!/bin/bash" > /etc/rc.local; echo "nvidia-smi -pm 1" >>/etc/rc.local; echo "nvidia-smi conf-compute -srs 1" >> /etc/rc.local;'
                 sudo chmod +x /etc/rc.local
