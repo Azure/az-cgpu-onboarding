@@ -18,7 +18,7 @@ On the host:
 https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V3.0.3/cgpu-onboarding-package.tar.gz
  
 # Upload it to your VM
-scp -i <public key path> ".\cgpu-onboarding-package.tar.gz" <username>@<IP>:/home/<username>
+scp -i <private key path> ".\cgpu-onboarding-package.tar.gz" <username>@<IP>:/home/<username>
 ```
 
 Log in to your VM and run the following commands:
