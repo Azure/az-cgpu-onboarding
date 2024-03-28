@@ -19,9 +19,8 @@ install_gpu_driver() {
         echo "Current kernel version: ($current_kernel), expected: (>= $MINIMUM_KERNEL_VERSION)."
         # echo "Please try utilities-update-kernel.sh 6.5.0-1017-azure."
     else
-        # Redo update-initramfs, hit some cases where the update-initramfs does not work before reboot
+        # Apply change to modprobe.d
         sudo cp nvidia-lkca.conf /etc/modprobe.d/nvidia-lkca.conf
-        sudo update-initramfs -u -k $(uname -r)
 
         # verify secure boot and key enrollment.
         secure_boot_status=$(mokutil --sb)

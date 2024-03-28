@@ -9,7 +9,5 @@ sudo apt update
 sudo sed -i 's/#$nrconf{restart} = '"'"'i'"'"';/$nrconf{restart} = '"'"'a'"'"';/g' /etc/needrestart/needrestart.conf
 echo Y | sudo apt upgrade
 
-sudo cp nvidia-lkca.conf /etc/modprobe.d/nvidia-lkca.conf
-sudo update-initramfs -u
-
+echo "Rebooting system to apply kernel updates..."
 sudo reboot
