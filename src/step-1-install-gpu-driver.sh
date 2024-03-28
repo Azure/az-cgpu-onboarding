@@ -61,7 +61,6 @@ install_gpu_driver() {
         else
             if [ "$lockError" == "" ]; then
                 sudo nvidia-smi -pm 1
-                sudo nvidia-smi conf-compute -srs 1
                 echo "add nvidia persitenced on reboot."
                 sudo bash -c 'echo "#!/bin/bash" > /etc/rc.local; echo "nvidia-smi -pm 1" >>/etc/rc.local; echo "nvidia-smi conf-compute -srs 1" >> /etc/rc.local;'
                 sudo chmod +x /etc/rc.local
