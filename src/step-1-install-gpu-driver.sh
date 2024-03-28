@@ -21,6 +21,7 @@ install_gpu_driver() {
     else
         # Apply change to modprobe.d
         sudo cp nvidia-lkca.conf /etc/modprobe.d/nvidia-lkca.conf
+        sudo update-initramfs -u -k ($uname -r)
 
         # verify secure boot and key enrollment.
         secure_boot_status=$(mokutil --sb)
@@ -39,7 +40,6 @@ install_gpu_driver() {
         echo "start gpu driver log."
 
         # Add jammpy-proposed repo
-        sudo /bin/bash -c "echo deb http://archive.ubuntu.com/ubuntu/ jammy-proposed main restricted multiverse >> /etc/apt/sources.list.d/proposed.list"
         sudo apt update
         echo Y | sudo apt upgrade
 
