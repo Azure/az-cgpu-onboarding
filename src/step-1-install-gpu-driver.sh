@@ -21,7 +21,7 @@ install_gpu_driver() {
     else
         # Apply change to modprobe.d
         sudo cp nvidia-lkca.conf /etc/modprobe.d/nvidia-lkca.conf
-        sudo update-initramfs -u -k ($uname -r)
+        sudo update-initramfs -u -k $(uname -r)
 
         # verify secure boot and key enrollment.
         secure_boot_status=$(mokutil --sb)
