@@ -39,5 +39,5 @@ cd ~/cgpu-onboarding-package; sudo bash step-1-install-gpu-driver.sh
 sudo bash step-2-attestation.sh
 
 # (Optionally) Run sample workload from Docker
-sudo docker run --gpus all -v ~/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:24.03-tf2-py3 python /home/mnist-sample-workload.py
+sudo docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v ~/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:24.03-tf2-py3 python /home/mnist-sample-workload.py
 ```

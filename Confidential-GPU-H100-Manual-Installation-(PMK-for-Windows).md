@@ -132,7 +132,7 @@ You should see: "CC Environment: INTERNAL"
 Once you have finished the validation, you can execute the following commands to try a sample workload:
 
 ```
-sudo docker run --gpus all -v /home/${adminusername}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:23.09-tf2-py3 python /home/mnist-sample-workload.py
+sudo docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/${adminusername}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:24.03-tf2-py3 python /home/mnist-sample-workload.py
 ```
 
 If you have reached this point, congratulations! You have offically manually created an NCC40 CGPU VM!
