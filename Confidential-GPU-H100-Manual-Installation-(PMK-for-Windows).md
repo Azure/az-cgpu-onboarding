@@ -45,7 +45,6 @@ Please note that this step may take a few minutes to complete. You can track you
 az vm create `
 --resource-group $rg `
 --name $vmname `
---image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:22.04.202312070 `
 --public-ip-sku Standard `
 --admin-username $adminusername `
 --ssh-key-values $publickeypath `
@@ -126,7 +125,7 @@ You should see: "CC status: ON"
 ```
 nvidia-smi conf-compute -e
 ```
-You should see: "CC Environment: INTERNAL"
+You should see: "CC Environment: PRODUCTION"
 
 ## Workload-Running
 Once you have finished the validation, you can execute the following commands to try a sample workload:
