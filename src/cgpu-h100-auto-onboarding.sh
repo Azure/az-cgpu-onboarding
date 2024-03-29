@@ -139,7 +139,7 @@ cgpu_h100_onboarding() {
 	echo "Please execute the below command to try attestation:"
 	echo "cd cgpu-onboarding-package; bash step-2-attestation.sh";
 	echo "Please execute the below command to try a sample workload:"
-	echo "sudo docker run --gpus all -v /home/${adminuser_name}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:24.03-tf2-py3 python /home/mnist-sample-workload.py";
+	echo "sudo docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/${adminuser_name}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:24.03-tf2-py3 python /home/mnist-sample-workload.py";
 	echo "******************************************************************************************"
 
 	az account clear

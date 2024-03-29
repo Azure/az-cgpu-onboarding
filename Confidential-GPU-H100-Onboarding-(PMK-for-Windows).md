@@ -88,7 +88,7 @@ ssh -i E:\cgpu\.ssh\id_rsa adminusername@20.114.244.82
 Please execute the below command to try attestation:
 cd cgpu-onboarding-package; bash step-2-attestation.sh
 Please execute the below command to try a sample workload:
-sudo docker run --gpus all -v /home/<adminusername>/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:24.03-tf2-py3 python /home/mnist-sample-workload.py
+sudo docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/<adminusername>/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:24.03-tf2-py3 python /home/mnist-sample-workload.py
 ******************************************************************************************
 Total VM to onboard: 1, total Success: 1.
 Detailed logs can be found at: .\logs\01-12-2024_14-42-44
@@ -112,5 +112,5 @@ bash step-2-attestation.sh
 ```
 # In your VM, execute the below command for a tensorflow sample execution.  
 
-sudo docker run --gpus all -v /home/<adminusername>/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:24.03-tf2-py3 python /home/mnist-sample-workload.py
+sudo docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/<adminusername>/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:24.03-tf2-py3 python /home/mnist-sample-workload.py
 ```

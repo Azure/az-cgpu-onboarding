@@ -19,7 +19,7 @@ install_gpu_driver() {
         echo "Current kernel version: ($current_kernel), expected: (>= $MINIMUM_KERNEL_VERSION)."
         # echo "Please try utilities-update-kernel.sh 6.5.0-1017-azure."
     else
-        # Redo update-initramfs, hit some cases where the update-initramfs does not work before reboot
+        # Apply change to modprobe.d and run update-initramfs
         sudo cp nvidia-lkca.conf /etc/modprobe.d/nvidia-lkca.conf
         sudo update-initramfs -u -k $(uname -r)
 
@@ -40,7 +40,6 @@ install_gpu_driver() {
         echo "start gpu driver log."
 
         # Add jammpy-proposed repo
-        sudo /bin/bash -c "echo deb http://archive.ubuntu.com/ubuntu/ jammy-proposed main restricted multiverse >> /etc/apt/sources.list.d/proposed.list"
         sudo apt update
         echo Y | sudo apt upgrade
 
@@ -62,7 +61,6 @@ install_gpu_driver() {
         else
             if [ "$lockError" == "" ]; then
                 sudo nvidia-smi -pm 1
-                sudo nvidia-smi conf-compute -srs 1
                 echo "add nvidia persitenced on reboot."
                 sudo bash -c 'echo "#!/bin/bash" > /etc/rc.local; echo "nvidia-smi -pm 1" >>/etc/rc.local; echo "nvidia-smi conf-compute -srs 1" >> /etc/rc.local;'
                 sudo chmod +x /etc/rc.local
