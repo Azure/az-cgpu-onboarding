@@ -420,14 +420,8 @@ def attest(arguments_as_dictionary):
                 if not arguments_as_dictionary["test_no_gpu"]:
                     info_log.info("\t\t\tFetching the driver RIM from the RIM service.")
                     driver_rim_file_id = CcAdminUtils.get_driver_rim_file_id(driver_version)
-                    driver_rim_content = function_wrapper_with_timeout(
-                        [
-                            CcAdminUtils.fetch_rim_file,
-                            driver_rim_file_id,
-                            BaseSettings.RIM_SERVICE_RETRY_COUNT,
-                            "fetch_rim_file",
-                        ],
-                        BaseSettings.MAX_RIM_TIME_DELAY,
+                    driver_rim_content = CcAdminUtils.fetch_rim_file(
+                        driver_rim_file_id, BaseSettings.RIM_SERVICE_RETRY_COUNT
                     )
                     driver_rim = RIM(rim_name="driver", settings=settings, content=driver_rim_content)
                 else:
@@ -485,17 +479,9 @@ def attest(arguments_as_dictionary):
                     vbios_rim_file_id = CcAdminUtils.get_vbios_rim_file_id(
                         project, project_sku, chip_sku, vbios_version_for_id
                     )
-
-                    vbios_rim_content = function_wrapper_with_timeout(
-                        [
-                            CcAdminUtils.fetch_rim_file,
-                            vbios_rim_file_id,
-                            BaseSettings.RIM_SERVICE_RETRY_COUNT,
-                            "fetch_rim_file",
-                        ],
-                        BaseSettings.MAX_RIM_TIME_DELAY,
+                    vbios_rim_content = CcAdminUtils.fetch_rim_file(
+                        vbios_rim_file_id, BaseSettings.RIM_SERVICE_RETRY_COUNT
                     )
-
                     vbios_rim = RIM(rim_name="vbios", settings=settings, content=vbios_rim_content)
 
                 else:

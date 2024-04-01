@@ -376,22 +376,24 @@ class CcAdminUtils:
         return True
 
     @staticmethod
-    def send_ocsp_request(data, url, max_retries=3):
+    def send_ocsp_request(data, url, max_retries):
         """ A static method to prepare http request and send it to the ocsp server
             and returns the ocsp response message.
 
         Args:
             data (bytes): the raw ocsp request message.
             url (str): the url of the ocsp service.
-            max_retries (int, optional): the maximum number of retries to be performed in case of any error. Defaults to 5.
+            max_retries (int, optional): the maximum number of retries to be performed in case of any error.
 
         Returns:
             [cryptography.hazmat.backends.openssl.ocsp._OCSPResponse]: the ocsp response message object.
         """
+        # OCSP service URL should start with https
         if not url.lower().startswith("https"):
-            # Raising exception in case of url not starting with http, and not FTP, etc.
-            raise ValueError("The OCSP service url should start with https")
+            info_log.error(f"The OCSP service url {url} does not start with https")
+            return None
 
+        # Sending the ocsp request to the given url
         try:
             ocsp_request = request.Request(url, data)
             ocsp_request.add_header("Content-Type", "application/ocsp-request")
@@ -438,7 +440,7 @@ class CcAdminUtils:
             return False
 
     @staticmethod
-    def fetch_rim_file_from_url(rim_id, url, max_retries=3):
+    def fetch_rim_file_from_url(rim_id, url, max_retries):
         """ A static method to fetch the RIM file with the given file id from the given url.
             If the fetch fails, it retries for the maximum number of times specified by the max_retries parameter.
             If the max_retries is set to 0, it does not retry on failure and return None.
@@ -446,7 +448,7 @@ class CcAdminUtils:
         Args:
             rim_id (str): the RIM file id which need to be fetched from the given url.
             url (str): the url from which the RIM file needs to be fetched.
-            max_retries (int, optional): the maximum number of retries to be performed in case of any error. Defaults to 5.
+            max_retries (int, optional): the maximum number of retries to be performed in case of any error.
 
         Returns:
             [str]: the content of the required RIM file as a string.
@@ -455,7 +457,7 @@ class CcAdminUtils:
         if not url.lower().startswith("https"):
             info_log.error(f"The RIM service url {url} does not start with https")
             return None
-        
+
         # Fetching the RIM file from the given url
         try:
             with request.urlopen(url + rim_id) as https_response:
@@ -476,8 +478,8 @@ class CcAdminUtils:
                 return None
 
     @staticmethod
-    def fetch_rim_file(rim_id, max_retries=3):
-        """ A static method to fetch the RIM file with the given file id from the RIM service.
+    def fetch_rim_file(rim_id, max_retries=BaseSettings.MAX_RIM_REQUEST_RETRIES):
+        """A static method to fetch the RIM file with the given file id from the RIM service.
             It tries to fetch the RIM file from provided RIM service, and fallback to the Nvidia RIM service if the fetch fails.
 
         Args:
@@ -490,21 +492,54 @@ class CcAdminUtils:
             [str]: the content of the required RIM file as a string.
         """
         # Fetching the RIM file from the provided RIM service
-        rim_result = CcAdminUtils.fetch_rim_file_from_url(rim_id, BaseSettings.RIM_SERVICE_BASE_URL, max_retries)
+        try:
+            rim_result = function_wrapper_with_timeout(
+                [
+                    CcAdminUtils.fetch_rim_file_from_url,
+                    rim_id,
+                    BaseSettings.RIM_SERVICE_BASE_URL,
+                    max_retries,
+                    "fetch_rim_file_from_url",
+                ],
+                BaseSettings.MAX_RIM_REQUEST_TIME_DELAY * max_retries,
+            )
+        except Exception as e:
+            info_log.error(f"Exception occurred while fetching RIM {rim_id} from provided RIM service: {str(e)}")
+            rim_result = None
+
+        # RIM is successfully fetched from the provided RIM service
         if rim_result is not None:
             return rim_result
+        
+        # Log error if RIM file is not fetched from the provided RIM service
+        info_log.error(f"Failed to fetch RIM {rim_id} from provided RIM service: {BaseSettings.RIM_SERVICE_BASE_URL}")
 
         # Fallback to the Nvidia RIM service if the fetch fails
         if BaseSettings.RIM_SERVICE_BASE_URL_NVIDIA != BaseSettings.RIM_SERVICE_BASE_URL:
-            rim_result = CcAdminUtils.fetch_rim_file_from_url(
-                rim_id, BaseSettings.RIM_SERVICE_BASE_URL_NVIDIA, max_retries
-            )
+            info_log.info(f"Falling back to Nvidia RIM service {BaseSettings.RIM_SERVICE_BASE_URL_NVIDIA}")
+            try:
+                rim_result = function_wrapper_with_timeout(
+                    [
+                        CcAdminUtils.fetch_rim_file_from_url,
+                        rim_id,
+                        BaseSettings.RIM_SERVICE_BASE_URL_NVIDIA,
+                        max_retries,
+                        "fetch_rim_file_from_url",
+                    ],
+                    BaseSettings.MAX_RIM_REQUEST_TIME_DELAY * max_retries,
+                )
+            except Exception as e:
+                info_log.error(f"Exception occurred while fetching RIM {rim_id} from Nvidia RIM service: {str(e)}")
+                rim_result = None
 
-        if rim_result is not None:
-            return rim_result
+            # RIM is successfully fetched from the Nvidia RIM service
+            if rim_result is not None:
+                return rim_result
+            
+            # Log error if RIM file is not fetched from the Nvidia RIM service
+            info_log.error(f"Failed to fetch RIM {rim_id} from Nvidia RIM service: {BaseSettings.RIM_SERVICE_BASE_URL_NVIDIA}")
 
         # Raise error if RIM file is not fetched from both the RIM services
-        info_log.error(f"Failed to fetch the required RIM file : {rim_id} from the RIM service.")
         raise RIMFetchError(f"Could not fetch the required RIM file : {rim_id} from the RIM service.")
 
     @staticmethod
