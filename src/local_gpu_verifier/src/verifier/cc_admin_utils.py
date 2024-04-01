@@ -488,7 +488,7 @@ class CcAdminUtils:
                 return None
 
     @staticmethod
-    def fetch_rim_file(rim_id, max_retries=BaseSettings.MAX_RIM_REQUEST_RETRIES):
+    def fetch_rim_file(rim_id, max_retries=BaseSettings.RIM_SERVICE_RETRY_COUNT):
         """A static method to fetch the RIM file with the given file id from the RIM service.
             It tries to fetch the RIM file from provided RIM service, and fallback to the Nvidia RIM service if the fetch fails.
 
