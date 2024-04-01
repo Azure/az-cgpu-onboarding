@@ -526,7 +526,7 @@ class CcAdminUtils:
 
         # Fallback to the Nvidia RIM service if the fetch fails
         if BaseSettings.RIM_SERVICE_BASE_URL_NVIDIA != BaseSettings.RIM_SERVICE_BASE_URL:
-            info_log.info(f"Falling back to Nvidia RIM service {BaseSettings.RIM_SERVICE_BASE_URL_NVIDIA}")
+            event_log.info(f"Falling back to Nvidia RIM service {BaseSettings.RIM_SERVICE_BASE_URL_NVIDIA}")
             try:
                 rim_result = function_wrapper_with_timeout(
                     [
