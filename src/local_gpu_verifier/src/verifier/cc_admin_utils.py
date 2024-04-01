@@ -232,38 +232,48 @@ class CcAdminUtils:
         for i in range(start_index, end_index):
             cert_common_name = cert_chain[i].subject.get_attributes_for_oid(x509.oid.NameOID.COMMON_NAME)[0].value
 
-            # Get OCSP Response, fallback to Nvidia OCSP Service if fetch fails, raise error if both fails
+            # Fetch OCSP Response from provided OCSP Service
             nonce = (
                 CcAdminUtils.generate_nonce(BaseSettings.SIZE_OF_NONCE_IN_BYTES)
                 if BaseSettings.OCSP_NONCE_ENABLED
                 else None
             )
             ocsp_request = CcAdminUtils.build_ocsp_request(cert_chain[i], cert_chain[i + 1], nonce)
-            ocsp_response = function_wrapper_with_timeout(
-                [
-                    CcAdminUtils.get_ocsp_response_from_url,
-                    ocsp_request.public_bytes(serialization.Encoding.DER),
-                    BaseSettings.OCSP_URL,
-                    BaseSettings.OCSP_RETRY_COUNT,
-                    "send_ocsp_request",
-                ],
-                BaseSettings.MAX_OCSP_TIME_DELAY,
-            )
-
-            if ocsp_response is None:
-                nonce = CcAdminUtils.generate_nonce(BaseSettings.SIZE_OF_NONCE_IN_BYTES)
-                ocsp_request = CcAdminUtils.build_ocsp_request(cert_chain[i], cert_chain[i + 1], nonce)
+            try:
                 ocsp_response = function_wrapper_with_timeout(
                     [
-                        CcAdminUtils.get_ocsp_response_from_url,
+                        CcAdminUtils.fetch_ocsp_response_from_url,
                         ocsp_request.public_bytes(serialization.Encoding.DER),
-                        BaseSettings.OCSP_URL_NVIDIA,
+                        BaseSettings.OCSP_URL,
                         BaseSettings.OCSP_RETRY_COUNT,
                         "send_ocsp_request",
                     ],
-                    BaseSettings.MAX_OCSP_TIME_DELAY,
+                    BaseSettings.MAX_OCSP_REQUEST_TIME_DELAY * BaseSettings.OCSP_RETRY_COUNT,
                 )
+            except Exception as e:
+                event_log.error(f"Exception occurred while fetching OCSP response from provided OCSP service: {str(e)}")
+                ocsp_response = None
 
+            # Fallback to Nvidia OCSP Service if the fetch fails
+            if ocsp_response is None:
+                nonce = CcAdminUtils.generate_nonce(BaseSettings.SIZE_OF_NONCE_IN_BYTES)
+                ocsp_request = CcAdminUtils.build_ocsp_request(cert_chain[i], cert_chain[i + 1], nonce)
+                try:
+                    ocsp_response = function_wrapper_with_timeout(
+                        [
+                            CcAdminUtils.fetch_ocsp_response_from_url,
+                            ocsp_request.public_bytes(serialization.Encoding.DER),
+                            BaseSettings.OCSP_URL_NVIDIA,
+                            BaseSettings.OCSP_RETRY_COUNT,
+                            "send_ocsp_request",
+                        ],
+                        BaseSettings.MAX_OCSP_REQUEST_TIME_DELAY * BaseSettings.OCSP_RETRY_COUNT,
+                    )
+                except Exception as e:
+                    info_log.error(f"Exception occurred while fetching OCSP response from Nvidia OCSP service: {str(e)}")
+                    ocsp_response = None
+
+            # Raise error if OCSP response is not fetched from both OCSP services
             if ocsp_response is None:
                 error_msg = f"Failed to fetch the ocsp response for certificate {cert_common_name}"
                 info_log.error(f"\t\t\t{error_msg}")
@@ -376,7 +386,7 @@ class CcAdminUtils:
         return True
 
     @staticmethod
-    def get_ocsp_response_from_url(ocsp_request_data, url, max_retries):
+    def fetch_ocsp_response_from_url(ocsp_request_data, url, max_retries):
         """ A static method to prepare http request and send it to the ocsp server
             and returns the ocsp response message.
 
@@ -409,7 +419,7 @@ class CcAdminUtils:
                 info_log.debug(f"HTTP Error code : {e.code}")
             if max_retries > 0:
                 time.sleep(BaseSettings.OCSP_RETRY_DELAY)
-                return CcAdminUtils.get_ocsp_response_from_url(ocsp_request_data, url, max_retries - 1)
+                return CcAdminUtils.fetch_ocsp_response_from_url(ocsp_request_data, url, max_retries - 1)
             else:
                 return None
 

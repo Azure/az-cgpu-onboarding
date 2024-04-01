@@ -80,7 +80,7 @@ class BaseSettings:
     OCSP_URL_NVIDIA = 'https://ocsp.ndis.nvidia.com/'
     OCSP_NONCE_ENABLED = False
     OCSP_HASH_FUNCTION = sha384
-    OCSP_RETRY_COUNT = 1
+    OCSP_RETRY_COUNT = 3
     OCSP_RETRY_DELAY = 0.1
     OCSP_VALIDITY_EXTENSION_HRS = 7 * 24
     OCSP_CERT_REVOCATION_EXTENSION_HRS = 7 * 24
