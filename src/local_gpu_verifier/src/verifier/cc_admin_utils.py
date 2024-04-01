@@ -241,7 +241,7 @@ class CcAdminUtils:
             ocsp_request = CcAdminUtils.build_ocsp_request(cert_chain[i], cert_chain[i + 1], nonce)
             ocsp_response = function_wrapper_with_timeout(
                 [
-                    CcAdminUtils.send_ocsp_request,
+                    CcAdminUtils.get_ocsp_response_from_url,
                     ocsp_request.public_bytes(serialization.Encoding.DER),
                     BaseSettings.OCSP_URL,
                     BaseSettings.OCSP_RETRY_COUNT,
@@ -255,7 +255,7 @@ class CcAdminUtils:
                 ocsp_request = CcAdminUtils.build_ocsp_request(cert_chain[i], cert_chain[i + 1], nonce)
                 ocsp_response = function_wrapper_with_timeout(
                     [
-                        CcAdminUtils.send_ocsp_request,
+                        CcAdminUtils.get_ocsp_response_from_url,
                         ocsp_request.public_bytes(serialization.Encoding.DER),
                         BaseSettings.OCSP_URL_NVIDIA,
                         BaseSettings.OCSP_RETRY_COUNT,
@@ -376,12 +376,12 @@ class CcAdminUtils:
         return True
 
     @staticmethod
-    def send_ocsp_request(data, url, max_retries):
+    def get_ocsp_response_from_url(ocsp_request_data, url, max_retries):
         """ A static method to prepare http request and send it to the ocsp server
             and returns the ocsp response message.
 
         Args:
-            data (bytes): the raw ocsp request message.
+            ocsp_request_data (bytes): the raw ocsp request message.
             url (str): the url of the ocsp service.
             max_retries (int, optional): the maximum number of retries to be performed in case of any error.
 
@@ -395,11 +395,11 @@ class CcAdminUtils:
 
         # Sending the ocsp request to the given url
         try:
-            ocsp_request = request.Request(url, data)
+            ocsp_request = request.Request(url, ocsp_request_data)
             ocsp_request.add_header("Content-Type", "application/ocsp-request")
 
-            with request.urlopen(ocsp_request) as ocsp_response_raw:
-                ocsp_response = ocsp.load_der_ocsp_response(ocsp_response_raw.read())
+            with request.urlopen(ocsp_request) as ocsp_response_data:
+                ocsp_response = ocsp.load_der_ocsp_response(ocsp_response_data.read())
                 info_log.debug(f"Successfully fetched the ocsp response from {url}")
                 return ocsp_response
 
@@ -409,7 +409,7 @@ class CcAdminUtils:
                 info_log.debug(f"HTTP Error code : {e.code}")
             if max_retries > 0:
                 time.sleep(BaseSettings.OCSP_RETRY_DELAY)
-                return CcAdminUtils.send_ocsp_request(data, url, max_retries - 1)
+                return CcAdminUtils.get_ocsp_response_from_url(ocsp_request_data, url, max_retries - 1)
             else:
                 return None
 
