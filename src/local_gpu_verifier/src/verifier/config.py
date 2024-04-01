@@ -77,7 +77,7 @@ class BaseSettings:
     MAX_OCSP_REQUEST_TIME_DELAY = 10
     MAX_RIM_REQUEST_TIME_DELAY = 10
     OCSP_URL = ''
-    OCSP_URL_NVIDIA = 'https://ocsp.ndis.nvidi.com/'
+    OCSP_URL_NVIDIA = 'https://ocsp.ndis.nvidia.com/'
     OCSP_NONCE_ENABLED = False
     OCSP_HASH_FUNCTION = sha384
     OCSP_RETRY_COUNT = 3
