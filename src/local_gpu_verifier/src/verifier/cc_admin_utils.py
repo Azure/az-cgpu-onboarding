@@ -270,7 +270,7 @@ class CcAdminUtils:
                         BaseSettings.MAX_OCSP_REQUEST_TIME_DELAY * BaseSettings.OCSP_RETRY_COUNT,
                     )
                 except Exception as e:
-                    info_log.error(f"Exception occurred while fetching OCSP response from Nvidia OCSP service: {str(e)}")
+                    event_log.error(f"Exception occurred while fetching OCSP response from Nvidia OCSP service: {str(e)}")
                     ocsp_response = None
 
             # Raise error if OCSP response is not fetched from both OCSP services
@@ -410,13 +410,13 @@ class CcAdminUtils:
 
             with request.urlopen(ocsp_request) as ocsp_response_data:
                 ocsp_response = ocsp.load_der_ocsp_response(ocsp_response_data.read())
-                info_log.debug(f"Successfully fetched the ocsp response from {url}")
+                event_log.debug(f"Successfully fetched the ocsp response from {url}")
                 return ocsp_response
 
         except Exception as e:
-            info_log.debug(f"Error while fetching the ocsp response from {url}")
+            event_log.error(f"Error while fetching the ocsp response from {url}")
             if isinstance(e, HTTPError):
-                info_log.debug(f"HTTP Error code : {e.code}")
+                event_log.error(f"HTTP Error code : {e.code}")
             if max_retries > 0:
                 time.sleep(BaseSettings.OCSP_RETRY_DELAY)
                 return CcAdminUtils.fetch_ocsp_response_from_url(ocsp_request_data, url, max_retries - 1)
@@ -475,12 +475,12 @@ class CcAdminUtils:
                 json_object = json.loads(data)
                 base64_data = json_object["rim"]
                 decoded_str = base64.b64decode(base64_data).decode("utf-8")
-                info_log.debug(f"Successfully fetched the RIM file from {url + rim_id}")
+                event_log.debug(f"Successfully fetched the RIM file from {url + rim_id}")
                 return decoded_str
         except Exception as e:
-            info_log.error(f"Error while fetching the RIM file from {url + rim_id}")
+            event_log.error(f"Error while fetching the RIM file from {url + rim_id}")
             if isinstance(e, HTTPError):
-                info_log.error(f"HTTP Error code : {e.code}")
+                event_log.error(f"HTTP Error code : {e.code}")
             if max_retries > 0:
                 time.sleep(BaseSettings.RIM_SERVICE_RETRY_DELAY)
                 return CcAdminUtils.fetch_rim_file_from_url(rim_id, url, max_retries - 1)
@@ -514,7 +514,7 @@ class CcAdminUtils:
                 BaseSettings.MAX_RIM_REQUEST_TIME_DELAY * max_retries,
             )
         except Exception as e:
-            info_log.error(f"Exception occurred while fetching RIM {rim_id} from provided RIM service: {str(e)}")
+            event_log.error(f"Exception occurred while fetching RIM {rim_id} from provided RIM service: {str(e)}")
             rim_result = None
 
         # RIM is successfully fetched from the provided RIM service
@@ -522,7 +522,7 @@ class CcAdminUtils:
             return rim_result
         
         # Log error if RIM file is not fetched from the provided RIM service
-        info_log.error(f"Failed to fetch RIM {rim_id} from provided RIM service: {BaseSettings.RIM_SERVICE_BASE_URL}")
+        event_log.error(f"Failed to fetch RIM {rim_id} from provided RIM service: {BaseSettings.RIM_SERVICE_BASE_URL}")
 
         # Fallback to the Nvidia RIM service if the fetch fails
         if BaseSettings.RIM_SERVICE_BASE_URL_NVIDIA != BaseSettings.RIM_SERVICE_BASE_URL:
@@ -539,7 +539,7 @@ class CcAdminUtils:
                     BaseSettings.MAX_RIM_REQUEST_TIME_DELAY * max_retries,
                 )
             except Exception as e:
-                info_log.error(f"Exception occurred while fetching RIM {rim_id} from Nvidia RIM service: {str(e)}")
+                event_log.error(f"Exception occurred while fetching RIM {rim_id} from Nvidia RIM service: {str(e)}")
                 rim_result = None
 
             # RIM is successfully fetched from the Nvidia RIM service
@@ -547,7 +547,7 @@ class CcAdminUtils:
                 return rim_result
             
             # Log error if RIM file is not fetched from the Nvidia RIM service
-            info_log.error(f"Failed to fetch RIM {rim_id} from Nvidia RIM service: {BaseSettings.RIM_SERVICE_BASE_URL_NVIDIA}")
+            event_log.error(f"Failed to fetch RIM {rim_id} from Nvidia RIM service: {BaseSettings.RIM_SERVICE_BASE_URL_NVIDIA}")
 
         # Raise error if RIM file is not fetched from both the RIM services
         raise RIMFetchError(f"Could not fetch the required RIM file : {rim_id} from the RIM service.")
