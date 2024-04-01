@@ -36,7 +36,7 @@ The following four major steps are provided to help deploy your first Confidenti
 4. Attestation Verification
 5. Workload Running
 
-Please make sure to follow all steps exactly as detailed. If you run into issues, please check the FAQ page to check if there is more information or reach out using the contact information at the bottom of this document
+Please make sure to follow all steps exactly as detailed. If you run into issues, please check the [FAQ page](https://github.com/Azure-Confidential-Computing/PrivatePreview/blob/release-3.0.3/Frequently-Asked-Questions.md) to check if there is more information or reach out using the contact information at the bottom of this document
 
 ## Choose your Configuration 
 
