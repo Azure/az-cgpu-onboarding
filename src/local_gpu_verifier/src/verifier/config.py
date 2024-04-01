@@ -75,7 +75,7 @@ class BaseSettings:
     # The Timeout duration in seconds.
     MAX_NVML_TIME_DELAY = 5
     MAX_OCSP_TIME_DELAY = 10
-    MAX_NETWORK_TIME_DELAY = 10
+    MAX_RIM_TIME_DELAY = 60
     OCSP_URL = ''
     OCSP_URL_NVIDIA = 'https://ocsp.ndis.nvidia.com/'
     OCSP_NONCE_ENABLED = False

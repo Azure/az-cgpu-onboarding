@@ -427,7 +427,7 @@ def attest(arguments_as_dictionary):
                             BaseSettings.RIM_SERVICE_RETRY_COUNT,
                             "fetch_rim_file",
                         ],
-                        BaseSettings.MAX_NETWORK_TIME_DELAY,
+                        BaseSettings.MAX_RIM_TIME_DELAY,
                     )
                     driver_rim = RIM(rim_name="driver", settings=settings, content=driver_rim_content)
                 else:
@@ -493,7 +493,7 @@ def attest(arguments_as_dictionary):
                             BaseSettings.RIM_SERVICE_RETRY_COUNT,
                             "fetch_rim_file",
                         ],
-                        BaseSettings.MAX_NETWORK_TIME_DELAY,
+                        BaseSettings.MAX_RIM_TIME_DELAY,
                     )
 
                     vbios_rim = RIM(rim_name="vbios", settings=settings, content=vbios_rim_content)

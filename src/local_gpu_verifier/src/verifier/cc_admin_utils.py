@@ -451,6 +451,12 @@ class CcAdminUtils:
         Returns:
             [str]: the content of the required RIM file as a string.
         """
+        # RIM service URL should start with https
+        if not url.lower().startswith("https"):
+            info_log.error(f"The RIM service url {url} does not start with https")
+            return None
+        
+        # Fetching the RIM file from the given url
         try:
             with request.urlopen(url + rim_id) as https_response:
                 data = https_response.read()
@@ -460,9 +466,9 @@ class CcAdminUtils:
                 info_log.debug(f"Successfully fetched the RIM file from {url + rim_id}")
                 return decoded_str
         except Exception as e:
-            info_log.debug(f"Error while fetching the RIM file from {url + rim_id}")
+            info_log.error(f"Error while fetching the RIM file from {url + rim_id}")
             if isinstance(e, HTTPError):
-                info_log.debug(f"HTTP Error code : {e.code}")
+                info_log.error(f"HTTP Error code : {e.code}")
             if max_retries > 0:
                 time.sleep(BaseSettings.RIM_SERVICE_RETRY_DELAY)
                 return CcAdminUtils.fetch_rim_file_from_url(rim_id, url, max_retries - 1)
@@ -489,9 +495,11 @@ class CcAdminUtils:
             return rim_result
 
         # Fallback to the Nvidia RIM service if the fetch fails
-        rim_result = CcAdminUtils.fetch_rim_file_from_url(
-            rim_id, BaseSettings.RIM_SERVICE_BASE_URL_NVIDIA, max_retries
-        )
+        if BaseSettings.RIM_SERVICE_BASE_URL_NVIDIA != BaseSettings.RIM_SERVICE_BASE_URL:
+            rim_result = CcAdminUtils.fetch_rim_file_from_url(
+                rim_id, BaseSettings.RIM_SERVICE_BASE_URL_NVIDIA, max_retries
+            )
+
         if rim_result is not None:
             return rim_result
 
