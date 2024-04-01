@@ -59,7 +59,7 @@ class BaseSettings:
     AZURE_VM_REGION = ""
     AZURE_IMDS_URL = "http://169.254.169.254/metadata/instance?api-version=2021-02-01"
     AZURE_THIM_ENDPOINT_DICT = {
-        "eastus2": 'https://useast2.thim.azue.net',
+        "eastus2": 'https://useast2.thim.azure.net',
         "centraluseuap": 'https://uscentraleuap.thim.azure.net',
         "lab": ''
     }
@@ -85,7 +85,7 @@ class BaseSettings:
     OCSP_VALIDITY_EXTENSION_HRS = 7 * 24
     OCSP_CERT_REVOCATION_EXTENSION_HRS = 7 * 24
     RIM_SERVICE_BASE_URL = ''
-    RIM_SERVICE_BASE_URL_NVIDIA = 'https://rim.attestation.nvidi.com/v1/rim/'
+    RIM_SERVICE_BASE_URL_NVIDIA = 'https://rim.attestation.nvidia.com/v1/rim/'
     RIM_SERVICE_RETRY_COUNT = 3
     RIM_SERVICE_RETRY_DELAY = 0.1
     Certificate_Chain_Verification_Mode = Enum("CERT CHAIN VERIFICATION MODE", ['GPU_ATTESTATION', 'OCSP_RESPONSE', 'DRIVER_RIM_CERT', 'VBIOS_RIM_CERT'])
