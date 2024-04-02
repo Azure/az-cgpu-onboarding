@@ -112,8 +112,13 @@ cgpu_h100_onboarding() {
 	for ((current_vm_count=1; current_vm_count <= total_vm_number; current_vm_count++))
 	do
 		is_success="Succeeded"
-		vmname_ending=$(($current_vm_count));
-		vmname="${vmname_prefix}-${vmname_ending}"
+		if [ $current_vm_count == 1 ];
+		then 
+			vmname="${vmname_prefix}";
+		else 
+			vmname_ending=$(($current_vm_count));
+			vmname="${vmname_prefix}-${vmname_ending}"
+    		fi
 
 		echo "Vm Name: ${vmname}";
 		auto_onboard_cgpu_single_vm $vmname

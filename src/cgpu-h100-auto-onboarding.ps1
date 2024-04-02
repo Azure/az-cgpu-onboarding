@@ -128,7 +128,11 @@ function Auto-Onboard-CGPU-Multi-VM {
 	$successcount = 0
 	$vmlogincommands = New-Object "String[]" ($totalvmnumber+1)
 	for($i=1; $i -le $totalvmnumber; $i++) {
-		$vmname=${vmnameprefix}+"-"+${i}
+		if($i -eq 1) { 
+			$vmname=${vmnameprefix}
+		} else {
+			$vmname=${vmnameprefix}+"-"+${i}
+		}
 
 		Write-Host "Start creating VM: ${vmname}"
 
