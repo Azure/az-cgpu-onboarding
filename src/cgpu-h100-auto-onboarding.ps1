@@ -216,6 +216,10 @@ function Auto-Onboard-CGPU-Single-VM {
 	 -vmname $vmname `
 	 -adminusername $adminusername `
  	 -desid $desid
+	if ($global:issuccess -eq "failed") {
+		Write-Host "Failed to create VM."
+		return
+	}
 
 	# Upload package to VM and extract it.
 	Package-Upload -vmsshinfo $vmsshinfo `
@@ -323,6 +327,8 @@ function VM-Creation {
 		}
 	} else {
 		Write-Host "A virtual machine with the name $vmname already exists in $rg - please choose a unique name."
+		$global:issuccess = "failed"
+		return
 	}
 
 	Write-Host $result

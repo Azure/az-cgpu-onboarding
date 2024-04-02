@@ -336,6 +336,7 @@ create_vm() {
 	else
 		echo "A virtual machine with the name $vmname already exists in $rg - please choose a unique name."
 		is_success="failed"
+		return
 	fi
 
 	if [[ $? -ne 0 ]]; then
