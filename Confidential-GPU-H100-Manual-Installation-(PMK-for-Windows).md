@@ -22,7 +22,7 @@ Please make sure you have these requirements before performing the following ste
 - [Azure Tenant ID](https://learn.microsoft.com/en-us/azure/active-directory/fundamentals/active-directory-how-to-find-tenant#find-tenant-id-with-powershell)
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
   - Note: minimum version 2.46.0 is required, run `az --version` to check your version and run `az upgrade` to install the latest version if your version is older
-- Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V3.0.3/cgpu-onboarding-package.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-V3.0.3](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V3.0.3)
+- Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V3.0.3/cgpu-onboarding-package.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-V3.0.3](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/latest)
 
 -------------------------------------------
 
@@ -45,7 +45,7 @@ Please note that this step may take a few minutes to complete. You can track you
 az vm create `
 --resource-group $rg `
 --name $vmname `
---image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:22.04.202312070 `
+--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:latest `
 --public-ip-sku Standard `
 --admin-username $adminusername `
 --ssh-key-values $publickeypath `
@@ -126,7 +126,7 @@ You should see: "CC status: ON"
 ```
 nvidia-smi conf-compute -e
 ```
-You should see: "CC Environment: INTERNAL"
+You should see: "CC Environment: PRODUCTION"
 
 ## Workload-Running
 Once you have finished the validation, you can execute the following commands to try a sample workload:
