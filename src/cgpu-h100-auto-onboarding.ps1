@@ -286,6 +286,8 @@ function VM-Creation {
 		$publickeypath,
 		$desid)
 
+	$global:issuccess = "failed"
+
 	$publickeypath="@${publickeypath}"
 
 	# Check if VM name already exists within given resource group
@@ -296,6 +298,7 @@ function VM-Creation {
 			$result=az vm create `
 				--resource-group $rg `
 				--name $vmname `
+				--location eastus2 `
 				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:latest `
 				--public-ip-sku Standard `
 				--admin-username $adminusername `
@@ -312,6 +315,7 @@ function VM-Creation {
 			$result=az vm create `
 				--resource-group $rg `
 				--name $vmname `
+				--location eastus2 `
 				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:latest `
 				--public-ip-sku Standard `
 				--admin-username $adminusername `
@@ -325,9 +329,15 @@ function VM-Creation {
 				--os-disk-secure-vm-disk-encryption-set $desid `
 				--verbose
 		}
+
+		# az vm fail or result being empty
+		if ($? -eq $false || [string]::IsNullOrEmpty($result)) {
+			Write-Host "VM creation failed."
+			return
+		}
+
 	} else {
 		Write-Host "A virtual machine with the name $vmname already exists in $rg - please choose a unique name."
-		$global:issuccess = "failed"
 		return
 	}
 
@@ -336,6 +346,7 @@ function VM-Creation {
 	$vmip= $resultjson.publicIpAddress
 	$vmsshinfo=$adminusername+"@"+$vmip
 	echo $vmsshinfo
+	$global:issuccess = "succeeded"
 	return
 }
 
