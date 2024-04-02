@@ -308,6 +308,7 @@ create_vm() {
 			az vm create \
 				--resource-group $rg \
 				--name $vmname \
+				--location eastus2 \
 				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:latest \
 				--public-ip-sku Standard \
 				--admin-username $adminuser_name \
@@ -326,6 +327,7 @@ create_vm() {
 			az vm create \
 				--resource-group $rg \
 				--name $vmname \
+				--location eastus2 \
 				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:latest \
 				--public-ip-sku Standard \
 				--admin-username $adminuser_name \
@@ -338,13 +340,15 @@ create_vm() {
 				--os-disk-size-gb 100 \
 				--verbose
 		fi
+
+		if [[ $? -ne 0 ]]; then
+			is_success="failed"
+			return
+		fi
 	else
 		echo "A virtual machine with the name $vmname already exists in $rg - please choose a unique name."
 		is_success="failed"
-	fi
-
-	if [[ $? -ne 0 ]]; then
-		is_success="failed"
+		return
 	fi
 }
 
