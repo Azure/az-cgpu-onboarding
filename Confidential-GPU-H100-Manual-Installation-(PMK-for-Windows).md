@@ -45,6 +45,7 @@ Please note that this step may take a few minutes to complete. You can track you
 az vm create `
 --resource-group $rg `
 --name $vmname `
+--location eastus2 `
 --image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:latest `
 --public-ip-sku Standard `
 --admin-username $adminusername `
@@ -84,7 +85,7 @@ tar -zxvf cgpu-onboarding-package.tar.gz
 1. Once the package has been extracted, enter the folder and run step 0 to prepare the kernel
 ```
 cd cgpu-onboarding-package
-bash step-0-prepare-kernel.sh
+sudo bash step-0-prepare-kernel.sh
 ```
 Note: this step requires a reboot, so once your VM status is back to 'running' please re-connect and re-enter the onboarding package to continue:
 ```
@@ -94,17 +95,17 @@ cd cgpu-onboarding-package
 
 2. The next step will install the GPU driver. Please note that this step will involve a reboot
 ```
-bash step-1-install-gpu-driver.sh
+sudo bash step-1-install-gpu-driver.sh
 ```
 
 3. Now we are finally able to run attestation - you will be able to see the attestation message printed at the bottom
 ```
-bash step-2-attestation.sh
+sudo bash step-2-attestation.sh
 ```
 
 4. Finally, run the last step to install the GPU tools. These are tools and packages that will allow you to run various workloads
 ```
-bash step-3-install-gpu-tools.sh
+sudo bash step-3-install-gpu-tools.sh
 ```
 
 ## Validation
