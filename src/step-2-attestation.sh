@@ -1,7 +1,7 @@
 ## This module helps install associate dependency and do attestation against CGPU driver.
 ##
 ## Requirements:
-##      Nvidia driver:              v550.54.14
+##      Minimum Nvidia driver:      v550.54.14
 ##      Minimum kernel version:     6.5.0-1017-azure
 ##
 ## Example:
