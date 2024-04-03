@@ -2,8 +2,8 @@
 ## It will try to update to default version "6.5.0-1017-azure".
 ##
 ## Requirements: 
-##      nvdia driver:       APM_470.10.07_5.11.0-1028.31.tar
-##      kernel version:     6.5.0-1017-azure
+##      Minimum Nvidia driver:      v550.54.14
+##      Minimum kernel version:     6.5.0-1017-azure
 ##
 ## Example: 
 ##      bash utilities-update-kernel.sh 
