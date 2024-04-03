@@ -64,7 +64,7 @@ function CGPU-H100-Onboarding{
 			$azVersion = az --version
 			# If the command runs successfully, it means Azure CLI is installed
 			Write-Output "Azure Cli is installed current on $(az --version | Select-String 'azure-cli')"
-      			# Make sure minimum Azure CLI version is met
+      		# Make sure minimum Azure CLI version is met
 	 		$currentAzCLIVersion = (az --version | Select-String -Pattern 'azure-cli.*?([0-9\.]+)').Matches.Groups[1].Value
 	 		$minimumAzCLIVersion="2.47.0"
 			if ([System.Version]$minimumAzCLIVersion -gt [System.Version]$currentAzCLIVersion) {
