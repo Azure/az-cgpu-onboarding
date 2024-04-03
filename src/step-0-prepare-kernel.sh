@@ -1,7 +1,7 @@
 ## This module helps prepare kernel for nvidia driver installation.
 ##
 ## Example:
-##      bash step-0-prepare-kernel.sh
+##      sudo bash step-0-prepare-kernel.sh
 ##
 
 sudo apt update
