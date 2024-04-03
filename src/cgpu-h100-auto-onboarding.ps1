@@ -150,7 +150,7 @@ function Auto-Onboard-CGPU-Multi-VM {
 		Write-Host $vmlogincommands[$i]
 	}
 	Write-Host "Please execute the below command to try attestation:"
-	Write-Host "cd cgpu-onboarding-package; bash step-2-attestation.sh";
+	Write-Host "cd cgpu-onboarding-package; sudo bash step-2-attestation.sh";
 	Write-Host "Please execute the below command to try a sample workload:"
 	Write-Host "sudo docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/${adminusername}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:24.03-tf2-py3 python /home/mnist-sample-workload.py";
 	Write-Host "******************************************************************************************"
