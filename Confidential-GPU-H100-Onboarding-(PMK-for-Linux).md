@@ -85,7 +85,7 @@ Finished creating VM: cgpu-01-12-7-1
 Please execute below commands to login to your VM(s):
 ssh -i E:\cgpu\.ssh\id_rsa adminusername@20.114.244.82
 Please execute the below command to try attestation:
-cd cgpu-onboarding-package; bash step-2-attestation.sh
+cd cgpu-onboarding-package; sudo bash step-2-attestation.sh
 Please execute the below command to try a sample workload:
 sudo docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/<adminusername>/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:24.03-tf2-py3 python /home/mnist-sample-workload.py
 ******************************************************************************************
