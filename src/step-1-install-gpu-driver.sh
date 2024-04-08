@@ -39,10 +39,6 @@ install_gpu_driver() {
         echo "kernel verified successfully, start driver installation."
         echo "start gpu driver log."
 
-        # Add jammpy-proposed repo
-        sudo apt update
-        echo Y | sudo apt upgrade
-
         # Install r550 nvidia driver
         sudo apt -y install gcc g++ make
         sudo apt install -y nvidia-driver-550-server-open linux-modules-nvidia-550-server-open-azure
