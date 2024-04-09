@@ -21,6 +21,9 @@ install_gpu_driver() {
     else
         echo "Current kernel version: $current_kernel"
 
+        # Lock the current kernel version
+        sudo apt-mark hold linux-azure-6.5 linux-image-6.5.0 linux-azure linux-headers-azure linux-image-azure linux-tools-azure linux-cloud-tools-azure
+
         # Apply change to modprobe.d and run update-initramfs
         sudo cp nvidia-lkca.conf /etc/modprobe.d/nvidia-lkca.conf
         sudo update-initramfs -u -k $current_kernel
