@@ -42,7 +42,7 @@ install_gpu_driver() {
         echo "start gpu driver log."
 
         # Install r550 nvidia driver
-        sudo apt -y install gcc g++ make
+        sudo apt install -y gcc g++ make
         sudo apt install -y nvidia-driver-550-server-open linux-modules-nvidia-550-server-open-azure
 
         # capture transient couldn't get lock issue and retry the operation with maximum retry count of 3.
