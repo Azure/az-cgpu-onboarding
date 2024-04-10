@@ -14,6 +14,7 @@
 DEFAULT_KERNEL_VERSION="6.5.0-1017-azure"
 
 # Compare if two given version is matching or not.
+# Return 0 if equal, 1 if the first version is greater, 2 if the first version is smaller
 vercomp() {
     dpkg --compare-versions "$1" eq "$2"
     if [ $? -eq 0 ]; then
