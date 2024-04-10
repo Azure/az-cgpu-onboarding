@@ -90,6 +90,12 @@ install_kernel() {
     echo "Updating kernel"
     sudo apt-get update
 
+    # Wait until apt lock is released
+    while sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do
+        echo "Waiting for other apt operations to finish..."
+        sleep 10
+    done
+
     sudo apt-get -y install \
         linux-image-$new_kernel-fde \
         linux-tools-$new_kernel \
@@ -97,7 +103,6 @@ install_kernel() {
         linux-headers-$new_kernel \
         linux-modules-$new_kernel \
         linux-modules-extra-$new_kernel
-
 }
 
 if [[ "${#BASH_SOURCE[@]}" -eq 1 ]]; then
