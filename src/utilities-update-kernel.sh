@@ -84,11 +84,13 @@ update_kernel(){
         sudo DEBIAN_FRONTEND=noninteractive apt-get --yes --force-yes -o \
             Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" remove -y \
             $current_kernel
-        echo "Rebooting system"
-        sudo reboot
     else
         echo "Kernel is already on specified version ($current_kernel)"
+        return 0
     fi
+
+    echo "Rebooting system"
+    sudo reboot
 }
 
 # Install kernel to given version, it will reboot the system at the end.
