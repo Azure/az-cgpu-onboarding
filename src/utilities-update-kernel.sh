@@ -73,6 +73,7 @@ update_kernel() {
             return 1
         fi
         echo "Removing existing kernel"
+        wait_apt_lock
         sudo DEBIAN_FRONTEND=noninteractive apt-get --yes --force-yes -o \
             Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" remove -y \
             $current_kernel
@@ -88,14 +89,9 @@ update_kernel() {
 # Install kernel to given version, it will reboot the system at the end.
 install_kernel() {
     echo "Updating kernel"
+    wait_apt_lock
     sudo apt-get update
-
-    # Wait until apt lock is released
-    while sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do
-        echo "Waiting for other apt operations to finish..."
-        sleep 10
-    done
-
+    wait_apt_lock
     sudo apt-get -y install \
         linux-image-$new_kernel-fde \
         linux-tools-$new_kernel \
@@ -103,6 +99,25 @@ install_kernel() {
         linux-headers-$new_kernel \
         linux-modules-$new_kernel \
         linux-modules-extra-$new_kernel
+}
+
+# Wait until apt lock is released until MAX_RETRY
+wait_apt_lock() {
+    local MAX_RETRY=5
+    local count=0
+
+    while sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do
+        if [ $count -ge $MAX_RETRY ]; then
+            echo "Maximum attempts reached and apt lock is not released. Exiting..."
+            return 1
+        fi
+
+        echo "Waiting for other apt operations to finish...Sleeping for 10 seconds"
+        sleep 10
+        count=$((count + 1))
+    done
+
+    return 0
 }
 
 if [[ "${#BASH_SOURCE[@]}" -eq 1 ]]; then
