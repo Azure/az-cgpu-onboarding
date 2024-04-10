@@ -21,9 +21,6 @@ install_gpu_driver() {
     else
         echo "Current kernel version: $current_kernel"
 
-        # Lock the current kernel version
-        sudo apt-mark hold linux-azure-6.5 linux-image-6.5.0 linux-azure linux-headers-azure linux-image-azure linux-tools-azure linux-cloud-tools-azure
-
         # Apply change to modprobe.d and run update-initramfs
         sudo cp nvidia-lkca.conf /etc/modprobe.d/nvidia-lkca.conf
         sudo update-initramfs -u -k $current_kernel
@@ -47,6 +44,9 @@ install_gpu_driver() {
         # Install r550 nvidia driver
         sudo apt -y install gcc g++ make
         sudo apt install -y nvidia-driver-550-server-open linux-modules-nvidia-550-server-open-azure
+
+        # Lock the current kernel version
+        sudo apt-mark hold linux-azure-6.5 linux-image-6.5.0 linux-azure linux-headers-azure linux-image-azure linux-tools-azure linux-cloud-tools-azure
 
         # capture transient couldn't get lock issue and retry the operation with maximum retry count of 3.
         lockError=$(cat logs/current-operation.log | grep "Could not get lock")
