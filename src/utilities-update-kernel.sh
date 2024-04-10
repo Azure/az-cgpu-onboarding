@@ -15,28 +15,20 @@ DEFAULT_KERNEL_VERSION="6.5.0-1017-azure"
 
 # Compare if two given version is matching or not.
 vercomp() {
-    if [[ $1 == $2 ]]; then
+    dpkg --compare-versions "$1" eq "$2"
+    if [ $? -eq 0 ]; then
         return 0
     fi
-    local IFS=".-"
-    local i ver1=($1) ver2=($2)
-    # fill empty fields in ver1 with zeros
-    for ((i = ${#ver1[@]}; i < ${#ver2[@]}; i++)); do
-        ver1[i]=0
-    done
-    for ((i = 0; i < ${#ver1[@]}; i++)); do
-        if [[ -z ${ver2[i]} ]]; then
-            # fill empty fields in ver2 with zeros
-            ver2[i]=0
-        fi
-        if ((10#${ver1[i]} > 10#${ver2[i]})); then
-            return 1
-        fi
-        if ((10#${ver1[i]} < 10#${ver2[i]})); then
-            return 2
-        fi
-    done
-    return 0
+
+    dpkg --compare-versions "$1" gt "$2"
+    if [ $? -eq 0 ]; then
+        return 1
+    fi
+
+    dpkg --compare-versions "$1" lt "$2"
+    if [ $? -eq 0 ]; then
+        return 2
+    fi
 }
 
 # Update kernel to given version. If the given version is mismatch with the current
@@ -63,6 +55,7 @@ update_kernel() {
     result=$?
 
     if [ $result -eq 2 ]; then
+        echo "Installed kernel ($current_kernel) is older than specified kernel ($new_kernel)"
         install_kernel
     elif [ $result -eq 1 ]; then
         echo "Installed kernel ($current_kernel) is newer than specified kernel ($new_kernel)"
