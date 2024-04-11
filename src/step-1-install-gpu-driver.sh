@@ -19,9 +19,11 @@ install_gpu_driver() {
         echo "Current kernel version: ($current_kernel), expected: (>= $MINIMUM_KERNEL_VERSION)."
         # echo "Please try utilities-update-kernel.sh 6.5.0-1017-azure."
     else
+        echo "Current kernel version: $current_kernel"
+
         # Apply change to modprobe.d and run update-initramfs
         sudo cp nvidia-lkca.conf /etc/modprobe.d/nvidia-lkca.conf
-        sudo update-initramfs -u -k $(uname -r)
+        sudo update-initramfs -u -k $current_kernel
 
         # verify secure boot and key enrollment.
         secure_boot_status=$(mokutil --sb)
@@ -39,12 +41,8 @@ install_gpu_driver() {
         echo "kernel verified successfully, start driver installation."
         echo "start gpu driver log."
 
-        # Add jammpy-proposed repo
-        sudo apt update
-        echo Y | sudo apt upgrade
-
         # Install r550 nvidia driver
-        sudo apt -y install gcc g++ make
+        sudo apt install -y gcc g++ make
         sudo apt install -y nvidia-driver-550-server-open linux-modules-nvidia-550-server-open-azure
 
         # capture transient couldn't get lock issue and retry the operation with maximum retry count of 3.

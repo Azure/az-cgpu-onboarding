@@ -296,6 +296,7 @@ function VM-Creation {
 	$global:issuccess = "failed"
 
 	$publickeypath="@${publickeypath}"
+	$imageversion = "22.04.202403280"
 
 	# Check if VM name already exists within given resource group
 	($exists = az vm show --resource-group $rg --name $vmname) 2>$null
@@ -306,7 +307,7 @@ function VM-Creation {
 				--resource-group $rg `
 				--name $vmname `
 				--location eastus2 `
-				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:latest `
+				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:$imageversion `
 				--public-ip-sku Standard `
 				--admin-username $adminusername `
 				--ssh-key-values $publickeypath `
@@ -323,7 +324,7 @@ function VM-Creation {
 				--resource-group $rg `
 				--name $vmname `
 				--location eastus2 `
-				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:latest `
+				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:$imageversion `
 				--public-ip-sku Standard `
 				--admin-username $adminusername `
 				--ssh-key-values $publickeypath `

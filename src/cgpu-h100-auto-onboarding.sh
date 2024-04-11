@@ -301,6 +301,7 @@ create_vm() {
 	echo "Start creating VM: '${vmname}'. Please wait, this process can take up to 10 minutes."
 
 	public_key_path_with_at="@$public_key_path"
+	image_version="22.04.202403280"
 
 	# Check if VM name already exists within given resource group (returns 1 if exists, 0 if not)
 	vm_count=$(az vm list --resource-group $rg --query "[?name=='$vmname'] | length(@)")
@@ -312,7 +313,7 @@ create_vm() {
 				--resource-group $rg \
 				--name $vmname \
 				--location eastus2 \
-				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:latest \
+				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:$image_version \
 				--public-ip-sku Standard \
 				--admin-username $adminuser_name \
 				--ssh-key-values $public_key_path_with_at \
@@ -331,7 +332,7 @@ create_vm() {
 				--resource-group $rg \
 				--name $vmname \
 				--location eastus2 \
-				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:latest \
+				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:$image_version \
 				--public-ip-sku Standard \
 				--admin-username $adminuser_name \
 				--ssh-key-values $public_key_path_with_at \
