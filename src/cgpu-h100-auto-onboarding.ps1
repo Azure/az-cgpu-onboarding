@@ -296,7 +296,7 @@ function VM-Creation {
 	$global:issuccess = "failed"
 
 	$publickeypath="@${publickeypath}"
-	$imageversion = "22.04.202403280"
+	$imageversion = "latest"
 
 	# Check if VM name already exists within given resource group
 	($exists = az vm show --resource-group $rg --name $vmname) 2>$null
