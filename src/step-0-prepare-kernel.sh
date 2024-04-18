@@ -4,7 +4,7 @@
 ##      sudo bash step-0-prepare-kernel.sh
 ##
 
-ENABLE_UBUNTU_SNAPSHOT_SERVICE=0
+ENABLE_UBUNTU_SNAPSHOT_SERVICE=1
 TIMESTAMP_UBUNTU_SNAPSHOT_SERVICE=20240405T120000Z
 
 enable_ubuntu_snapshot_service() {

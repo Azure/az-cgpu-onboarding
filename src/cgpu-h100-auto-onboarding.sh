@@ -301,7 +301,7 @@ create_vm() {
 	echo "Start creating VM: '${vmname}'. Please wait, this process can take up to 10 minutes."
 
 	public_key_path_with_at="@$public_key_path"
-	image_version="latest"
+	image_version="22.04.202403280"
 
 	# Check if VM name already exists within given resource group (returns 1 if exists, 0 if not)
 	vm_count=$(az vm list --resource-group $rg --query "[?name=='$vmname'] | length(@)")
