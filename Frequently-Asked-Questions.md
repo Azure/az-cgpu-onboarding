@@ -8,7 +8,7 @@ Q: Why does the `dmesg` not display `AMD SEV-SNP`?
 
 A: This does not mean SEV-SNP is not enabled, this is just a characteristic of CVMs which don't provide this interface. The firmware-generated SNP report is stored elsewhere.
 
-Q: How to update existing Nvidia driver from r535 (535.129.03 from release-3.0.2) to r550 (550.54.14 from releases-3.0.3 and onwards)?
+Q: How to update existing Nvidia driver from r535 (535.129.03 from release-3.0.2) to r550 (550.54.15 from releases-3.0.3 and onwards)?
 
 A: If you have created the VM using previous versions of onboarding packages, you can download the latest onboarding package and follow the steps below to update the Nvidia driver. It will also release the hold of the Linux kernel and update the kernel.
 
