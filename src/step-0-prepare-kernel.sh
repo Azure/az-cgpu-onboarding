@@ -14,7 +14,7 @@ enable_ubuntu_snapshot_service() {
 }
 
 # Enable Ubuntu snapshot service if ENABLE_UBUNTU_SNAPSHOT_SERVICE is set to 1
-if [ "$ENABLE_UBUNTU_SNAPSHOT_SERVICE" -eq 1 ]; then
+if [ "$ENABLE_UBUNTU_SNAPSHOT_SERVICE" == "1" ]; then
     enable_ubuntu_snapshot_service
 fi
 
