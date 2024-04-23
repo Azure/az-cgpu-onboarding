@@ -1,14 +1,26 @@
 ## This module helps prepare kernel for nvidia driver installation.
 ##
-## Example: 
-##      bash step-0-prepare-kernel.sh 
+## Example:
+##      sudo bash step-0-prepare-kernel.sh
 ##
 
-sudo apt update; 
-sudo apt-mark hold linux-azure-6.2 linux-image-6.2.0 linux-azure linux-headers-azure linux-image-azure linux-tools-azure linux-cloud-tools-azure;
+ENABLE_UBUNTU_SNAPSHOT_SERVICE=0
+TIMESTAMP_UBUNTU_SNAPSHOT_SERVICE=20240405T120000Z
+
+enable_ubuntu_snapshot_service() {
+    local sources_list="/etc/apt/sources.list"
+    sudo cp "$sources_list" "$sources_list.backup"
+    sudo sed -i "/^deb /s/deb /deb [snapshot=$TIMESTAMP_UBUNTU_SNAPSHOT_SERVICE] /" "$sources_list"
+}
+
+# Enable Ubuntu snapshot service if ENABLE_UBUNTU_SNAPSHOT_SERVICE is set to 1
+if [ "$ENABLE_UBUNTU_SNAPSHOT_SERVICE" == "1" ]; then
+    enable_ubuntu_snapshot_service
+fi
+
+sudo apt update
 sudo sed -i 's/#$nrconf{restart} = '"'"'i'"'"';/$nrconf{restart} = '"'"'a'"'"';/g' /etc/needrestart/needrestart.conf
-echo Y | sudo apt upgrade;
+echo Y | sudo apt upgrade
 
-sudo cp nvidia-lkca.conf /etc/modprobe.d/nvidia-lkca.conf; echo Y | sudo update-initramfs -u
-
+echo "Rebooting system to apply kernel updates..."
 sudo reboot

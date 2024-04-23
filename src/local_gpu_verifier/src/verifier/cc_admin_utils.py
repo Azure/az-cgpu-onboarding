@@ -1,5 +1,5 @@
 #
-# SPDX-FileCopyrightText: Copyright (c) 2021-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2021-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Redistribution and use in source and binary forms, with or without
@@ -72,6 +72,49 @@ from verifier.exceptions import (
 class CcAdminUtils:
     """ A class to provide the required functionalities for the CC ADMIN to perform the GPU attestation.
     """
+    @staticmethod
+    def extract_fwid(cert):
+        """ A static function to extract the FWID data from the given certificate.
+        Args:
+            cert (OpenSSL.crypto.X509): The certificate whose FWID data is needed to be fetched. 
+        Returns:
+            [str]: the FWID as a hex string extracted from the certificate if 
+                    it is present otherwise returns an empty string.
+        """
+        result = ''
+        # The OID for the FWID extension.
+        TCG_DICE_FWID_OID = '2.23.133.5.4.1'
+        cryptography_cert = cert.to_cryptography()
+
+        for i in range(len(cryptography_cert.extensions)):
+            oid_obj = (vars(cryptography_cert.extensions)['_extensions'][i]).oid
+            if getattr(oid_obj, 'dotted_string') == TCG_DICE_FWID_OID:
+                # The FWID data is the last 48 bytes.
+                result = vars((vars(cryptography_cert.extensions)['_extensions'][i]).value)['_value'][-48:].hex()
+
+        return result
+
+    @staticmethod
+    def verify_gpu_certificate_chain(cert_chain, settings, attestation_report_fwid):
+        """ A static function to perform the GPU device certificate chain verification.
+        Args:
+            cert_chain (list): A list containing the certificate objects of the device certificate chain.
+            settings (config.HopperSettings): the object containing the various config info.
+            attestation_report_fwid (str): the hexadecimal string of the FWID in the attestation report.
+        Returns:
+            [bool]: True if the verification is successful, otherwise False.
+        """
+        # Skipping the comparision of FWID in the attestation certificate if the Attestation report does not contains the FWID.
+        if attestation_report_fwid != '':
+
+            if attestation_report_fwid != CcAdminUtils.extract_fwid(cert_chain[0]):
+                info_log.error("\t\tThe firmware ID in the device certificate chain is not matching with the one in the attestation report.")
+                event_log.info(f"\t\tThe FWID read from the attestation report is : {attestation_report_fwid}")
+                return False
+
+            info_log.info("\t\tThe firmware ID in the device certificate chain is matching with the one in the attestation report.")
+
+        return CcAdminUtils.verify_certificate_chain(cert_chain, settings, BaseSettings.Certificate_Chain_Verification_Mode.GPU_ATTESTATION)
 
     @staticmethod
     def verify_certificate_chain(cert_chain, settings, mode):
@@ -189,38 +232,48 @@ class CcAdminUtils:
         for i in range(start_index, end_index):
             cert_common_name = cert_chain[i].subject.get_attributes_for_oid(x509.oid.NameOID.COMMON_NAME)[0].value
 
-            # Get OCSP Response, fallback to Nvidia OCSP Service if fetch fails, raise error if both fails
+            # Fetch OCSP Response from provided OCSP Service
             nonce = (
                 CcAdminUtils.generate_nonce(BaseSettings.SIZE_OF_NONCE_IN_BYTES)
                 if BaseSettings.OCSP_NONCE_ENABLED
                 else None
             )
             ocsp_request = CcAdminUtils.build_ocsp_request(cert_chain[i], cert_chain[i + 1], nonce)
-            ocsp_response = function_wrapper_with_timeout(
-                [
-                    CcAdminUtils.send_ocsp_request,
-                    ocsp_request.public_bytes(serialization.Encoding.DER),
-                    BaseSettings.OCSP_URL,
-                    BaseSettings.OCSP_RETRY_COUNT,
-                    "send_ocsp_request",
-                ],
-                BaseSettings.MAX_OCSP_TIME_DELAY,
-            )
-
-            if ocsp_response is None:
-                nonce = CcAdminUtils.generate_nonce(BaseSettings.SIZE_OF_NONCE_IN_BYTES)
-                ocsp_request = CcAdminUtils.build_ocsp_request(cert_chain[i], cert_chain[i + 1], nonce)
+            try:
                 ocsp_response = function_wrapper_with_timeout(
                     [
-                        CcAdminUtils.send_ocsp_request,
+                        CcAdminUtils.fetch_ocsp_response_from_url,
                         ocsp_request.public_bytes(serialization.Encoding.DER),
-                        BaseSettings.OCSP_URL_NVIDIA,
+                        BaseSettings.OCSP_URL,
                         BaseSettings.OCSP_RETRY_COUNT,
                         "send_ocsp_request",
                     ],
-                    BaseSettings.MAX_OCSP_TIME_DELAY,
+                    BaseSettings.MAX_OCSP_REQUEST_TIME_DELAY * BaseSettings.OCSP_RETRY_COUNT,
                 )
+            except Exception as e:
+                event_log.error(f"Exception occurred while fetching OCSP response from provided OCSP service: {str(e)}")
+                ocsp_response = None
 
+            # Fallback to Nvidia OCSP Service if the fetch fails
+            if ocsp_response is None:
+                nonce = CcAdminUtils.generate_nonce(BaseSettings.SIZE_OF_NONCE_IN_BYTES)
+                ocsp_request = CcAdminUtils.build_ocsp_request(cert_chain[i], cert_chain[i + 1], nonce)
+                try:
+                    ocsp_response = function_wrapper_with_timeout(
+                        [
+                            CcAdminUtils.fetch_ocsp_response_from_url,
+                            ocsp_request.public_bytes(serialization.Encoding.DER),
+                            BaseSettings.OCSP_URL_NVIDIA,
+                            BaseSettings.OCSP_RETRY_COUNT,
+                            "send_ocsp_request",
+                        ],
+                        BaseSettings.MAX_OCSP_REQUEST_TIME_DELAY * BaseSettings.OCSP_RETRY_COUNT,
+                    )
+                except Exception as e:
+                    event_log.error(f"Exception occurred while fetching OCSP response from Nvidia OCSP service: {str(e)}")
+                    ocsp_response = None
+
+            # Raise error if OCSP response is not fetched from both OCSP services
             if ocsp_response is None:
                 error_msg = f"Failed to fetch the ocsp response for certificate {cert_common_name}"
                 info_log.error(f"\t\t\t{error_msg}")
@@ -333,38 +386,40 @@ class CcAdminUtils:
         return True
 
     @staticmethod
-    def send_ocsp_request(data, url, max_retries=3):
+    def fetch_ocsp_response_from_url(ocsp_request_data, url, max_retries):
         """ A static method to prepare http request and send it to the ocsp server
             and returns the ocsp response message.
 
         Args:
-            data (bytes): the raw ocsp request message.
+            ocsp_request_data (bytes): the raw ocsp request message.
             url (str): the url of the ocsp service.
-            max_retries (int, optional): the maximum number of retries to be performed in case of any error. Defaults to 5.
+            max_retries (int, optional): the maximum number of retries to be performed in case of any error.
 
         Returns:
             [cryptography.hazmat.backends.openssl.ocsp._OCSPResponse]: the ocsp response message object.
         """
+        # OCSP service URL should start with https
         if not url.lower().startswith("https"):
-            # Raising exception in case of url not starting with http, and not FTP, etc.
-            raise ValueError("The OCSP service url should start with https")
+            info_log.error(f"The OCSP service url {url} does not start with https")
+            return None
 
+        # Sending the ocsp request to the given url
         try:
-            ocsp_request = request.Request(url, data)
+            ocsp_request = request.Request(url, ocsp_request_data)
             ocsp_request.add_header("Content-Type", "application/ocsp-request")
 
-            with request.urlopen(ocsp_request) as ocsp_response_raw:
-                ocsp_response = ocsp.load_der_ocsp_response(ocsp_response_raw.read())
-                info_log.debug(f"Successfully fetched the ocsp response from {url}")
+            with request.urlopen(ocsp_request) as ocsp_response_data:
+                ocsp_response = ocsp.load_der_ocsp_response(ocsp_response_data.read())
+                event_log.debug(f"Successfully fetched the ocsp response from {url}")
                 return ocsp_response
 
         except Exception as e:
-            info_log.debug(f"Error while fetching the ocsp response from {url}")
+            event_log.error(f"Error while fetching the ocsp response from {url}")
             if isinstance(e, HTTPError):
-                info_log.debug(f"HTTP Error code : {e.code}")
+                event_log.error(f"HTTP Error code : {e.code}")
             if max_retries > 0:
                 time.sleep(BaseSettings.OCSP_RETRY_DELAY)
-                return CcAdminUtils.send_ocsp_request(data, url, max_retries - 1)
+                return CcAdminUtils.fetch_ocsp_response_from_url(ocsp_request_data, url, max_retries - 1)
             else:
                 return None
 
@@ -395,7 +450,7 @@ class CcAdminUtils:
             return False
 
     @staticmethod
-    def fetch_rim_file_from_url(rim_id, url, max_retries=3):
+    def fetch_rim_file_from_url(rim_id, url, max_retries):
         """ A static method to fetch the RIM file with the given file id from the given url.
             If the fetch fails, it retries for the maximum number of times specified by the max_retries parameter.
             If the max_retries is set to 0, it does not retry on failure and return None.
@@ -403,23 +458,29 @@ class CcAdminUtils:
         Args:
             rim_id (str): the RIM file id which need to be fetched from the given url.
             url (str): the url from which the RIM file needs to be fetched.
-            max_retries (int, optional): the maximum number of retries to be performed in case of any error. Defaults to 5.
+            max_retries (int, optional): the maximum number of retries to be performed in case of any error.
 
         Returns:
             [str]: the content of the required RIM file as a string.
         """
+        # RIM service URL should start with https
+        if not url.lower().startswith("https"):
+            info_log.error(f"The RIM service url {url} does not start with https")
+            return None
+
+        # Fetching the RIM file from the given url
         try:
             with request.urlopen(url + rim_id) as https_response:
                 data = https_response.read()
                 json_object = json.loads(data)
                 base64_data = json_object["rim"]
                 decoded_str = base64.b64decode(base64_data).decode("utf-8")
-                info_log.debug(f"Successfully fetched the RIM file from {url + rim_id}")
+                event_log.debug(f"Successfully fetched the RIM file from {url + rim_id}")
                 return decoded_str
         except Exception as e:
-            info_log.debug(f"Error while fetching the RIM file from {url + rim_id}")
+            event_log.error(f"Error while fetching the RIM file from {url + rim_id}")
             if isinstance(e, HTTPError):
-                info_log.debug(f"HTTP Error code : {e.code}")
+                event_log.error(f"HTTP Error code : {e.code}")
             if max_retries > 0:
                 time.sleep(BaseSettings.RIM_SERVICE_RETRY_DELAY)
                 return CcAdminUtils.fetch_rim_file_from_url(rim_id, url, max_retries - 1)
@@ -427,8 +488,8 @@ class CcAdminUtils:
                 return None
 
     @staticmethod
-    def fetch_rim_file(rim_id, max_retries=3):
-        """ A static method to fetch the RIM file with the given file id from the RIM service.
+    def fetch_rim_file(rim_id, max_retries=BaseSettings.RIM_SERVICE_RETRY_COUNT):
+        """A static method to fetch the RIM file with the given file id from the RIM service.
             It tries to fetch the RIM file from provided RIM service, and fallback to the Nvidia RIM service if the fetch fails.
 
         Args:
@@ -441,19 +502,54 @@ class CcAdminUtils:
             [str]: the content of the required RIM file as a string.
         """
         # Fetching the RIM file from the provided RIM service
-        rim_result = CcAdminUtils.fetch_rim_file_from_url(rim_id, BaseSettings.RIM_SERVICE_BASE_URL, max_retries)
+        try:
+            rim_result = function_wrapper_with_timeout(
+                [
+                    CcAdminUtils.fetch_rim_file_from_url,
+                    rim_id,
+                    BaseSettings.RIM_SERVICE_BASE_URL,
+                    max_retries,
+                    "fetch_rim_file_from_url",
+                ],
+                BaseSettings.MAX_RIM_REQUEST_TIME_DELAY * max_retries,
+            )
+        except Exception as e:
+            event_log.error(f"Exception occurred while fetching RIM {rim_id} from provided RIM service: {str(e)}")
+            rim_result = None
+
+        # RIM is successfully fetched from the provided RIM service
         if rim_result is not None:
             return rim_result
+        
+        # Log error if RIM file is not fetched from the provided RIM service
+        event_log.error(f"Failed to fetch RIM {rim_id} from provided RIM service: {BaseSettings.RIM_SERVICE_BASE_URL}")
 
         # Fallback to the Nvidia RIM service if the fetch fails
-        rim_result = CcAdminUtils.fetch_rim_file_from_url(
-            rim_id, BaseSettings.RIM_SERVICE_BASE_URL_NVIDIA, max_retries
-        )
-        if rim_result is not None:
-            return rim_result
+        if BaseSettings.RIM_SERVICE_BASE_URL_NVIDIA != BaseSettings.RIM_SERVICE_BASE_URL:
+            event_log.info(f"Falling back to Nvidia RIM service {BaseSettings.RIM_SERVICE_BASE_URL_NVIDIA}")
+            try:
+                rim_result = function_wrapper_with_timeout(
+                    [
+                        CcAdminUtils.fetch_rim_file_from_url,
+                        rim_id,
+                        BaseSettings.RIM_SERVICE_BASE_URL_NVIDIA,
+                        max_retries,
+                        "fetch_rim_file_from_url",
+                    ],
+                    BaseSettings.MAX_RIM_REQUEST_TIME_DELAY * max_retries,
+                )
+            except Exception as e:
+                event_log.error(f"Exception occurred while fetching RIM {rim_id} from Nvidia RIM service: {str(e)}")
+                rim_result = None
+
+            # RIM is successfully fetched from the Nvidia RIM service
+            if rim_result is not None:
+                return rim_result
+            
+            # Log error if RIM file is not fetched from the Nvidia RIM service
+            event_log.error(f"Failed to fetch RIM {rim_id} from Nvidia RIM service: {BaseSettings.RIM_SERVICE_BASE_URL_NVIDIA}")
 
         # Raise error if RIM file is not fetched from both the RIM services
-        info_log.error(f"Failed to fetch the required RIM file : {rim_id} from the RIM service.")
         raise RIMFetchError(f"Could not fetch the required RIM file : {rim_id} from the RIM service.")
 
     @staticmethod

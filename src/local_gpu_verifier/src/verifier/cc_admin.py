@@ -1,5 +1,5 @@
 #
-# SPDX-FileCopyrightText: Copyright (c) 2021-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2021-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Redistribution and use in source and binary forms, with or without
@@ -349,6 +349,11 @@ def attest(arguments_as_dictionary):
 
             event_log.debug(f'GPU info fetched : \n\t\t{vars(gpu_info_obj)}')
 
+            # Parsing the attestation report.
+            attestation_report_data = gpu_info_obj.get_attestation_report()
+            attestation_report_obj = AttestationReport(attestation_report_data, settings)
+            settings.mark_attestation_report_parsed()
+
             info_log.info("\tValidating GPU certificate chains.")
             gpu_attestation_cert_chain = gpu_info_obj.get_attestation_cert_chain()
 
@@ -363,9 +368,14 @@ def attest(arguments_as_dictionary):
 
             gpu_leaf_cert = (gpu_attestation_cert_chain[0])
             event_log.debug("\t\tverifying attestation certificate chain.")
-            cert_verification_status = CcAdminUtils.verify_certificate_chain(gpu_attestation_cert_chain,
-                                                                             settings,
-                                                                             BaseSettings.Certificate_Chain_Verification_Mode.GPU_ATTESTATION)
+            cert_verification_status = CcAdminUtils.verify_gpu_certificate_chain(
+                gpu_attestation_cert_chain,
+                settings,
+                attestation_report_obj.get_response_message()
+                .get_opaque_data()
+                .get_data("OPAQUE_FIELD_ID_FWID")
+                .hex(),
+            )
 
             if not cert_verification_status:
                 err_msg = "\t\tGPU attestation report certificate chain validation failed."
@@ -387,10 +397,7 @@ def attest(arguments_as_dictionary):
             settings.mark_gpu_cert_check_complete()
 
             info_log.info("\tAuthenticating attestation report")
-            attestation_report_data = gpu_info_obj.get_attestation_report()
-            attestation_report_obj = AttestationReport(attestation_report_data, settings)
             attestation_report_obj.print_obj(info_log)
-            settings.mark_attestation_report_parsed()
             attestation_report_verification_status = CcAdminUtils.verify_attestation_report(attestation_report_obj=attestation_report_obj,
                                                                                             gpu_leaf_certificate=gpu_leaf_cert,
                                                                                             nonce=nonce_for_attestation_report,
@@ -413,14 +420,8 @@ def attest(arguments_as_dictionary):
                 if not arguments_as_dictionary["test_no_gpu"]:
                     info_log.info("\t\t\tFetching the driver RIM from the RIM service.")
                     driver_rim_file_id = CcAdminUtils.get_driver_rim_file_id(driver_version)
-                    driver_rim_content = function_wrapper_with_timeout(
-                        [
-                            CcAdminUtils.fetch_rim_file,
-                            driver_rim_file_id,
-                            BaseSettings.RIM_SERVICE_RETRY_COUNT,
-                            "fetch_rim_file",
-                        ],
-                        BaseSettings.MAX_NETWORK_TIME_DELAY,
+                    driver_rim_content = CcAdminUtils.fetch_rim_file(
+                        driver_rim_file_id, BaseSettings.RIM_SERVICE_RETRY_COUNT
                     )
                     driver_rim = RIM(rim_name="driver", settings=settings, content=driver_rim_content)
                 else:
@@ -478,17 +479,9 @@ def attest(arguments_as_dictionary):
                     vbios_rim_file_id = CcAdminUtils.get_vbios_rim_file_id(
                         project, project_sku, chip_sku, vbios_version_for_id
                     )
-
-                    vbios_rim_content = function_wrapper_with_timeout(
-                        [
-                            CcAdminUtils.fetch_rim_file,
-                            vbios_rim_file_id,
-                            BaseSettings.RIM_SERVICE_RETRY_COUNT,
-                            "fetch_rim_file",
-                        ],
-                        BaseSettings.MAX_NETWORK_TIME_DELAY,
+                    vbios_rim_content = CcAdminUtils.fetch_rim_file(
+                        vbios_rim_file_id, BaseSettings.RIM_SERVICE_RETRY_COUNT
                     )
-
                     vbios_rim = RIM(rim_name="vbios", settings=settings, content=vbios_rim_content)
 
                 else:
@@ -525,19 +518,17 @@ def attest(arguments_as_dictionary):
 
             elif arguments_as_dictionary['test_no_gpu']:
                 pass
+
             else:
-                gpu_state = False
-                ready_str = 'NOT READY'
-                if  NvmlHandler.is_cc_dev_mode(): 
+                if NvmlHandler.is_cc_dev_mode(): 
                     info_log.info('\tGPU is running in DevTools mode!!')
-                    gpu_state = True
-                    ready_str = 'READY'
-                if not arguments_as_dictionary["user_mode"]:
-                    if NvmlHandler.get_gpu_ready_state() != gpu_state:
-                        info_log.info(f'\tSetting the GPU Ready State to {ready_str}')
-                        NvmlHandler.set_gpu_ready_state(gpu_state)
-                    else:
-                        info_log.info(f'\tGPU Ready state is already {ready_str}')
+                    if not arguments_as_dictionary["user_mode"]:
+                        if not NvmlHandler.get_gpu_ready_state():
+                            info_log.info("\tSetting the GPU Ready State to READY")
+                            NvmlHandler.set_gpu_ready_state(True)
+                        else:
+                            info_log.info("\tGPU Ready State is already READY")
+
                 info_log.info(f'The verification of GPU {i} resulted in failure.')
 
             if i == 0:
@@ -555,18 +546,14 @@ def attest(arguments_as_dictionary):
             retry()
 
         else:
-            gpu_state = False
-            ready_str = 'NOT READY'
-            if NvmlHandler.is_cc_dev_mode():
+            if NvmlHandler.is_cc_dev_mode(): 
                 info_log.info('\tGPU is running in DevTools mode!!')
-                gpu_state = True
-                ready_str = 'READY'
-            if not arguments_as_dictionary["user_mode"]:
-                if NvmlHandler.get_gpu_ready_state() != gpu_state:
-                    info_log.info(f'\tSetting the GPU Ready State to {ready_str}')
-                    NvmlHandler.set_gpu_ready_state(gpu_state)
-                else:
-                    info_log.info(f'\tGPU Ready state is already {ready_str}')
+                if not arguments_as_dictionary["user_mode"]:
+                    if not NvmlHandler.get_gpu_ready_state():
+                        info_log.info("\tSetting the GPU Ready State to READY")
+                        NvmlHandler.set_gpu_ready_state(True)
+                    else:
+                        info_log.info("\tGPU Ready State is already READY")
 
     finally:
         global previous_try_status
@@ -628,19 +615,14 @@ def retry():
         attest(arguments_as_dictionary)
         time.sleep(BaseSettings.MAX_TIME_DELAY)
     else:
-        gpu_state = False
-        ready_str = 'NOT READY'
-        init_nvml()
-        if NvmlHandler.is_cc_dev_mode():
+        if NvmlHandler.is_cc_dev_mode(): 
             info_log.info('\tGPU is running in DevTools mode!!')
-            gpu_state = True
-            ready_str = 'READY'
-        if not arguments_as_dictionary["user_mode"]:
-            if NvmlHandler.get_gpu_ready_state() != gpu_state:
-                info_log.info(f'\tSetting the GPU Ready State to {ready_str}')
-                NvmlHandler.set_gpu_ready_state(gpu_state)
-            else:
-                info_log.info(f'\tGPU Ready state is already {ready_str}')
+            if not arguments_as_dictionary["user_mode"]:
+                if not NvmlHandler.get_gpu_ready_state():
+                    info_log.info("\tSetting the GPU Ready State to READY")
+                    NvmlHandler.set_gpu_ready_state(True)
+                else:
+                    info_log.info("\tGPU Ready State is already READY")
 
 
 if __name__ == "__main__":

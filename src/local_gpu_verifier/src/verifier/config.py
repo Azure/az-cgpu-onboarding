@@ -60,7 +60,7 @@ class BaseSettings:
     AZURE_IMDS_URL = "http://169.254.169.254/metadata/instance?api-version=2021-02-01"
     AZURE_THIM_ENDPOINT_DICT = {
         "eastus2": 'https://useast2.thim.azure.net',
-        "centraluseuap": '',
+        "centraluseuap": 'https://uscentraleuap.thim.azure.net',
         "lab": ''
     }
     SIZE_OF_NONCE_IN_BYTES = 32
@@ -74,19 +74,19 @@ class BaseSettings:
     current_retry_count = 0
     # The Timeout duration in seconds.
     MAX_NVML_TIME_DELAY = 5
-    MAX_OCSP_TIME_DELAY = 10
-    MAX_NETWORK_TIME_DELAY = 10
+    MAX_OCSP_REQUEST_TIME_DELAY = 10
+    MAX_RIM_REQUEST_TIME_DELAY = 10
     OCSP_URL = ''
     OCSP_URL_NVIDIA = 'https://ocsp.ndis.nvidia.com/'
     OCSP_NONCE_ENABLED = False
     OCSP_HASH_FUNCTION = sha384
-    OCSP_RETRY_COUNT = 1
+    OCSP_RETRY_COUNT = 3
     OCSP_RETRY_DELAY = 0.1
     OCSP_VALIDITY_EXTENSION_HRS = 7 * 24
     OCSP_CERT_REVOCATION_EXTENSION_HRS = 7 * 24
     RIM_SERVICE_BASE_URL = ''
     RIM_SERVICE_BASE_URL_NVIDIA = 'https://rim.attestation.nvidia.com/v1/rim/'
-    RIM_SERVICE_RETRY_COUNT = 1
+    RIM_SERVICE_RETRY_COUNT = 3
     RIM_SERVICE_RETRY_DELAY = 0.1
     Certificate_Chain_Verification_Mode = Enum("CERT CHAIN VERIFICATION MODE", ['GPU_ATTESTATION', 'OCSP_RESPONSE', 'DRIVER_RIM_CERT', 'VBIOS_RIM_CERT'])
     NVDEC_STATUS = Enum("NVDEC0 status", [("ENABLED", 0xAA), ("DISABLED", 0x55)])

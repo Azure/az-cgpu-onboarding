@@ -49,6 +49,9 @@ function CGPU-H100-Onboarding{
 		$vmnameprefix,
 		$totalvmnumber)
 
+		$ONBOARDING_PACKAGE_VERSION="v3.0.3"
+		Write-Host "Confidential GPU H100 Onboarding Package Version: $ONBOARDING_PACKAGE_VERSION"
+
 		$logpath=$(Get-Date -Format "MM-dd-yyyy_HH-mm-ss")
 		if (!(Test-Path ".\logs\$logpath\"))
 		{
@@ -61,7 +64,7 @@ function CGPU-H100-Onboarding{
 			$azVersion = az --version
 			# If the command runs successfully, it means Azure CLI is installed
 			Write-Output "Azure Cli is installed current on $(az --version | Select-String 'azure-cli')"
-      			# Make sure minimum Azure CLI version is met
+			# Make sure minimum Azure CLI version is met
 	 		$currentAzCLIVersion = (az --version | Select-String -Pattern 'azure-cli.*?([0-9\.]+)').Matches.Groups[1].Value
 	 		$minimumAzCLIVersion="2.47.0"
 			if ([System.Version]$minimumAzCLIVersion -gt [System.Version]$currentAzCLIVersion) {
@@ -128,7 +131,11 @@ function Auto-Onboard-CGPU-Multi-VM {
 	$successcount = 0
 	$vmlogincommands = New-Object "String[]" ($totalvmnumber+1)
 	for($i=1; $i -le $totalvmnumber; $i++) {
-		$vmname=${vmnameprefix}+"-"+${i}
+		if($i -eq 1) { 
+			$vmname=${vmnameprefix}
+		} else {
+			$vmname=${vmnameprefix}+"-"+${i}
+		}
 
 		Write-Host "Start creating VM: ${vmname}"
 
@@ -146,9 +153,9 @@ function Auto-Onboard-CGPU-Multi-VM {
 		Write-Host $vmlogincommands[$i]
 	}
 	Write-Host "Please execute the below command to try attestation:"
-	Write-Host "cd cgpu-onboarding-package; bash step-2-attestation.sh";
+	Write-Host "cd cgpu-onboarding-package; sudo bash step-2-attestation.sh";
 	Write-Host "Please execute the below command to try a sample workload:"
-	Write-Host "sudo docker run --gpus all -v /home/${adminusername}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:23.09-tf2-py3 python /home/mnist-sample-workload.py";
+	Write-Host "sudo docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/${adminusername}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:24.03-tf2-py3 python /home/mnist-sample-workload.py";
 	Write-Host "******************************************************************************************"
 
 	Write-Host "Total VM to onboard: ${totalvmnumber}, total Success: ${successcount}."
@@ -216,6 +223,10 @@ function Auto-Onboard-CGPU-Single-VM {
 	 -vmname $vmname `
 	 -adminusername $adminusername `
  	 -desid $desid
+	if ($global:issuccess -eq "failed") {
+		Write-Host "Failed to create VM."
+		return
+	}
 
 	# Upload package to VM and extract it.
 	Package-Upload -vmsshinfo $vmsshinfo `
@@ -282,41 +293,60 @@ function VM-Creation {
 		$publickeypath,
 		$desid)
 
-	$publickeypath="@${publickeypath}"
+	$global:issuccess = "failed"
 
-	if (!$desid) {
-		Write-Host "Disk encryption set ID is not set, using Platform Managed Key for VM creation"
-		$result=az vm create `
-			--resource-group $rg `
-			--name $vmname `
-		    --image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:22.04.202312070 `
-			--public-ip-sku Standard `
-			--admin-username $adminusername `
-			--ssh-key-values $publickeypath `
-			--security-type ConfidentialVM `
-			--os-disk-security-encryption-type DiskWithVMGuestState `
-			--enable-secure-boot $true `
-			--enable-vtpm $true `
-			--size Standard_NCC40ads_H100_v5 `
-			--os-disk-size-gb 100 `
-			--verbose
+	$publickeypath="@${publickeypath}"
+	$imageversion = "latest"
+
+	# Check if VM name already exists within given resource group
+	($exists = az vm show --resource-group $rg --name $vmname) 2>$null
+	if([string]::IsNullOrEmpty($exists)) {
+		if (!$desid) {
+			Write-Host "Disk encryption set ID is not set, using Platform Managed Key for VM creation"
+			$result=az vm create `
+				--resource-group $rg `
+				--name $vmname `
+				--location eastus2 `
+				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:$imageversion `
+				--public-ip-sku Standard `
+				--admin-username $adminusername `
+				--ssh-key-values $publickeypath `
+				--security-type ConfidentialVM `
+				--os-disk-security-encryption-type DiskWithVMGuestState `
+				--enable-secure-boot $true `
+				--enable-vtpm $true `
+				--size Standard_NCC40ads_H100_v5 `
+				--os-disk-size-gb 100 `
+				--verbose
+		} else {
+			Write-Host "Disk encryption set ID has been set, using Customer Managed Key for VM creation:"
+			$result=az vm create `
+				--resource-group $rg `
+				--name $vmname `
+				--location eastus2 `
+				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:$imageversion `
+				--public-ip-sku Standard `
+				--admin-username $adminusername `
+				--ssh-key-values $publickeypath `
+				--security-type ConfidentialVM `
+				--os-disk-security-encryption-type DiskWithVMGuestState `
+				--enable-secure-boot $true `
+				--enable-vtpm $true `
+				--size Standard_NCC40ads_H100_v5 `
+				--os-disk-size-gb 100 `
+				--os-disk-secure-vm-disk-encryption-set $desid `
+				--verbose
+		}
+
+		# az vm fail or result being empty
+		if ($? -eq $false || [string]::IsNullOrEmpty($result)) {
+			Write-Host "VM creation failed."
+			return
+		}
+
 	} else {
-		Write-Host "Disk encryption set ID has been set, using Customer Managed Key for VM creation:"
-		$result=az vm create `
-			--resource-group $rg `
-			--name $vmname `
-		    --image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:22.04.202312070 `
-			--public-ip-sku Standard `
-			--admin-username $adminusername `
-			--ssh-key-values $publickeypath `
-			--security-type ConfidentialVM `
-			--os-disk-security-encryption-type DiskWithVMGuestState `
-			--enable-secure-boot $true `
-			--enable-vtpm $true `
-			--size Standard_NCC40ads_H100_v5 `
-			--os-disk-size-gb 100 `
-			--os-disk-secure-vm-disk-encryption-set $desid `
-			--verbose
+		Write-Host "A virtual machine with the name $vmname already exists in $rg - please choose a unique name."
+		return
 	}
 
 	Write-Host $result
@@ -324,6 +354,7 @@ function VM-Creation {
 	$vmip= $resultjson.publicIpAddress
 	$vmsshinfo=$adminusername+"@"+$vmip
 	echo $vmsshinfo
+	$global:issuccess = "succeeded"
 	return
 }
 
@@ -506,7 +537,7 @@ function Validation {
 	}
 
 	$ccenvironment=$(ssh -i $privatekeypath $vmsshinfo "nvidia-smi conf-compute -e;")
-	if ($ccenvironment -ne "CC Environment: INTERNAL")
+	if ($ccenvironment -ne "CC Environment: PRODUCTION")
 	{
 		$global:issuccess="failed"
 		Write-Host "Failed: Confidential Compute environment validation. Current Confidential Compute environment state: ${ccenvironment}"

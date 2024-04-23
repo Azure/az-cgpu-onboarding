@@ -46,6 +46,9 @@ cgpu_h100_onboarding() {
 	    esac
 	done
 	
+	ONBOARDING_PACKAGE_VERSION="v3.0.3"
+	echo "Confidential GPU H100 Onboarding Package Version: $ONBOARDING_PACKAGE_VERSION"
+
 	if [ "$(az --version | grep azure-cli)" == "" ]; then
     		echo "Azure CLI is not installed, please try install Azure CLI first: curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash"
     		return
@@ -116,9 +119,9 @@ cgpu_h100_onboarding() {
 		then 
 			vmname="${vmname_prefix}";
 		else 
-			vmname_ending=$(($current_vm_count+1));
+			vmname_ending=$(($current_vm_count));
 			vmname="${vmname_prefix}-${vmname_ending}"
-		fi
+    		fi
 
 		echo "Vm Name: ${vmname}";
 		auto_onboard_cgpu_single_vm $vmname
@@ -142,9 +145,9 @@ cgpu_h100_onboarding() {
 	done
 
 	echo "Please execute the below command to try attestation:"
-	echo "cd cgpu-onboarding-package; bash step-2-attestation.sh";
+	echo "cd cgpu-onboarding-package; sudo bash step-2-attestation.sh";
 	echo "Please execute the below command to try a sample workload:"
-	echo "sudo docker run --gpus all -v /home/${adminuser_name}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:23.09-tf2-py3 python /home/mnist-sample-workload.py";
+	echo "sudo docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/${adminuser_name}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:24.03-tf2-py3 python /home/mnist-sample-workload.py";
 	echo "******************************************************************************************"
 
 	az account clear
@@ -298,46 +301,58 @@ create_vm() {
 	echo "Start creating VM: '${vmname}'. Please wait, this process can take up to 10 minutes."
 
 	public_key_path_with_at="@$public_key_path"
-	
-	if [ -n "$des_id" ]; then
-	    echo "Disk encryption set ID has been set, using Customer Managed Key for VM creation:"
-	    echo "Provisioning VM..."
-	    az vm create \
-			--resource-group $rg \
-			--name $vmname \
-			--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:22.04.202312070 \
-			--public-ip-sku Standard \
-			--admin-username $adminuser_name \
-			--ssh-key-values $public_key_path_with_at \
-			--security-type ConfidentialVM \
-			--os-disk-security-encryption-type DiskWithVMGuestState \
-			--os-disk-secure-vm-disk-encryption-set $des_id \
-			--enable-secure-boot true \
-			--enable-vtpm true \
-			--size Standard_NCC40ads_H100_v5 \
-			--os-disk-size-gb 100 \
-			--verbose
-	else
-	    echo "Disk encryption set ID is not set, using Platform Managed Key for VM creation"
-	    echo "Provisioning VM..."
-	    az vm create \
-			--resource-group $rg \
-			--name $vmname \
-			--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:22.04.202312070 \
-			--public-ip-sku Standard \
-			--admin-username $adminuser_name \
-			--ssh-key-values $public_key_path_with_at \
-			--security-type ConfidentialVM \
-			--os-disk-security-encryption-type DiskWithVMGuestState \
-			--enable-secure-boot true \
-			--enable-vtpm true \
-			--size Standard_NCC40ads_H100_v5 \
-			--os-disk-size-gb 100 \
-			--verbose
-	fi
+	image_version="latest"
 
-	if [[ $? -ne 0 ]]; then
+	# Check if VM name already exists within given resource group (returns 1 if exists, 0 if not)
+	vm_count=$(az vm list --resource-group $rg --query "[?name=='$vmname'] | length(@)")
+	if [ $vm_count -eq 0 ]; then
+		if [ -n "$des_id" ]; then
+			echo "Disk encryption set ID has been set, using Customer Managed Key for VM creation:"
+			echo "Provisioning VM..."
+			az vm create \
+				--resource-group $rg \
+				--name $vmname \
+				--location eastus2 \
+				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:$image_version \
+				--public-ip-sku Standard \
+				--admin-username $adminuser_name \
+				--ssh-key-values $public_key_path_with_at \
+				--security-type ConfidentialVM \
+				--os-disk-security-encryption-type DiskWithVMGuestState \
+				--os-disk-secure-vm-disk-encryption-set $des_id \
+				--enable-secure-boot true \
+				--enable-vtpm true \
+				--size Standard_NCC40ads_H100_v5 \
+				--os-disk-size-gb 100 \
+				--verbose
+		else
+			echo "Disk encryption set ID is not set, using Platform Managed Key for VM creation"
+			echo "Provisioning VM..."
+			az vm create \
+				--resource-group $rg \
+				--name $vmname \
+				--location eastus2 \
+				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:$image_version \
+				--public-ip-sku Standard \
+				--admin-username $adminuser_name \
+				--ssh-key-values $public_key_path_with_at \
+				--security-type ConfidentialVM \
+				--os-disk-security-encryption-type DiskWithVMGuestState \
+				--enable-secure-boot true \
+				--enable-vtpm true \
+				--size Standard_NCC40ads_H100_v5 \
+				--os-disk-size-gb 100 \
+				--verbose
+		fi
+
+		if [[ $? -ne 0 ]]; then
+			is_success="failed"
+			return
+		fi
+	else
+		echo "A virtual machine with the name $vmname already exists in $rg - please choose a unique name."
 		is_success="failed"
+		return
 	fi
 }
 
@@ -364,7 +379,7 @@ validation() {
 	fi
 
 	cc_environment=$(ssh -i $private_key_path $vm_ssh_info "nvidia-smi conf-compute -e;")
-	if [ "$cc_environment" != "CC Environment: INTERNAL" ];
+	if [ "$cc_environment" != "CC Environment: PRODUCTION" ];
 	then
 		is_success="failed"
 		echo "Failed: Confidential Compute environment validation. Current Confidential Compute environment: ${cc_environment}"
