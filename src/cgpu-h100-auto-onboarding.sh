@@ -305,6 +305,7 @@ create_vm() {
 
 	# Check if VM name already exists within given resource group (returns 1 if exists, 0 if not)
 	vm_count=$(az vm list --resource-group $rg --query "[?name=='$vmname'] | length(@)")
+	vm_count=$(echo "$vm_count" | tr -cd '[:alnum:]-/,.:@')
 	if [ $vm_count -eq 0 ]; then
 		if [ -n "$des_id" ]; then
 			echo "Disk encryption set ID has been set, using Customer Managed Key for VM creation:"
