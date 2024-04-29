@@ -339,7 +339,7 @@ function VM-Creation {
 		}
 
 		# az vm fail or result being empty
-		if ($? -eq $false || [string]::IsNullOrEmpty($result)) {
+		if ($? -eq $false -or [string]::IsNullOrEmpty($result)) {
 			Write-Host "VM creation failed."
 			return
 		}
