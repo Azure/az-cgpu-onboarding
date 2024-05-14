@@ -23,7 +23,7 @@ This page is using a customer managed keys. More information about customer mana
 - [Azure Tenant ID](https://learn.microsoft.com/en-us/azure/active-directory/fundamentals/active-directory-how-to-find-tenant#find-tenant-id-with-powershell)
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
    - Note: minimum version 2.42.0 is required, run `az --version` to check your version and run `az upgrade` to install the latest version if your version is older
-- Download [cgpu-h100-auto-onboarding-windows.zip](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V4/cgpu-h100-auto-onboarding-windows.zip) from [Azure-Confidential-Computing-CGPUPrivatePreview-V3.0.4](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V3.0.4)
+- Download [cgpu-h100-auto-onboarding-windows.zip](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V3.0.4/cgpu-h100-auto-onboarding-windows.zip) from [Azure-Confidential-Computing-CGPUPrivatePreview-V3.0.4](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V3.0.4)
 
 -------------------------------------------
 

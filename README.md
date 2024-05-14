@@ -63,7 +63,7 @@ This preview is currently availability in the East US 2 region. We plan to expan
 
 ## Contact Information
 
-For any questions, please check the FAQ page here: [Frequently Asked Questions](https://github.com/Azure-Confidential-Computing/PrivatePreview/blob/release-4/Frequently-Asked-Questions.md)
+For any questions, please check the FAQ page here: [Frequently Asked Questions](https://github.com/Azure-Confidential-Computing/PrivatePreview/blob/release-3.0.4/Frequently-Asked-Questions.md)
 
 Support will be directly with the product team via the email Confidential GPU Preview: cgpupreview@microsoft.com   
 The service will be taken down around 1-2 times per month for security and performance updates.
