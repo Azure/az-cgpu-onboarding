@@ -78,11 +78,13 @@ cgpu_h100_onboarding() {
 	echo "subscription id: ${subscription_id}" 
 	echo "Resource group: ${rg}" 
 
+	# Sets the region to eastus2 if not otherwise specified
 	if [[ -z "${region}" ]]; then
     		echo "${region} was not specified, setting to eastus2"
 			region="eastus2"
     		return
 	fi
+	echo "Region: ${region}" 
 
 	echo "Public key path: ${public_key_path}" 
 	if [ ! -f "${public_key_path}" ]; then
