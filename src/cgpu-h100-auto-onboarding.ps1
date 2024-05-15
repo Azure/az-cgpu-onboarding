@@ -99,7 +99,7 @@ function Auto-Onboard-CGPU-Multi-VM {
 	if (-not $region) {
 		$region = "eastus2"
 	}
-	Write-Host "Resource group: ${region}"
+	Write-Host "Region: ${region}"
 
 	Write-Host "Public key path:  ${publickeypath}"
 	if (-not(Test-Path -Path $publickeypath -PathType Leaf)) {
