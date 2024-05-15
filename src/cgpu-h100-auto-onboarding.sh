@@ -15,11 +15,15 @@
 #	-v <vm name>: your VM name
 #	-n <vm number>: number of VMs to be generated
 #
+# Optional Arguments:
+#    -l <region>: the location of your resources (if not specified, the default is eastus2)
+# 
 # Example:
 # bash secureboot-enable-onboarding-from-vmi.sh  \
 # -t "8af6653d-c9c0-4957-ab01-615c7212a40b" \
 # -s "9269f664-5a68-4aee-9498-40a701230eb2" \
 # -r "confidential-gpu-rg" \
+# -l "eastus2" \
 # -p "/home/username/.ssh/id_rsa.pub" \
 # -i "/home/username/.ssh/id_rsa"  \
 # -d "/subscriptions/85c61f94-8912-4e82-900e-6ab44de9bdf8/resourceGroups/CGPU-CMK-KV/providers/Microsoft.Compute/diskEncryptionSets/CMK-Test-Des-03-01"  \
@@ -36,6 +40,7 @@ cgpu_h100_onboarding() {
 		t) tenant_id=${OPTARG};;
 		s) subscription_id=${OPTARG};;
 	        r) rg=${OPTARG};;
+			l) region=${OPTARG};;
 	        p) public_key_path=${OPTARG};;
 	        i) private_key_path=${OPTARG};;
 			d) des_id=${OPTARG};;
@@ -72,6 +77,12 @@ cgpu_h100_onboarding() {
 	echo "Tenant id: ${tenant_id}" 
 	echo "subscription id: ${subscription_id}" 
 	echo "Resource group: ${rg}" 
+
+	if [[ -z "${region}" ]]; then
+    		echo "${region} was not specified, setting to eastus2"
+			region="eastus2"
+    		return
+	fi
 
 	echo "Public key path: ${public_key_path}" 
 	if [ ! -f "${public_key_path}" ]; then
@@ -155,7 +166,6 @@ cgpu_h100_onboarding() {
 
 # Checks that user has access to direct share image
 check_image_access() {
-	region="eastus2"
 	echo "Checking for direct share image permission access"
 	if [ "$(az sig list-shared --location $region | grep -i "testGalleryDeirectShare")" == "" ]; then
 		print_error "Couldn't access direct share image from your subscription or tenant. Please make sure you have the necessary permissions."
@@ -183,7 +193,7 @@ prepare_subscription_and_rg() {
 	if [ $is_resource_group_exist == "false" ]; then
     	print_error "Resource group ${rg} does not exits, start creating resource group ${rg}"
     	
-    	az group create --name ${rg} --location eastus2
+    	az group create --name ${rg} --location ${region}
 
     	# azure cli return invisible char, removing it.
     	is_resource_group_exist="$(az group exists --name $rg)"
@@ -313,7 +323,7 @@ create_vm() {
 			az vm create \
 				--resource-group $rg \
 				--name $vmname \
-				--location eastus2 \
+				--location $region \
 				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:$image_version \
 				--public-ip-sku Standard \
 				--admin-username $adminuser_name \
@@ -332,7 +342,7 @@ create_vm() {
 			az vm create \
 				--resource-group $rg \
 				--name $vmname \
-				--location eastus2 \
+				--location $region \
 				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:$image_version \
 				--public-ip-sku Standard \
 				--admin-username $adminuser_name \

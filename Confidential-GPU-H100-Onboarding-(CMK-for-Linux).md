@@ -94,10 +94,14 @@ cd cgpu-h100-auto-onboarding-linux
 # -v <vm name>: your VM name
 # -n <vm number>: number of VMs to be generated
 
+# Optional Arguments:
+# -l <location>: the region your resources will be created in, if left blank, they will land in EastUS2 region
+
 bash cgpu-h100-auto-onboarding.sh  \
 -t "<your Tenant ID>" \
 -s "<your subscription ID>" \
 -r "confidential-gpu-rg" \
+-l "eastus2" \
 -a "<your login username>" \
 -p "/home/username/.ssh/id_rsa.pub" \
 -i "/home/username/.ssh/id_rsa"  \
