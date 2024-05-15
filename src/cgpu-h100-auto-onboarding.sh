@@ -34,11 +34,11 @@
 
 # Auto Create and Onboard Multiple CGPU VM with Nvidia Driver pre-installed image. 
 cgpu_h100_onboarding() {
-	while getopts t:s:r:p:i:d:c:a:v:n: flag
+	while getopts t:s:r:l:p:i:d:c:a:v:n: flag
 	do
 	    case "${flag}" in
-		t) tenant_id=${OPTARG};;
-		s) subscription_id=${OPTARG};;
+			t) tenant_id=${OPTARG};;
+			s) subscription_id=${OPTARG};;
 	        r) rg=${OPTARG};;
 			l) region=${OPTARG};;
 	        p) public_key_path=${OPTARG};;
