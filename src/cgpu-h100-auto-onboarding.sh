@@ -37,8 +37,8 @@ cgpu_h100_onboarding() {
 	while getopts t:s:r:l:p:i:d:c:a:v:n: flag
 	do
 	    case "${flag}" in
-			t) tenant_id=${OPTARG};;
-			s) subscription_id=${OPTARG};;
+		t) tenant_id=${OPTARG};;
+		s) subscription_id=${OPTARG};;
 	        r) rg=${OPTARG};;
 			l) region=${OPTARG};;
 	        p) public_key_path=${OPTARG};;
@@ -60,18 +60,18 @@ cgpu_h100_onboarding() {
 	fi
 
  	# Make sure Az CLI minimum version is met
-	MINIMUM_AZ_CLI_VERSION="2.47.0"
-	current_az_cli=$(az --version | grep azure-cli)
-	if [[ $current_az_cli =~ [0-9.]+ ]]
-	then
-			az_cli_version="${BASH_REMATCH[0]}"
-	fi
-	echo -e "$MINIMUM_AZ_CLI_VERSION\n$az_cli_version" | sort --check=quiet --version-sort
-	if [ "$?" -ne "0" ];
-	then
-	echo "Current Azure CLI version found: $az_cli_version, expected >=$MINIMUM_AZ_CLI_VERSION"
-			az upgrade
-	fi
+        MINIMUM_AZ_CLI_VERSION="2.47.0"
+        current_az_cli=$(az --version | grep azure-cli)
+        if [[ $current_az_cli =~ [0-9.]+ ]]
+        then
+                az_cli_version="${BASH_REMATCH[0]}"
+        fi
+        echo -e "$MINIMUM_AZ_CLI_VERSION\n$az_cli_version" | sort --check=quiet --version-sort
+        if [ "$?" -ne "0" ];
+        then
+		echo "Current Azure CLI version found: $az_cli_version, expected >=$MINIMUM_AZ_CLI_VERSION"
+                az upgrade
+        fi
 
 	# Log out input information.
 	echo "Tenant id: ${tenant_id}" 
