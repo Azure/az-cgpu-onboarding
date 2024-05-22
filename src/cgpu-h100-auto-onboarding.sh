@@ -40,10 +40,10 @@ cgpu_h100_onboarding() {
 		t) tenant_id=${OPTARG};;
 		s) subscription_id=${OPTARG};;
 	        r) rg=${OPTARG};;
-			l) region=${OPTARG};;
+		l) region=${OPTARG};;
 	        p) public_key_path=${OPTARG};;
 	        i) private_key_path=${OPTARG};;
-			d) des_id=${OPTARG};;
+		d) des_id=${OPTARG};;
 	        c) cgpu_package_path=${OPTARG};;
 	        a) adminuser_name=${OPTARG};;
 	        v) vmname_prefix=${OPTARG};;
@@ -88,6 +88,7 @@ cgpu_h100_onboarding() {
 			echo "That region is not allowed."
 			return
 	fi
+ 	echo "Region: ${region}" 
 
 	echo "Public key path: ${public_key_path}" 
 	if [ ! -f "${public_key_path}" ]; then
