@@ -80,13 +80,13 @@ cgpu_h100_onboarding() {
 
 	# Checks region parameter, and sets to eastus2 if not otherwise specified
 	if [[ -z "${location}" ]]; then
-			echo "Location was not specified, setting to eastus2 region"
-			location="eastus2"
+		echo "Location was not specified, setting to eastus2 region"
+		location="eastus2"
 	elif [[ "$location" == "eastus2" ]] || [[ "$location" == "westeurope" ]]; then
-			echo "Allowed location selected"
+		echo "Allowed location selected"
 	else
-			echo "That location is not allowed."
-			return
+		echo "That location is not allowed."
+		return
 	fi
  	echo "Location: ${location}" 
 
