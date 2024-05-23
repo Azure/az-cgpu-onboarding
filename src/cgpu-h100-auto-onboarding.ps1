@@ -98,7 +98,7 @@ function Auto-Onboard-CGPU-Multi-VM {
 	# Sets the location to eastus2 region if not otherwise specified
 	if (-not $location) {
 		$location = "eastus2"
-		Write-Hot "Location not specified, defaulting to eastus2 region."
+		Write-Host "Location not specified, defaulting to eastus2 region."
 	}
 	elseif ($location -eq "eastus2" -Or $location -eq "westeurope") {
 		Write-Host "Allowed location selected."
