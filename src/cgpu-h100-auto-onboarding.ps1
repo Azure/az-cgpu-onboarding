@@ -192,6 +192,7 @@ function Prepare-Subscription-And-Rg {
 		az account clear
 		az login
 		az account set --subscription $subscriptionid
+		az config set core.display_region_identified=false
 
 		if( "$(az account show | Select-String $subscriptionid)" -eq "")
 		{

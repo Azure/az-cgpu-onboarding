@@ -118,6 +118,7 @@ cgpu_h100_onboarding() {
 	az account clear
 	az login --tenant ${tenant_id} > "$log_dir/login-operation.log"
 	az account set --subscription $subscription_id >> "$log_dir/login-operation.log"
+	az config set core.display_region_identified=false
 
 	current_log_file="$log_dir/login-operation.log"
 	prepare_subscription_and_rg >> "$log_dir/login-operation.log"
