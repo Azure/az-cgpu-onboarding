@@ -237,7 +237,7 @@ function Auto-Onboard-CGPU-Single-VM {
 
 	# Create VM
 	$vmsshinfo=VM-Creation -rg $rg `
-	 -region $location `
+	 -location $location `
 	 -publickeypath $publickeypath `
 	 -vmname $vmname `
 	 -adminusername $adminusername `
