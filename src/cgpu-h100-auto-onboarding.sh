@@ -85,7 +85,7 @@ cgpu_h100_onboarding() {
 	elif [[ "$location" == "eastus2" ]] || [[ "$location" == "westeurope" ]]; then
 		echo "Allowed location selected"
 	else
-		echo "That location is not allowed."
+		echo "The selected location is not currently supported."
 		return
 	fi
  	echo "Location: ${location}" 

@@ -104,7 +104,7 @@ function Auto-Onboard-CGPU-Multi-VM {
 		Write-Host "Allowed location selected."
 	}
 	else {
-		Write-Host "ERROR: That location is not allowed."
+		Write-Host "The selected location is not currently supported."
 		return
 	}
 	Write-Host "Location: ${location}"
