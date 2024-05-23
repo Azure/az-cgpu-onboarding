@@ -15,11 +15,15 @@
 #	-v <vm name>: your VM name
 #	-n <vm number>: number of VMs to be generated
 #
+# Optional Arguments:
+#    -l <region>: the location of your resources (if not specified, the default is eastus2)
+# 
 # Example:
 # bash secureboot-enable-onboarding-from-vmi.sh  \
 # -t "8af6653d-c9c0-4957-ab01-615c7212a40b" \
 # -s "9269f664-5a68-4aee-9498-40a701230eb2" \
 # -r "confidential-gpu-rg" \
+# -l "eastus2" \
 # -p "/home/username/.ssh/id_rsa.pub" \
 # -i "/home/username/.ssh/id_rsa"  \
 # -d "/subscriptions/85c61f94-8912-4e82-900e-6ab44de9bdf8/resourceGroups/CGPU-CMK-KV/providers/Microsoft.Compute/diskEncryptionSets/CMK-Test-Des-03-01"  \
@@ -30,15 +34,16 @@
 
 # Auto Create and Onboard Multiple CGPU VM with Nvidia Driver pre-installed image. 
 cgpu_h100_onboarding() {
-	while getopts t:s:r:p:i:d:c:a:v:n: flag
+	while getopts t:s:r:l:p:i:d:c:a:v:n: flag
 	do
 	    case "${flag}" in
 		t) tenant_id=${OPTARG};;
 		s) subscription_id=${OPTARG};;
 	        r) rg=${OPTARG};;
+		l) location=${OPTARG};;
 	        p) public_key_path=${OPTARG};;
 	        i) private_key_path=${OPTARG};;
-			d) des_id=${OPTARG};;
+		d) des_id=${OPTARG};;
 	        c) cgpu_package_path=${OPTARG};;
 	        a) adminuser_name=${OPTARG};;
 	        v) vmname_prefix=${OPTARG};;
@@ -73,6 +78,18 @@ cgpu_h100_onboarding() {
 	echo "subscription id: ${subscription_id}" 
 	echo "Resource group: ${rg}" 
 
+	# Checks region parameter, and sets to eastus2 if not otherwise specified
+	if [[ -z "${location}" ]]; then
+		echo "Location was not specified, setting to eastus2 region"
+		location="eastus2"
+	elif [[ "$location" == "eastus2" ]] || [[ "$location" == "westeurope" ]]; then
+		echo "Allowed location selected"
+	else
+		echo "The selected location is not currently supported."
+		return
+	fi
+ 	echo "Location: ${location}" 
+
 	echo "Public key path: ${public_key_path}" 
 	if [ ! -f "${public_key_path}" ]; then
     		echo "${public_key_path} does not exist, please verify file path"
@@ -101,6 +118,7 @@ cgpu_h100_onboarding() {
 	az account clear
 	az login --tenant ${tenant_id} > "$log_dir/login-operation.log"
 	az account set --subscription $subscription_id >> "$log_dir/login-operation.log"
+	az config set core.display_region_identified=false
 
 	current_log_file="$log_dir/login-operation.log"
 	prepare_subscription_and_rg >> "$log_dir/login-operation.log"
@@ -155,9 +173,8 @@ cgpu_h100_onboarding() {
 
 # Checks that user has access to direct share image
 check_image_access() {
-	region="eastus2"
 	echo "Checking for direct share image permission access"
-	if [ "$(az sig list-shared --location $region | grep -i "testGalleryDeirectShare")" == "" ]; then
+	if [ "$(az sig list-shared --location $location | grep -i "testGalleryDeirectShare")" == "" ]; then
 		print_error "Couldn't access direct share image from your subscription or tenant. Please make sure you have the necessary permissions."
 		is_success="failed"
 		return
@@ -183,7 +200,7 @@ prepare_subscription_and_rg() {
 	if [ $is_resource_group_exist == "false" ]; then
     	print_error "Resource group ${rg} does not exits, start creating resource group ${rg}"
     	
-    	az group create --name ${rg} --location eastus2
+    	az group create --name ${rg} --location ${location}
 
     	# azure cli return invisible char, removing it.
     	is_resource_group_exist="$(az group exists --name $rg)"
@@ -313,7 +330,7 @@ create_vm() {
 			az vm create \
 				--resource-group $rg \
 				--name $vmname \
-				--location eastus2 \
+				--location $location \
 				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:$image_version \
 				--public-ip-sku Standard \
 				--admin-username $adminuser_name \
@@ -332,7 +349,7 @@ create_vm() {
 			az vm create \
 				--resource-group $rg \
 				--name $vmname \
-				--location eastus2 \
+				--location $location \
 				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:$image_version \
 				--public-ip-sku Standard \
 				--admin-username $adminuser_name \
