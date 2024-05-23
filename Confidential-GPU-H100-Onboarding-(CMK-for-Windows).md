@@ -116,7 +116,7 @@ cd cgpu-h100-auto-onboarding-windows
 # totalvmnumber: the number of VMs you want to create
 
 # Optional Arguments:
-# region: the region your resources will be created in, if left blank, they will land in EastUS2 region
+# location: the location your resources will be created in, if left blank, they will land in EastUS2 region
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 Import-Module .\cgpu-h100-auto-onboarding.ps1 -Force
@@ -124,7 +124,7 @@ CGPU-H100-Onboarding `
 -tenantid "<your Tenant ID>" `
 -subscriptionid "<your subscription ID>" `
 -rg "cgpu-test-rg" `
--region "eastus2" \
+-location "eastus2" \
 -publickeypath "E:\cgpu\.ssh\id_rsa.pub" `
 -privatekeypath "E:\cgpu\.ssh\id_rsa"  `
 -desid "/subscriptions/85c61f94-8912-4e82-900e-6ab44de9bdf8/resourceGroups/CGPU-CMK-KV/providers/Microsoft.Compute/diskEncryptionSets/CMK-Test-Des-03-01" `

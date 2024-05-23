@@ -24,14 +24,14 @@
 #	totalvmnumber: the number of retry we want to perform.
 #
 # Optional parameters:
-#    region: the location of your resources (if not specified, the default is eastus2)
+#    location: the location of your resources (if not specified, the default is eastus2)
 # 
 # EG:
 # CGPU-H100-Onboarding `
 # -tenantid "8af6653d-c9c0-4957-ab01-615c7212a40b" `
 # -subscriptionid "9269f664-5a68-4aee-9498-40a701230eb2" `
 # -rg "cgpu-test-rg" `
-# -region "eastus2" `
+# -location "eastus2" `
 # -publickeypath "E:\cgpu\.ssh\id_rsa.pub" `
 # -privatekeypath "E:\cgpu\.ssh\id_rsa"  `
 # -desid "/subscriptions/85c61f94-8912-4e82-900e-6ab44de9bdf8/resourceGroups/CGPU-CMK-KV/providers/Microsoft.Compute/diskEncryptionSets/CMK-Test-Des-03-01" `
@@ -45,7 +45,7 @@ function CGPU-H100-Onboarding{
 		$tenantid,
 		$subscriptionid,
 		$rg,
-		$region,
+		$location,
 		$publickeypath,
 		$privatekeypath,
 		$desid,
@@ -95,19 +95,19 @@ function Auto-Onboard-CGPU-Multi-VM {
 	Write-Host "Subscription ID: ${subscriptionid}"
 	Write-Host "Resource group: ${rg}"
 
-	# Sets the region to eastus2 if not otherwise specified
-	if (-not $region) {
-		$region = "eastus2"
-		Write-Hot "Region not specified, defaulting to eastus2."
+	# Sets the location to eastus2 region if not otherwise specified
+	if (-not $location) {
+		$location = "eastus2"
+		Write-Hot "Location not specified, defaulting to eastus2 region."
 	}
-	elseif ($region -eq "eastus2" -Or $region -eq "westeurope") {
-		Write-Host "Allowed region selected."
+	elseif ($location -eq "eastus2" -Or $location -eq "westeurope") {
+		Write-Host "Allowed location selected."
 	}
 	else {
-		Write-Host "ERROR: That region is not allowed."
+		Write-Host "ERROR: That location is not allowed."
 		return
 	}
-	Write-Host "Region: ${region}"
+	Write-Host "Location: ${location}"
 
 	Write-Host "Public key path:  ${publickeypath}"
 	if (-not(Test-Path -Path $publickeypath -PathType Leaf)) {
@@ -205,8 +205,8 @@ function Prepare-Subscription-And-Rg {
 	Write-Host "Checking resource group...."
 	if ($(az group exists --name $rg) -eq $false )
 	{
-		Write-Host "Resource group ${rg} does not exist, start creating resource group ${rg} in ${region} region"
-		az group create --name ${rg} --location ${region}
+		Write-Host "Resource group ${rg} does not exist, start creating resource group ${rg} in ${location} region"
+		az group create --name ${rg} --location ${location}
 		if ( $(az group exists --name $rg) -eq $false )
 		{
 			Write-Host "Resource group ${rg} creation failed, please check if your subscription is correct."
@@ -223,7 +223,7 @@ function Prepare-Subscription-And-Rg {
 function Check-Image-Access {
 	Write-Host "Check image access for subscription: ${subscriptionid}"
 
-	if( "$(az sig list-shared --location ${region} | Select-String "testGalleryDeirectShare")" -eq "")
+	if( "$(az sig list-shared --location ${location} | Select-String "testGalleryDeirectShare")" -eq "")
 	{
 		Write-Host "Couldn't access direct share image from your subscription or tenant. Please make sure you have the necessary permissions."
 		$global:issuccess = "failed"
@@ -237,7 +237,7 @@ function Auto-Onboard-CGPU-Single-VM {
 
 	# Create VM
 	$vmsshinfo=VM-Creation -rg $rg `
-	 -region $region `
+	 -region $location `
 	 -publickeypath $publickeypath `
 	 -vmname $vmname `
 	 -adminusername $adminusername `
@@ -307,7 +307,7 @@ function Auto-Onboard-CGPU-Single-VM {
 # Create VM With given information.
 function VM-Creation {
 	param($rg,
-		$region,
+		$location,
 		$vmname,
 		$adminusername,
 		$publickeypath,
@@ -326,7 +326,7 @@ function VM-Creation {
 			$result=az vm create `
 				--resource-group $rg `
 				--name $vmname `
-				--location $region `
+				--location $location `
 				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:$imageversion `
 				--public-ip-sku Standard `
 				--admin-username $adminusername `
@@ -343,7 +343,7 @@ function VM-Creation {
 			$result=az vm create `
 				--resource-group $rg `
 				--name $vmname `
-				--location $region `
+				--location $location `
 				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:$imageversion `
 				--public-ip-sku Standard `
 				--admin-username $adminusername `

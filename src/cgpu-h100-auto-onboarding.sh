@@ -40,7 +40,7 @@ cgpu_h100_onboarding() {
 		t) tenant_id=${OPTARG};;
 		s) subscription_id=${OPTARG};;
 	        r) rg=${OPTARG};;
-		l) region=${OPTARG};;
+		l) location=${OPTARG};;
 	        p) public_key_path=${OPTARG};;
 	        i) private_key_path=${OPTARG};;
 		d) des_id=${OPTARG};;
@@ -79,16 +79,16 @@ cgpu_h100_onboarding() {
 	echo "Resource group: ${rg}" 
 
 	# Checks region parameter, and sets to eastus2 if not otherwise specified
-	if [[ -z "${region}" ]]; then
-			echo "${region} was not specified, setting to eastus2"
-			region="eastus2"
-	elif [[ "$region" == "eastus2" ]] || [[ "$region" == "westeurope" ]]; then
-			echo "Allowed region selected"
+	if [[ -z "${location}" ]]; then
+			echo "Location was not specified, setting to eastus2 region"
+			location="eastus2"
+	elif [[ "$location" == "eastus2" ]] || [[ "$location" == "westeurope" ]]; then
+			echo "Allowed location selected"
 	else
-			echo "That region is not allowed."
+			echo "That location is not allowed."
 			return
 	fi
- 	echo "Region: ${region}" 
+ 	echo "Location: ${location}" 
 
 	echo "Public key path: ${public_key_path}" 
 	if [ ! -f "${public_key_path}" ]; then
@@ -173,7 +173,7 @@ cgpu_h100_onboarding() {
 # Checks that user has access to direct share image
 check_image_access() {
 	echo "Checking for direct share image permission access"
-	if [ "$(az sig list-shared --location $region | grep -i "testGalleryDeirectShare")" == "" ]; then
+	if [ "$(az sig list-shared --location $location | grep -i "testGalleryDeirectShare")" == "" ]; then
 		print_error "Couldn't access direct share image from your subscription or tenant. Please make sure you have the necessary permissions."
 		is_success="failed"
 		return
@@ -199,7 +199,7 @@ prepare_subscription_and_rg() {
 	if [ $is_resource_group_exist == "false" ]; then
     	print_error "Resource group ${rg} does not exits, start creating resource group ${rg}"
     	
-    	az group create --name ${rg} --location ${region}
+    	az group create --name ${rg} --location ${location}
 
     	# azure cli return invisible char, removing it.
     	is_resource_group_exist="$(az group exists --name $rg)"
@@ -329,7 +329,7 @@ create_vm() {
 			az vm create \
 				--resource-group $rg \
 				--name $vmname \
-				--location $region \
+				--location $location \
 				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:$image_version \
 				--public-ip-sku Standard \
 				--admin-username $adminuser_name \
@@ -348,7 +348,7 @@ create_vm() {
 			az vm create \
 				--resource-group $rg \
 				--name $vmname \
-				--location $region \
+				--location $location \
 				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:$image_version \
 				--public-ip-sku Standard \
 				--admin-username $adminuser_name \
