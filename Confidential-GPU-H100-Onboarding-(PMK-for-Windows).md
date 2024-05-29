@@ -68,7 +68,7 @@ CGPU-H100-Onboarding `
 -tenantid "<your Tenant ID>" `
 -subscriptionid "<your subscription ID>" `
 -rg "cgpu-test-rg" `
--location "eastus2" \
+-location "eastus2" `
 -publickeypath "...\.ssh\id_rsa.pub" `
 -privatekeypath "...\.ssh\id_rsa"  `
 -cgpupackagepath "cgpu-onboarding-package.tar.gz" `
