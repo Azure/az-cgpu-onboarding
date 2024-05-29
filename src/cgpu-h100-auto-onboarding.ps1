@@ -23,11 +23,15 @@
 #	vmnameprefix: the prefix of your vm. It will create from prefix1, prefix2, prefix3 till the number of retry specified;
 #	totalvmnumber: the number of retry we want to perform.
 #
+# Optional parameters:
+#    location: the location of your resources (if not specified, the default is eastus2)
+# 
 # EG:
 # CGPU-H100-Onboarding `
 # -tenantid "8af6653d-c9c0-4957-ab01-615c7212a40b" `
 # -subscriptionid "9269f664-5a68-4aee-9498-40a701230eb2" `
 # -rg "cgpu-test-rg" `
+# -location "eastus2" `
 # -publickeypath "E:\cgpu\.ssh\id_rsa.pub" `
 # -privatekeypath "E:\cgpu\.ssh\id_rsa"  `
 # -desid "/subscriptions/85c61f94-8912-4e82-900e-6ab44de9bdf8/resourceGroups/CGPU-CMK-KV/providers/Microsoft.Compute/diskEncryptionSets/CMK-Test-Des-03-01" `
@@ -41,6 +45,7 @@ function CGPU-H100-Onboarding{
 		$tenantid,
 		$subscriptionid,
 		$rg,
+		$location,
 		$publickeypath,
 		$privatekeypath,
 		$desid,
@@ -49,7 +54,7 @@ function CGPU-H100-Onboarding{
 		$vmnameprefix,
 		$totalvmnumber)
 
-		$ONBOARDING_PACKAGE_VERSION="v3.0.3"
+		$ONBOARDING_PACKAGE_VERSION="v3.0.4"
 		Write-Host "Confidential GPU H100 Onboarding Package Version: $ONBOARDING_PACKAGE_VERSION"
 
 		$logpath=$(Get-Date -Format "MM-dd-yyyy_HH-mm-ss")
@@ -89,6 +94,20 @@ function Auto-Onboard-CGPU-Multi-VM {
 	Write-Host "Tenant id: ${tenantid}"
 	Write-Host "Subscription ID: ${subscriptionid}"
 	Write-Host "Resource group: ${rg}"
+
+	# Sets the location to eastus2 region if not otherwise specified
+	if (-not $location) {
+		$location = "eastus2"
+		Write-Host "Location not specified, defaulting to eastus2 region."
+	}
+	elseif ($location -eq "eastus2" -Or $location -eq "westeurope") {
+		Write-Host "Allowed location selected."
+	}
+	else {
+		Write-Host "The selected location is not currently supported."
+		return
+	}
+	Write-Host "Location: ${location}"
 
 	Write-Host "Public key path:  ${publickeypath}"
 	if (-not(Test-Path -Path $publickeypath -PathType Leaf)) {
@@ -173,6 +192,7 @@ function Prepare-Subscription-And-Rg {
 		az account clear
 		az login
 		az account set --subscription $subscriptionid
+		az config set core.display_region_identified=false
 
 		if( "$(az account show | Select-String $subscriptionid)" -eq "")
 		{
@@ -186,8 +206,8 @@ function Prepare-Subscription-And-Rg {
 	Write-Host "Checking resource group...."
 	if ($(az group exists --name $rg) -eq $false )
 	{
-		Write-Host "Resource group ${rg} does not exist, start creating resource group ${rg}"
-		az group create --name ${rg} --location eastus2
+		Write-Host "Resource group ${rg} does not exist, start creating resource group ${rg} in ${location} region"
+		az group create --name ${rg} --location ${location}
 		if ( $(az group exists --name $rg) -eq $false )
 		{
 			Write-Host "Resource group ${rg} creation failed, please check if your subscription is correct."
@@ -203,9 +223,8 @@ function Prepare-Subscription-And-Rg {
 # Check that user has access to the direct share image 
 function Check-Image-Access {
 	Write-Host "Check image access for subscription: ${subscriptionid}"
-	$region="eastus2"
 
-	if( "$(az sig list-shared --location $region | Select-String "testGalleryDeirectShare")" -eq "")
+	if( "$(az sig list-shared --location ${location} | Select-String "testGalleryDeirectShare")" -eq "")
 	{
 		Write-Host "Couldn't access direct share image from your subscription or tenant. Please make sure you have the necessary permissions."
 		$global:issuccess = "failed"
@@ -219,6 +238,7 @@ function Auto-Onboard-CGPU-Single-VM {
 
 	# Create VM
 	$vmsshinfo=VM-Creation -rg $rg `
+	 -location $location `
 	 -publickeypath $publickeypath `
 	 -vmname $vmname `
 	 -adminusername $adminusername `
@@ -288,6 +308,7 @@ function Auto-Onboard-CGPU-Single-VM {
 # Create VM With given information.
 function VM-Creation {
 	param($rg,
+		$location,
 		$vmname,
 		$adminusername,
 		$publickeypath,
@@ -306,7 +327,7 @@ function VM-Creation {
 			$result=az vm create `
 				--resource-group $rg `
 				--name $vmname `
-				--location eastus2 `
+				--location $location `
 				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:$imageversion `
 				--public-ip-sku Standard `
 				--admin-username $adminusername `
@@ -323,7 +344,7 @@ function VM-Creation {
 			$result=az vm create `
 				--resource-group $rg `
 				--name $vmname `
-				--location eastus2 `
+				--location $location `
 				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:$imageversion `
 				--public-ip-sku Standard `
 				--admin-username $adminusername `
@@ -339,7 +360,7 @@ function VM-Creation {
 		}
 
 		# az vm fail or result being empty
-		if ($? -eq $false || [string]::IsNullOrEmpty($result)) {
+		if ($? -eq $false -or [string]::IsNullOrEmpty($result)) {
 			Write-Host "VM creation failed."
 			return
 		}
