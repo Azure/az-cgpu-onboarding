@@ -59,7 +59,7 @@ We support the options to create confidential GPUs with Windows and Linux hosts,
 
 ## Availability and Reliability Expectations 
 
-This preview is currently availability in the East US 2 region. We plan to expand to more regions in a phased manner during public preview/General Availability (GA).  Non-production data is recommended during this phase of the preview. We are not providing a reliability SLA during the preview phase. 
+This preview is currently availability in the East US 2 and West Europe regions. We plan to expand to more regions in a phased manner during public preview/General Availability (GA).  Non-production data is recommended during this phase of the preview. We are not providing a reliability SLA during the preview phase. 
 
 ## Contact Information
 
