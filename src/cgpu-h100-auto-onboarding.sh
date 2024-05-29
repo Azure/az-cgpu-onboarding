@@ -198,7 +198,7 @@ prepare_subscription_and_rg() {
 	is_resource_group_exist=$(echo "$is_resource_group_exist" | tr -cd '[:alnum:]-/,.:@')
 	
 	if [ $is_resource_group_exist == "false" ]; then
-    	print_error "Resource group ${rg} does not exits, start creating resource group ${rg}"
+    	print_error "Resource group ${rg} does not exist, start creating resource group ${rg}"
     	
     	az group create --name ${rg} --location ${location}
 
