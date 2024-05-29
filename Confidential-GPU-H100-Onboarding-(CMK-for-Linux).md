@@ -95,7 +95,8 @@ cd cgpu-h100-auto-onboarding-linux
 # -n <vm number>: number of VMs to be generated
 
 # Optional Arguments:
-# -l <location>: the region your resources will be created in. Currently supported regions are eastus2 and westeurope. If left blank, they will default to eastus2 region
+# -l <location>: the region your resources will be created in. Currently supported regions are eastus2 and westeurope.
+#                If left blank, they will default to eastus2 region
 
 bash cgpu-h100-auto-onboarding.sh  \
 -t "<your Tenant ID>" \
