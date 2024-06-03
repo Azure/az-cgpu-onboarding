@@ -97,6 +97,8 @@ cd cgpu-h100-auto-onboarding-linux
 # Optional Arguments:
 # -l <location>: the region your resources will be created in. Currently supported regions are eastus2 and westeurope.
 #                If left blank, they will default to eastus2 region
+# -o <OS disk size>: the size of your OS disk. The current maximum supported size is 4095 GB
+#                If left blank, it will default to 100 GB
 
 bash cgpu-h100-auto-onboarding.sh  \
 -t "<your Tenant ID>" \
@@ -109,6 +111,7 @@ bash cgpu-h100-auto-onboarding.sh  \
 -d "/subscriptions/85c61f94-8912-4e82-900e-6ab44de9bdf8/resourceGroups/CGPU-CMK-KV/providers/Microsoft.Compute/diskEncryptionSets/CMK-Test-Des-03-01"  \
 -c "./cgpu-onboarding-package.tar.gz" \
 -v "confidential-test-vm"  \
+-o 100 \
 -n 1
 ```
 
