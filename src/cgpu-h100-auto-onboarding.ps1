@@ -25,6 +25,7 @@
 #
 # Optional parameters:
 #    location: the location of your resources (if not specified, the default is eastus2)
+#    osdisksize: the size of your OS disk (if not specified, the default is 100 GB)
 # 
 # EG:
 # CGPU-H100-Onboarding `
@@ -38,6 +39,7 @@
 # -cgpupackagepath "E:\cgpu\cgpu-onboarding-package.tar.gz" `
 # -adminusername "adminusername" `
 # -vmnameprefix "cgpu-test" `
+# -osdisksize "100" `
 # -totalvmnumber 2
 
 function CGPU-H100-Onboarding{
@@ -52,6 +54,7 @@ function CGPU-H100-Onboarding{
 		$cgpupackagepath,
 		$adminusername,
 		$vmnameprefix,
+		$osdisksize,
 		$totalvmnumber)
 
 		$ONBOARDING_PACKAGE_VERSION="v3.0.4"
@@ -131,6 +134,21 @@ function Auto-Onboard-CGPU-Multi-VM {
 	Write-Host "Disk encryption set:  ${desid}"
 	Write-Host "Vm Name prefix:  ${vmnameprefix}"
 	Write-Host "Total VM number:  ${totalvmnumber}"
+
+	# Makes sure the OS disk size is set to an allowed value
+	if (-not $osdisksize) {
+		$osdisksize = "100"
+		Write-Host "No OS disk size specified, setting to default of 100 GB."
+	}
+	elseif ($osdisksize -ge "0" -Or $osdisksize -le "4095") {
+		Write-Host "Allowed OS disk size set."
+	}
+	else {
+		Write-Host "OS disk size must be between 0 GB and 4095 GB."
+		return
+	}
+	Write-Host "OS disk size: ${osdisksize}"
+
 	Write-Host "Clear previous account info."
 	az account clear
 	az login --tenant $tenantid 2>&1 | Out-File -filepath ".\logs\$logpath\login-operation.log"
@@ -242,7 +260,8 @@ function Auto-Onboard-CGPU-Single-VM {
 	 -publickeypath $publickeypath `
 	 -vmname $vmname `
 	 -adminusername $adminusername `
- 	 -desid $desid
+ 	 -desid $desid `
+	 -osdisksize $osdisksize
 	if ($global:issuccess -eq "failed") {
 		Write-Host "Failed to create VM."
 		return
@@ -312,7 +331,8 @@ function VM-Creation {
 		$vmname,
 		$adminusername,
 		$publickeypath,
-		$desid)
+		$desid,
+		$osdisksize)
 
 	$global:issuccess = "failed"
 
@@ -337,7 +357,7 @@ function VM-Creation {
 				--enable-secure-boot $true `
 				--enable-vtpm $true `
 				--size Standard_NCC40ads_H100_v5 `
-				--os-disk-size-gb 100 `
+				--os-disk-size-gb $osdisksize `
 				--verbose
 		} else {
 			Write-Host "Disk encryption set ID has been set, using Customer Managed Key for VM creation:"
@@ -354,7 +374,7 @@ function VM-Creation {
 				--enable-secure-boot $true `
 				--enable-vtpm $true `
 				--size Standard_NCC40ads_H100_v5 `
-				--os-disk-size-gb 100 `
+				--os-disk-size-gb $osdisksize `
 				--os-disk-secure-vm-disk-encryption-set $desid `
 				--verbose
 		}
