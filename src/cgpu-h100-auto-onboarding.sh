@@ -117,7 +117,6 @@ cgpu_h100_onboarding() {
 	echo "Vm Name prefix:  ${vmname_prefix}"
 
 	# Makes sure the OS disk size is set to an allowed value
-	echo "HELLO"
 	if [[ -z "${os_disk_size}" ]]; then
 		echo "OS disk size was not specified, setting to 100 GB."
 		os_disk_size=100
