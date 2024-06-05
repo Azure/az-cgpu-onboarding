@@ -140,7 +140,7 @@ function Auto-Onboard-CGPU-Multi-VM {
 		$osdisksize = "100"
 		Write-Host "No OS disk size specified, setting to default of 100 GB."
 	}
-	elseif ($osdisksize -ge "0" -and $osdisksize -le "4095") {
+	elseif ($osdisksize -ge "30" -and $osdisksize -le "4095") {
 		Write-Host "Allowed OS disk size set."
 	}
 	else {
