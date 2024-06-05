@@ -49,7 +49,7 @@ cgpu_h100_onboarding() {
 	        c) cgpu_package_path=${OPTARG};;
 	        a) adminuser_name=${OPTARG};;
 	        v) vmname_prefix=${OPTARG};;
-			o) os_disk_size=${OPTARG};;
+		o) os_disk_size=${OPTARG};;
 	        n) total_vm_number=${OPTARG};;
 	    esac
 	done
