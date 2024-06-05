@@ -144,7 +144,7 @@ function Auto-Onboard-CGPU-Multi-VM {
 		Write-Host "Allowed OS disk size set."
 	}
 	else {
-		Write-Host "OS disk size must be between 0 GB and 4095 GB."
+		Write-Host "OS disk size must be between 30 GB and 4095 GB."
 		return
 	}
 	Write-Host "OS disk size: ${osdisksize}"

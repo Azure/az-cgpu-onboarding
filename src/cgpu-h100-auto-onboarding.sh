@@ -123,7 +123,7 @@ cgpu_h100_onboarding() {
 	elif test "${os_disk_size}" -ge 30 && test "${os_disk_size}" -le 4095; then
 		echo "Allowed OS disk size set."
 	else
-		echo "OS disk size must be between 0 GB and 4095 GB."
+		echo "OS disk size must be between 30 GB and 4095 GB."
 		return
 	fi
  	echo "OS disk size: ${os_disk_size}" 
