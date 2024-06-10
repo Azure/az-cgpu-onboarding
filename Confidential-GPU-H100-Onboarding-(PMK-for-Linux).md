@@ -63,6 +63,8 @@ cd cgpu-h100-auto-onboarding-linux
 # Optional Arguments:
 # -l <location>: the region your resources will be created in. Currently supported regions are eastus2 and westeurope.
 #                If left blank, they will default to eastus2 region
+# -o <OS disk size>: the size of your OS disk. The current maximum supported size is 4095 GB
+#                If left blank, it will default to 100 GB
 
 bash cgpu-h100-auto-onboarding.sh  \
 -t "<your Tenant ID>" \
@@ -74,6 +76,7 @@ bash cgpu-h100-auto-onboarding.sh  \
 -i "/home/username/.ssh/id_rsa"  \
 -c "./cgpu-onboarding-package.tar.gz" \
 -v "cgpu-test"  \
+-o 100 \
 -n 1
 ```
 

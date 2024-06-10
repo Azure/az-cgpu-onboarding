@@ -62,6 +62,8 @@ cd cgpu-h100-auto-onboarding-windows
 # Optional Arguments:
 # location: the region your resources will be created in. Currently supported regions are eastus2 and westeurope.
 #            If left blank, they will default to eastus2 region
+# osdisksize: the size of your OS disk. The current maximum supported size is 4095 GB
+#                If left blank, it will default to 100 GB
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 Import-Module .\cgpu-h100-auto-onboarding.ps1 -Force
@@ -75,6 +77,7 @@ CGPU-H100-Onboarding `
 -cgpupackagepath "cgpu-onboarding-package.tar.gz" `
 -adminusername "<your login username>" `
 -vmnameprefix "cgpu-test" `
+-osdisksize 100 `
 -totalvmnumber 1
 ```
 
