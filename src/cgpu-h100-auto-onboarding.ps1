@@ -39,7 +39,7 @@
 # -cgpupackagepath "E:\cgpu\cgpu-onboarding-package.tar.gz" `
 # -adminusername "adminusername" `
 # -vmnameprefix "cgpu-test" `
-# -osdisksize "100" `
+# -osdisksize 100 `
 # -totalvmnumber 2
 
 function CGPU-H100-Onboarding{
@@ -57,7 +57,7 @@ function CGPU-H100-Onboarding{
 		$osdisksize,
 		$totalvmnumber)
 
-		$ONBOARDING_PACKAGE_VERSION="v3.0.4"
+		$ONBOARDING_PACKAGE_VERSION="v3.0.5"
 		Write-Host "Confidential GPU H100 Onboarding Package Version: $ONBOARDING_PACKAGE_VERSION"
 
 		$logpath=$(Get-Date -Format "MM-dd-yyyy_HH-mm-ss")
