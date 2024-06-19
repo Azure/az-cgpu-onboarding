@@ -1,7 +1,7 @@
 ## This module helps install gpu nvdia docker image for helping execute machine learning workload.
 ##
 ## Requirements:
-##      Minimum Nvidia driver:       v550.90.07
+##      Minimum Nvidia driver:       v550.54.14
 ##
 ## Example:
 ##      sudo bash step-3-install-gpu-tools.sh

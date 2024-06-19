@@ -1,7 +1,7 @@
 ## This module helps install gpu driver to the lastest r550 Nvidia driver version.
 ##
 ## Requirements:
-##      Minimum Nvidia driver:       v550.90.07
+##      Minimum Nvidia driver:       v550.54.14
 ##      Minimum kernel version:      6.5.0-1017-azure
 ##
 ## Example:

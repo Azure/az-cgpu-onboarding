@@ -1,24 +1,26 @@
 ## This module helps install associate dependency and do attestation against CGPU driver.
 ##
 ## Requirements:
-##      Minimum Nvidia driver:      v550.90.07
+##      Minimum Nvidia driver:      v550.54.14
 ##      Minimum kernel version:     6.5.0-1017-azure
 ##
 ## Example:
 ##      sudo bash step-2-attestation.sh
 ##
 
-REQUIRED_DRIVER_INTERFACE_VERSION="NVIDIA System Management Interface -- v550.90.07"
+REQUIRED_DRIVER_INTERFACE_VERSION="550.54.14"
 MAX_RETRY=3
 
 attestation() {
     # verify nvdia gpu driver has been install correctly.
     sudo nvidia-smi -pm 1
-    current_driver_interface_version=$(sudo nvidia-smi -h | head -1)
-    if [ "$current_driver_interface_version" != "$REQUIRED_DRIVER_INTERFACE_VERSION" ]; then
-        echo "Current gpu driver version: ($current_driver_interface_version), Expected: ($REQUIRED_DRIVER_INTERFACE_VERSION)."
+    current_driver_interface_version=$(nvidia-smi --query-gpu=driver_version --format=csv,noheader)
+    echo -e "$REQUIRED_DRIVER_INTERFACE_VERSION\n$current_driver_interface_version" | sort --check=quiet --version-sort
+    if [ "$?" -ne "0" ]; then
+        echo "Current gpu driver version: $current_driver_interface_version, Expected: >= $REQUIRED_DRIVER_INTERFACE_VERSION."
         echo "Please retry step-1-install-gpu-driver."
     else
+        echo "Current driver version: $current_driver_interface_version"
         mkdir local_gpu_verifier
         tar -xvf local_gpu_verifier.tar -C local_gpu_verifier
         pushd .
