@@ -162,8 +162,8 @@ function Auto-Onboard-CGPU-Multi-VM {
 		-vmname $vmname
 
 		if ($result -eq "Succeeded") {
-            $successCount++
-        }
+            		$successCount++
+        	}
 
 		Write-Host "Finished creating VM: ${vmname}"
 	}
