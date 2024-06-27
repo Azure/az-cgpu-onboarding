@@ -1,6 +1,6 @@
 ## Introduction
 
-The following steps help create a Confidential GPU Windows Virtual Machine with an H100 NVIDIA GPU and a Platform Managed Key (PMK) using manual instructions.
+The following steps help create a Confidential GPU Virtual Machine with an H100 NVIDIA GPU and a Platform Managed Key (PMK) using manual instructions.
 
 -----------------------------------------------
 
