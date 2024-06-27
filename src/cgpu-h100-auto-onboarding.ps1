@@ -161,7 +161,7 @@ function Auto-Onboard-CGPU-Multi-VM {
 		$result = Auto-Onboard-CGPU-Single-VM `
 		-vmname $vmname
 
-		if ($result -eq "Succeeded") {
+		if ($result -eq "succeeded") {
             		$successCount++
         	}
 
