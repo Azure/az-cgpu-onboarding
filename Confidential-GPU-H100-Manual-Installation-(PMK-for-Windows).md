@@ -17,6 +17,7 @@ The following steps help create a Confidential GPU Virtual Machine with an H100 
 ## Check-Requirements
 
 Please make sure you have these requirements before performing the following steps: 
+- [Powershell](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-windows?view=powershell-7.4#msi): version 7 and above (please run windows powershell as administrator)
 - [Azure Subscription](https://docs.microsoft.com/en-us/azure/cost-management-billing/manage/create-subscription)
   - This subscription needs to have been granted sufficient quotas for the NCC_H100_v5 SKU in order to successfully deploy any CGPU VMs
 - [Azure Tenant ID](https://learn.microsoft.com/en-us/azure/active-directory/fundamentals/active-directory-how-to-find-tenant#find-tenant-id-with-powershell)

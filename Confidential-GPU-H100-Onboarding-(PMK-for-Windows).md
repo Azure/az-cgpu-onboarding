@@ -17,7 +17,7 @@ This page is using platform managed keys. More information about platform manage
 
 ## Check-Requirements
 
-- [Powershell](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-windows?view=powershell-7.4#msi): version 5.1.19041.1682 and above (please run windows powershell as administrator)
+- [Powershell](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-windows?view=powershell-7.4#msi): version 7 and above (please run windows powershell as administrator)
 - [Azure Subscription](https://docs.microsoft.com/en-us/azure/cost-management-billing/manage/create-subscription)
 - [Azure Tenant ID](https://learn.microsoft.com/en-us/azure/active-directory/fundamentals/active-directory-how-to-find-tenant#find-tenant-id-with-powershell)
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
