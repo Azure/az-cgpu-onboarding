@@ -2,7 +2,7 @@
 ## It will try to update to default version "6.5.0-1017-azure".
 ##
 ## Requirements:
-##      Minimum Nvidia driver:      v550.54.15
+##      Minimum Nvidia driver:      v550.54.14
 ##      Minimum kernel version:     6.5.0-1017-azure
 ##
 ## Example:

@@ -17,6 +17,7 @@
 #
 # Optional Arguments:
 #    -l <region>: the location of your resources (if not specified, the default is eastus2)
+#    -o <OS disk size>: the size of your OS disk (if not specified, the default is 100 GB)
 # 
 # Example:
 # bash secureboot-enable-onboarding-from-vmi.sh  \
@@ -30,11 +31,12 @@
 # -c "/home/username/cgpu-onboarding-package.tar.gz" \
 # -a "azuretestuser" \
 # -v "confidential-test-vm"  \
+# -o 100 \
 # -n 1
 
 # Auto Create and Onboard Multiple CGPU VM with Nvidia Driver pre-installed image. 
 cgpu_h100_onboarding() {
-	while getopts t:s:r:l:p:i:d:c:a:v:n: flag
+	while getopts t:s:r:l:p:i:d:c:a:v:o:n: flag
 	do
 	    case "${flag}" in
 		t) tenant_id=${OPTARG};;
@@ -47,11 +49,12 @@ cgpu_h100_onboarding() {
 	        c) cgpu_package_path=${OPTARG};;
 	        a) adminuser_name=${OPTARG};;
 	        v) vmname_prefix=${OPTARG};;
+		o) os_disk_size=${OPTARG};;
 	        n) total_vm_number=${OPTARG};;
 	    esac
 	done
 	
-	ONBOARDING_PACKAGE_VERSION="v3.0.4"
+	ONBOARDING_PACKAGE_VERSION="v3.0.5"
 	echo "Confidential GPU H100 Onboarding Package Version: $ONBOARDING_PACKAGE_VERSION"
 
 	if [ "$(az --version | grep azure-cli)" == "" ]; then
@@ -112,6 +115,19 @@ cgpu_h100_onboarding() {
 
 	echo "Admin user name:  ${adminuser_name}"
 	echo "Vm Name prefix:  ${vmname_prefix}"
+
+	# Makes sure the OS disk size is set to an allowed value
+	if [[ -z "${os_disk_size}" ]]; then
+		echo "OS disk size was not specified, setting to 100 GB."
+		os_disk_size=100
+	elif test "${os_disk_size}" -ge 30 && test "${os_disk_size}" -le 4095; then
+		echo "Allowed OS disk size set."
+	else
+		echo "OS disk size must be between 30 GB and 4095 GB."
+		return
+	fi
+ 	echo "OS disk size: ${os_disk_size}" 
+
 	echo "Total VM number:  ${total_vm_number}"
 
 	echo "Clear previous account info."
@@ -341,7 +357,7 @@ create_vm() {
 				--enable-secure-boot true \
 				--enable-vtpm true \
 				--size Standard_NCC40ads_H100_v5 \
-				--os-disk-size-gb 100 \
+				--os-disk-size-gb $os_disk_size \
 				--verbose
 		else
 			echo "Disk encryption set ID is not set, using Platform Managed Key for VM creation"
@@ -359,7 +375,7 @@ create_vm() {
 				--enable-secure-boot true \
 				--enable-vtpm true \
 				--size Standard_NCC40ads_H100_v5 \
-				--os-disk-size-gb 100 \
+				--os-disk-size-gb $os_disk_size \
 				--verbose
 		fi
 
