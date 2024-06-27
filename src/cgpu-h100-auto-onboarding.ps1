@@ -176,10 +176,12 @@ function Auto-Onboard-CGPU-Multi-VM {
 
 		Write-Host "Start creating VM: ${vmname}"
 
-		Auto-Onboard-CGPU-Single-VM `
+		$result = Auto-Onboard-CGPU-Single-VM `
 		-vmname $vmname
 
-		$successcount=$successcount + 1
+		if ($result -eq "succeeded") {
+            		$successCount++
+        	}
 
 		Write-Host "Finished creating VM: ${vmname}"
 	}
@@ -321,7 +323,7 @@ function Auto-Onboard-CGPU-Single-VM {
 	# Variables inherited from the calling function - could use $successcount instead of $i
 	$vmlogincommands[$i] = "ssh -i ${privatekeypath} ${vmsshinfo}"
 
-	return
+	return $global:issuccess
 }
 
 # Create VM With given information.

@@ -1,6 +1,6 @@
 ## Introduction
 
-The following steps help create a Confidential GPU Windows Virtual Machine with an H100 NVIDIA GPU.
+The following steps help create a Confidential GPU Virtual Machine with an H100 NVIDIA GPU.
 This page is using platform managed keys. More information about platform managed keys can be found here: 
 [Azure Key Management](https://learn.microsoft.com/en-us/azure/security/fundamentals/key-management).
 
