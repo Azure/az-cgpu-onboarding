@@ -29,7 +29,7 @@ dependencies = [
     'pyOpenSSL == 23.1.1',
     'PyJWT == 2.7.0',
     'nvidia-ml-py == 12.535.77',
-    'requests == 2.31.0'
+    'requests == 2.32.2'
 ]
 
 [tool.setuptools.package-data]
