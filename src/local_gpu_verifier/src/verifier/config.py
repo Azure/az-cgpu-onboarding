@@ -61,6 +61,7 @@ class BaseSettings:
     AZURE_THIM_ENDPOINT_DICT = {
         "eastus2": 'https://useast2.thim.azure.net',
         "centraluseuap": 'https://uscentraleuap.thim.azure.net',
+        "westeurope": 'https://europewest.thim.azure.net',
         "lab": ''
     }
     SIZE_OF_NONCE_IN_BYTES = 32
