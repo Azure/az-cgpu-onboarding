@@ -299,24 +299,26 @@ class CcAdminUtils:
             next_update = ocsp_response.next_update.replace(tzinfo=timezone.utc)
             next_update_extended = next_update + timedelta(hours=BaseSettings.OCSP_VALIDITY_EXTENSION_HRS)
             utc_now = datetime.now(timezone.utc)
-            info_log.debug(f"Current time: {utc_now.strftime(timestamp_format)}")
-            info_log.debug(f"OCSP this update: {this_update.strftime(timestamp_format)}")
-            info_log.debug(f"OCSP next update: {next_update.strftime(timestamp_format)}")
-            info_log.debug(f"OCSP next update extended: {next_update_extended.strftime(timestamp_format)}")
+            event_log.debug(f"Current time: {utc_now.strftime(timestamp_format)}")
+            event_log.debug(f"OCSP this update: {this_update.strftime(timestamp_format)}")
+            event_log.debug(f"OCSP next update: {next_update.strftime(timestamp_format)}")
+            event_log.debug(f"OCSP next update extended: {next_update_extended.strftime(timestamp_format)}")
 
             # Outside validity period, print warning
             if not (this_update <= utc_now <= next_update):
-                info_log.warning(
-                    f"\t\tWARNING: OCSP FOR {cert_common_name} IS EXPIRED AFTER {next_update.strftime(timestamp_format)}."
-                )
+                ocsp_outside_validity_msg = f"OCSP FOR {cert_common_name} IS EXPIRED AFTER {next_update.strftime(timestamp_format)}."
+                event_log.warning(ocsp_outside_validity_msg)
+                info_log.warning(f"\t\tWARNING: {ocsp_outside_validity_msg} ")
 
             # Outside extended validity period
             if not (this_update <= utc_now <= next_update_extended):
-                info_log.error(
-                    f"\t\tOCSP FOR {cert_common_name} IS EXPIRED AND NO LONGER GOOD FOR ATTESTATION "
+                ocsp_outside_extended_validity_msg = (
+                    f"OCSP FOR {cert_common_name} IS EXPIRED AND NO LONGER GOOD FOR ATTESTATION "
                     f"AFTER {next_update_extended.strftime(timestamp_format)} "
                     f"WITH {BaseSettings.OCSP_VALIDITY_EXTENSION_HRS} HOURS EXTENSION PERIOD."
                 )
+                event_log.error(ocsp_outside_extended_validity_msg)
+                info_log.error(f"\t\t{ocsp_outside_extended_validity_msg}")
                 return False
 
             # Verifying the ocsp response certificate chain.
@@ -520,7 +522,7 @@ class CcAdminUtils:
         # RIM is successfully fetched from the provided RIM service
         if rim_result is not None:
             return rim_result
-        
+
         # Log error if RIM file is not fetched from the provided RIM service
         event_log.error(f"Failed to fetch RIM {rim_id} from provided RIM service: {BaseSettings.RIM_SERVICE_BASE_URL}")
 
@@ -545,7 +547,7 @@ class CcAdminUtils:
             # RIM is successfully fetched from the Nvidia RIM service
             if rim_result is not None:
                 return rim_result
-            
+
             # Log error if RIM file is not fetched from the Nvidia RIM service
             event_log.error(f"Failed to fetch RIM {rim_id} from Nvidia RIM service: {BaseSettings.RIM_SERVICE_BASE_URL_NVIDIA}")
 
