@@ -349,39 +349,45 @@ class CcAdminUtils:
             # Verifying the ocsp response certificate status.
             if ocsp_response.certificate_status != ocsp.OCSPCertStatus.GOOD:
                 # Get cert revoke timestamp
+                cert_revocation_extension_hrs = 0
+                if mode == BaseSettings.Certificate_Chain_Verification_Mode.GPU_ATTESTATION:
+                    cert_revocation_extension_hrs = BaseSettings.OCSP_CERT_REVOCATION_DEVICE_EXTENSION_HRS
+                elif mode == BaseSettings.Certificate_Chain_Verification_Mode.DRIVER_RIM_CERT:
+                    cert_revocation_extension_hrs = BaseSettings.OCSP_CERT_REVOCATION_DRIVER_RIM_EXTENSION_HRS
+                elif mode == BaseSettings.Certificate_Chain_Verification_Mode.VBIOS_RIM_CERT:
+                    cert_revocation_extension_hrs = BaseSettings.OCSP_CERT_REVOCATION_VBIOS_RIM_EXTENSION_HRS
+
                 cert_revocation_time = ocsp_response.revocation_time.replace(tzinfo=timezone.utc)
                 cert_revocation_reason = ocsp_response.revocation_reason
-                cert_revocation_time_extended = cert_revocation_time + timedelta(
-                    hours=BaseSettings.OCSP_CERT_REVOCATION_EXTENSION_HRS
-                )
+                cert_revocation_time_extended = cert_revocation_time + timedelta(hours=cert_revocation_extension_hrs)
 
                 # Cert is revoked, print warning
-                info_log.warning(
-                    f"\t\t\tWARNING: THE CERTIFICATE {cert_common_name} IS REVOKED "
-                    f"WITH THE STATUS AS '{cert_revocation_reason.value}' AT {cert_revocation_time.strftime(timestamp_format)}."
+                event_log.warning(
+                    f"THE CERTIFICATE {cert_common_name} IS REVOKED WITH THE STATUS '{cert_revocation_reason.value}' "
+                    f"AT {cert_revocation_time.strftime(timestamp_format)}."
                 )
 
-                # Allow hold cert, or cert is revoked but within the extension period
-                if (datetime.now(timezone.utc) <= cert_revocation_time_extended) or (
-                    x509.ReasonFlags.certificate_hold == cert_revocation_reason and BaseSettings.allow_hold_cert
-                ):
-                    revoked_status = True
+                # Cert is revoked but certificate_hold is allowed
+                if x509.ReasonFlags.certificate_hold == cert_revocation_reason and BaseSettings.allow_hold_cert:
+                    event_log.warning(f"THE CERTIFICATE {cert_common_name} IS REVOKED BUT STILL GOOD FOR ATTESTATION WITH allow_hold_cert ENABLED.")
+
+                # Cert is revoked but within the extension period
+                elif datetime.now(timezone.utc) <= cert_revocation_time_extended:
+                    event_log.warning(
+                        f"THE CERTIFICATE {cert_common_name} IS REVOKED BUT STILL GOOD FOR ATTESTATION "
+                        f"UNTIL {cert_revocation_time_extended.strftime(timestamp_format)} WITH {cert_revocation_extension_hrs} HOURS GRACE PERIOD."
+                    )
 
                 # Cert is revoked and outside the extension period
                 else:
-                    info_log.error(
-                        f"\t\t\tTHE CERTIFICATE {cert_common_name} IS REVOKED AND NO LONGER GOOD FOR ATTESTATION "
-                        f"AFTER {cert_revocation_time_extended.strftime(timestamp_format)} "
-                        f"WITH {BaseSettings.OCSP_CERT_REVOCATION_EXTENSION_HRS} HOURS GRACE PERIOD."
+                    cert_revocation_novalid_msg = (
+                        f"THE CERTIFICATE {cert_common_name} IS REVOKED AND NO LONGER GOOD FOR ATTESTATION "
+                        f"AFTER {cert_revocation_time_extended.strftime(timestamp_format)}."
                     )
+                    event_log.error(cert_revocation_novalid_msg)
+                    info_log.error(f"\t\t\tERROR: {cert_revocation_novalid_msg}")
+                    info_log.error("\t\t\tThe certificate chain revocation status verification was not successful")
                     return False
-
-        if not revoked_status:
-            info_log.info(f"\t\t\tThe certificate chain revocation status verification successful.")
-        else:
-            info_log.warning(
-                f"\t\t\tThe certificate chain revocation status verification was not successful but continuing."
-            )
 
         return True
 
