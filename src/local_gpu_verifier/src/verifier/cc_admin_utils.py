@@ -295,8 +295,8 @@ class CcAdminUtils:
 
             # Verify the OCSP response is within the validity period
             timestamp_format = "%Y/%m/%d %H:%M:%S UTC"
-            this_update = ocsp_response.this_update.replace(tzinfo=timezone.utc) - timedelta(hours=24 * 14)
-            next_update = ocsp_response.next_update.replace(tzinfo=timezone.utc) - timedelta(hours=24 * 14)
+            this_update = ocsp_response.this_update.replace(tzinfo=timezone.utc)
+            next_update = ocsp_response.next_update.replace(tzinfo=timezone.utc)
             next_update_extended = next_update + timedelta(hours=BaseSettings.OCSP_VALIDITY_EXTENSION_HRS)
             utc_now = datetime.now(timezone.utc)
             event_log.debug(f"Current time: {utc_now.strftime(timestamp_format)}")
