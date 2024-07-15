@@ -256,8 +256,8 @@ def attest(arguments_as_dictionary):
             BaseSettings.OCSP_CERT_REVOCATION_EXTENSION_HRS = 0
         elif arguments_as_dictionary["ocsp_attestation_settings"] == "default":
             BaseSettings.allow_hold_cert = True
-            BaseSettings.OCSP_VALIDITY_EXTENSION_HRS = 168
-            BaseSettings.OCSP_CERT_REVOCATION_EXTENSION_HRS = 168
+            BaseSettings.OCSP_VALIDITY_EXTENSION_HRS = 7 * 24
+            BaseSettings.OCSP_CERT_REVOCATION_EXTENSION_HRS = 7 * 24
 
         # Set allow OCSP cert hold flag
         if arguments_as_dictionary["allow_hold_cert"] is not None:
