@@ -308,7 +308,6 @@ class CcAdminUtils:
             if not (this_update <= utc_now <= next_update):
                 ocsp_outside_validity_msg = f"OCSP FOR {cert_common_name} IS EXPIRED AFTER {next_update.strftime(timestamp_format)}."
                 event_log.warning(ocsp_outside_validity_msg)
-                info_log.warning(f"\t\tWARNING: {ocsp_outside_validity_msg} ")
 
             # Outside extended validity period
             if not (this_update <= utc_now <= next_update_extended):
