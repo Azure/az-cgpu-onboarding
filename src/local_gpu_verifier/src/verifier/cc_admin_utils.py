@@ -317,7 +317,7 @@ class CcAdminUtils:
                     f"WITH {BaseSettings.OCSP_VALIDITY_EXTENSION_HRS} HOURS EXTENSION PERIOD."
                 )
                 event_log.error(ocsp_outside_extended_validity_msg)
-                info_log.error(f"\t\t{ocsp_outside_extended_validity_msg}")
+                info_log.error(f"\t\tERROR: {ocsp_outside_extended_validity_msg}")
                 return False
 
             # Verifying the ocsp response certificate chain.
