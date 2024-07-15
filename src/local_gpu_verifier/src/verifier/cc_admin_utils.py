@@ -295,8 +295,8 @@ class CcAdminUtils:
 
             # Verify the OCSP response is within the validity period
             timestamp_format = "%Y/%m/%d %H:%M:%S UTC"
-            this_update = ocsp_response.this_update.replace(tzinfo=timezone.utc) - timedelta(hours=24)
-            next_update = ocsp_response.next_update.replace(tzinfo=timezone.utc) - timedelta(hours=24)
+            this_update = ocsp_response.this_update.replace(tzinfo=timezone.utc) - timedelta(hours=24 * 14)
+            next_update = ocsp_response.next_update.replace(tzinfo=timezone.utc) - timedelta(hours=24 * 14)
             next_update_extended = next_update + timedelta(hours=BaseSettings.OCSP_VALIDITY_EXTENSION_HRS)
             utc_now = datetime.now(timezone.utc)
             event_log.debug(f"Current time: {utc_now.strftime(timestamp_format)}")
@@ -312,9 +312,8 @@ class CcAdminUtils:
             # Outside extended validity period
             if not (this_update <= utc_now <= next_update_extended):
                 ocsp_outside_extended_validity_msg = (
-                    f"OCSP FOR {cert_common_name} IS EXPIRED AND NO LONGER GOOD FOR ATTESTATION "
-                    f"AFTER {next_update_extended.strftime(timestamp_format)} "
-                    f"WITH {BaseSettings.OCSP_VALIDITY_EXTENSION_HRS} HOURS EXTENSION PERIOD."
+                    f"OCSP FOR {cert_common_name} IS EXPIRED AND IS NO LONGER VALID FOR ATTESTATION "
+                    f"AFTER {next_update_extended.strftime(timestamp_format)}."
                 )
                 event_log.error(ocsp_outside_extended_validity_msg)
                 info_log.error(f"\t\tERROR: {ocsp_outside_extended_validity_msg}")
