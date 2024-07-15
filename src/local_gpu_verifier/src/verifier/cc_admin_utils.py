@@ -357,8 +357,9 @@ class CcAdminUtils:
                 elif mode == BaseSettings.Certificate_Chain_Verification_Mode.VBIOS_RIM_CERT:
                     cert_revocation_extension_hrs = BaseSettings.OCSP_CERT_REVOCATION_VBIOS_RIM_EXTENSION_HRS
 
-                cert_revocation_time = ocsp_response.revocation_time.replace(tzinfo=timezone.utc)
-                cert_revocation_reason = ocsp_response.revocation_reason
+                # cert_revocation_time = ocsp_response.revocation_time.replace(tzinfo=timezone.utc)
+                # cert_revocation_reason = ocsp_response.revocation_reason
+                cert_revocation_time = datetime.now(timezone.utc)
                 cert_revocation_reason = x509.ReasonFlags.certificate_hold
                 cert_revocation_time_extended = cert_revocation_time + timedelta(hours=cert_revocation_extension_hrs)
 
