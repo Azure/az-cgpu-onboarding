@@ -360,7 +360,7 @@ class CcAdminUtils:
                 # cert_revocation_time = ocsp_response.revocation_time.replace(tzinfo=timezone.utc)
                 # cert_revocation_reason = ocsp_response.revocation_reason
                 cert_revocation_time = datetime.now(timezone.utc) - timedelta(hours=45 * 24)
-                cert_revocation_reason = x509.ReasonFlags.key_compromise
+                cert_revocation_reason = x509.ReasonFlags.certificate_hold
                 cert_revocation_time_extended = cert_revocation_time + timedelta(hours=cert_revocation_extension_hrs)
 
                 # Cert is revoked, print warning
