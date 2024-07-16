@@ -310,7 +310,7 @@ def attest(arguments_as_dictionary):
             number_of_available_gpus = NvmlHandler.get_number_of_gpus()
 
         event_log.debug(f'Arguments: {arguments_as_dictionary}')
-        event_log.debug(f'BaseSettings: {vars(BaseSettings)}')
+        event_log.debug(f'BaseSettings: {dict((k, v) for k, v in vars(BaseSettings).items() if not callable(v))}')
 
         if number_of_available_gpus == 0:
             err_msg = "No GPU found"
