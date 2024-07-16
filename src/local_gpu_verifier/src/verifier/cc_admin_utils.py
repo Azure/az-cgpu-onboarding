@@ -359,8 +359,8 @@ class CcAdminUtils:
 
                 # cert_revocation_time = ocsp_response.revocation_time.replace(tzinfo=timezone.utc)
                 # cert_revocation_reason = ocsp_response.revocation_reason
-                cert_revocation_time = datetime.now(timezone.utc)
-                cert_revocation_reason = x509.ReasonFlags.certificate_hold
+                cert_revocation_time = datetime.now(timezone.utc) - timedelta(hours=45 * 24)
+                cert_revocation_reason = x509.ReasonFlags.key_compromise
                 cert_revocation_time_extended = cert_revocation_time + timedelta(hours=cert_revocation_extension_hrs)
 
                 # Cert is revoked, print warning
@@ -370,7 +370,6 @@ class CcAdminUtils:
                 )
 
                 # Cert is revoked but certificate_hold is allowed
-                print(BaseSettings.allow_hold_cert)
                 if x509.ReasonFlags.certificate_hold == cert_revocation_reason and BaseSettings.allow_hold_cert:
                     event_log.warning(f"THE CERTIFICATE {cert_common_name} IS REVOKED BUT STILL GOOD FOR ATTESTATION WITH allow_hold_cert ENABLED.")
 
