@@ -370,6 +370,7 @@ class CcAdminUtils:
                 )
 
                 # Cert is revoked but certificate_hold is allowed
+                print(BaseSettings.allow_hold_cert)
                 if x509.ReasonFlags.certificate_hold == cert_revocation_reason and BaseSettings.allow_hold_cert:
                     event_log.warning(f"THE CERTIFICATE {cert_common_name} IS REVOKED BUT STILL GOOD FOR ATTESTATION WITH allow_hold_cert ENABLED.")
 
@@ -377,7 +378,7 @@ class CcAdminUtils:
                 elif datetime.now(timezone.utc) <= cert_revocation_time_extended:
                     event_log.warning(
                         f"THE CERTIFICATE {cert_common_name} IS REVOKED BUT STILL GOOD FOR ATTESTATION "
-                        f"UNTIL {cert_revocation_time_extended.strftime(timestamp_format)} WITH {cert_revocation_extension_hrs} HOURS GRACE PERIOD."
+                        f"UNTIL {cert_revocation_time_extended.strftime(timestamp_format)} WITH {cert_revocation_extension_hrs} HOURS OF GRACE PERIOD."
                     )
 
                 # Cert is revoked and outside the extension period
