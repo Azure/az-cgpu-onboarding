@@ -365,26 +365,28 @@ class CcAdminUtils:
 
                 # Cert is revoked, print warning
                 event_log.warning(
-                    f"THE CERTIFICATE {cert_common_name} IS REVOKED WITH THE STATUS '{cert_revocation_reason.value}' "
+                    f"THE CERTIFICATE {cert_common_name} IS REVOKED FOR '{cert_revocation_reason.value}' "
                     f"AT {cert_revocation_time.strftime(timestamp_format)}."
                 )
 
                 # Cert is revoked but certificate_hold is allowed
                 if x509.ReasonFlags.certificate_hold == cert_revocation_reason and BaseSettings.allow_hold_cert:
-                    event_log.warning(f"THE CERTIFICATE {cert_common_name} IS REVOKED BUT STILL GOOD FOR ATTESTATION WITH allow_hold_cert ENABLED.")
+                    event_log.warning(
+                        f"THE CERTIFICATE {cert_common_name} IS REVOKED FOR '{cert_revocation_reason.value} " 
+                        f"BUT STILL GOOD FOR ATTESTATION WITH allow_hold_cert ENABLED.")
 
                 # Cert is revoked but within the extension period
                 elif datetime.now(timezone.utc) <= cert_revocation_time_extended:
                     event_log.warning(
-                        f"THE CERTIFICATE {cert_common_name} IS REVOKED BUT STILL GOOD FOR ATTESTATION "
+                        f"THE CERTIFICATE {cert_common_name} IS REVOKED FOR '{cert_revocation_reason.value} BUT STILL GOOD FOR ATTESTATION "
                         f"UNTIL {cert_revocation_time_extended.strftime(timestamp_format)} WITH {cert_revocation_extension_hrs} HOURS OF GRACE PERIOD."
                     )
 
                 # Cert is revoked and outside the extension period
                 else:
                     cert_revocation_novalid_msg = (
-                        f"THE CERTIFICATE {cert_common_name} IS REVOKED AND NO LONGER GOOD FOR ATTESTATION "
-                        f"AFTER {cert_revocation_time_extended.strftime(timestamp_format)}."
+                        f"THE CERTIFICATE {cert_common_name} IS REVOKED FOR '{cert_revocation_reason.value} "
+                        f"AND NO LONGER GOOD FOR ATTESTATION AFTER {cert_revocation_time_extended.strftime(timestamp_format)}."
                     )
                     event_log.error(cert_revocation_novalid_msg)
                     info_log.error(f"\t\t\tERROR: {cert_revocation_novalid_msg}")
