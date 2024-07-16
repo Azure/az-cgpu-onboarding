@@ -313,6 +313,7 @@ def attest(arguments_as_dictionary):
             (k, v) for k, v in vars(BaseSettings).items() 
             if not (k.startswith("_") or callable(v) or k in dir(BaseSettings.__class__))
         )
+        print(type(base_settings_dict['set_ocsp_service_url']))
         event_log.debug(f'Arguments: {arguments_as_dictionary}')
         event_log.debug(f'BaseSettings: {base_settings_dict}')
 
