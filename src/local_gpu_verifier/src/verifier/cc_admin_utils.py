@@ -347,7 +347,7 @@ class CcAdminUtils:
                 settings.mark_gpu_certificate_ocsp_signature_as_verified()
 
             # Verifying the ocsp response certificate status.
-            if True or ocsp_response.certificate_status != ocsp.OCSPCertStatus.GOOD:
+            if ocsp_response.certificate_status != ocsp.OCSPCertStatus.GOOD:
                 # Get cert revoke timestamp
                 cert_revocation_extension_hrs = 0
                 if mode == BaseSettings.Certificate_Chain_Verification_Mode.GPU_ATTESTATION:
