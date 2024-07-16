@@ -260,6 +260,7 @@ def attest(arguments_as_dictionary):
         )
 
         # Set OCSP attestation settings
+        print(arguments_as_dictionary["ocsp_attestation_settings"])
         if arguments_as_dictionary["ocsp_attestation_settings"] == "strict":
             BaseSettings.allow_hold_cert = False
             BaseSettings.OCSP_VALIDITY_EXTENSION_HRS = 0
