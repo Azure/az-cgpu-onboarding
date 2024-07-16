@@ -34,7 +34,6 @@ import logging
 import jwt
 import json
 import sys
-from inspect import ismethod
 
 from verifier.attestation import AttestationReport
 from verifier.rim import RIM
@@ -310,8 +309,12 @@ def attest(arguments_as_dictionary):
             init_nvml()
             number_of_available_gpus = NvmlHandler.get_number_of_gpus()
 
+        base_settings_dict = dict(
+            (k, v) for k, v in vars(BaseSettings).items() 
+            if not (k.startswith("_") or callable(v) or k in dir(BaseSettings.__class__))
+        )
         event_log.debug(f'Arguments: {arguments_as_dictionary}')
-        event_log.debug(f'BaseSettings: {dict((k, v) for k, v in vars(BaseSettings).items() if not (k.startswith("_") or callable(v) or ismethod(v)))}')
+        event_log.debug(f'BaseSettings: {base_settings_dict}')
 
         if number_of_available_gpus == 0:
             err_msg = "No GPU found"
