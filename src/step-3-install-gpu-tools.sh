@@ -57,7 +57,7 @@ install_gpu_tools() {
         sudo echo "{ \"exec-opts\": [\"native.cgroupdriver=cgroupfs\"] }" | sudo tee /etc/docker/daemon.json
         sudo systemctl restart docker
 
-        sudo docker run --rm --gpus all nvidia/cuda:12.3.2-base-ubuntu22.04 nvidia-smi
+        sudo docker run --rm --gpus all nvidia/cuda:12.4.1-base-ubuntu22.04 nvidia-smi
 
         lockError=$(cat logs/current-operation.log | grep "Could not get lock")
         if [ "$lockError" != "" ] && [ $MAX_RETRY \> 0 ]; then

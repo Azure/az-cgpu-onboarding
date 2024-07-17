@@ -1,14 +1,14 @@
 ## This module helps install gpu driver to the lastest r550 Nvidia driver version.
 ##
 ## Requirements:
-##      Minimum Nvidia driver:       v550.54.14
-##      Minimum kernel version:      6.5.0-1017-azure
+##      Minimum Nvidia driver:       v550.90.07
+##      Minimum kernel version:      6.5.0-1024-azure
 ##
 ## Example:
 ##      sudo bash step-1-install-gpu-driver.sh
 ##
 
-MINIMUM_KERNEL_VERSION="6.5.0-1017-azure"
+MINIMUM_KERNEL_VERSION="6.5.0-1024-azure"
 MAX_RETRY=3
 
 ## Install gpu driver required dependency and driver itself. It will reboot the system at the end.
@@ -17,7 +17,7 @@ install_gpu_driver() {
     echo -e "$MINIMUM_KERNEL_VERSION\n$current_kernel" | sort --check=quiet --version-sort
     if [ "$?" -ne "0" ]; then
         echo "Current kernel version: ($current_kernel), expected: (>= $MINIMUM_KERNEL_VERSION)."
-        # echo "Please try utilities-update-kernel.sh 6.5.0-1017-azure."
+        # echo "Please try utilities-update-kernel.sh 6.5.0-1024-azure."
     else
         echo "Current kernel version: $current_kernel"
 
