@@ -134,8 +134,18 @@ def main():
         type=int
     )
     parser.add_argument(
-        "--ocsp_cert_revocation_extension",
-        help="If the OCSP response indicate the certificate is revoked within the extension grace period in hours, treat the cert as good and continue the attestation.",
+        "--ocsp_cert_revocation_extension_device",
+        help="If the OCSP response indicate the device certificate is revoked within the extension grace period in hours, treat the cert as good and continue the attestation.",
+        type=int
+    )
+    parser.add_argument(
+        "--ocsp_cert_revocation_extension_driver_rim",
+        help="If the OCSP response indicate the driver RIM certificate is revoked within the extension grace period in hours, treat the cert as good and continue the attestation.",
+        type=int
+    )
+    parser.add_argument(
+        "--ocsp_cert_revocation_extension_vbios_rim",
+        help="If the OCSP response indicate the VBIOS RIM certificate is revoked within the extension grace period in hours, treat the cert as good and continue the attestation.",
         type=int
     )
     parser.add_argument(
@@ -253,15 +263,19 @@ def attest(arguments_as_dictionary):
         if arguments_as_dictionary["ocsp_attestation_settings"] == "strict":
             BaseSettings.allow_hold_cert = False
             BaseSettings.OCSP_VALIDITY_EXTENSION_HRS = 0
-            BaseSettings.OCSP_CERT_REVOCATION_EXTENSION_HRS = 0
+            BaseSettings.OCSP_CERT_REVOCATION_DEVICE_EXTENSION_HRS = 0
+            BaseSettings.OCSP_CERT_REVOCATION_DRIVER_RIM_EXTENSION_HRS = 0
+            BaseSettings.OCSP_CERT_REVOCATION_VBIOS_RIM_EXTENSION_HRS = 0
         elif arguments_as_dictionary["ocsp_attestation_settings"] == "default":
             BaseSettings.allow_hold_cert = True
-            BaseSettings.OCSP_VALIDITY_EXTENSION_HRS = 168
-            BaseSettings.OCSP_CERT_REVOCATION_EXTENSION_HRS = 168
+            BaseSettings.OCSP_VALIDITY_EXTENSION_HRS = 14 * 24
+            BaseSettings.OCSP_CERT_REVOCATION_DEVICE_EXTENSION_HRS = 14 * 24
+            BaseSettings.OCSP_CERT_REVOCATION_DRIVER_RIM_EXTENSION_HRS = 14 * 24
+            BaseSettings.OCSP_CERT_REVOCATION_VBIOS_RIM_EXTENSION_HRS = 90 * 24
 
         # Set allow OCSP cert hold flag
         if arguments_as_dictionary["allow_hold_cert"] is not None:
-            BaseSettings.allow_hold_cert = arguments_as_dictionary["allow_hold_cert"]
+            BaseSettings.allow_hold_cert = BaseSettings.allow_hold_cert or arguments_as_dictionary["allow_hold_cert"]
 
         # Set OCSP validity extension
         if arguments_as_dictionary["ocsp_validity_extension"] is not None:
@@ -270,9 +284,17 @@ def attest(arguments_as_dictionary):
             )
 
         # Set OCSP cert revoked extension
-        if arguments_as_dictionary["ocsp_cert_revocation_extension"] is not None:
-            BaseSettings.OCSP_CERT_REVOCATION_EXTENSION_HRS = max(
-                0, arguments_as_dictionary["ocsp_cert_revocation_extension"]
+        if arguments_as_dictionary["ocsp_cert_revocation_extension_device"] is not None:
+            BaseSettings.OCSP_CERT_REVOCATION_DEVICE_EXTENSION_HRS = max(
+                0, arguments_as_dictionary["ocsp_cert_revocation_extension_device"]
+            )
+        if arguments_as_dictionary["ocsp_cert_revocation_extension_driver_rim"] is not None:
+            BaseSettings.OCSP_CERT_REVOCATION_DRIVER_RIM_EXTENSION_HRS = max(
+                0, arguments_as_dictionary["ocsp_cert_revocation_extension_driver_rim"]
+            )
+        if arguments_as_dictionary["ocsp_cert_revocation_extension_vbios_rim"] is not None:
+            BaseSettings.OCSP_CERT_REVOCATION_VBIOS_RIM_EXTENSION_HRS = max(
+                0, arguments_as_dictionary["ocsp_cert_revocation_extension_vbios_rim"]
             )
 
         # Set the RIM root certificate path
@@ -286,6 +308,13 @@ def attest(arguments_as_dictionary):
         else:
             init_nvml()
             number_of_available_gpus = NvmlHandler.get_number_of_gpus()
+
+        base_settings_dict = dict(
+            (k, v) for k, v in vars(BaseSettings).items() 
+            if not (k.startswith("_") or callable(v) or k in dir(BaseSettings.__class__) or isinstance(v, classmethod))
+        )
+        event_log.debug(f'Arguments: {arguments_as_dictionary}')
+        event_log.debug(f'BaseSettings: {base_settings_dict}')
 
         if number_of_available_gpus == 0:
             err_msg = "No GPU found"
