@@ -51,7 +51,7 @@ We have created a script to build and install OpenSSL 3.3.1:
 sudo bash utilities-install-openssl.sh
 ```
 
-The script installs OpenSSL 3.3.1 to `/opt/openssl`. To use OpenSSL 3.3.1, the user can specify the `LD_LIBRARY_PATH` to `opt/openssl/lib64`. **The system OpenSSL 3.0.2 remains untouched and continues to be the default version.**
+The script installs OpenSSL 3.3.1 to `/opt/openssl`. To use OpenSSL 3.3.1, the user can specify the `LD_LIBRARY_PATH` to `/opt/openssl/lib64`. **The system OpenSSL 3.0.2 remains untouched and continues to be the default version.**
 
 
 ### OpenSSL
