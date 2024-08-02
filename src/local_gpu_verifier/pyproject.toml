@@ -21,15 +21,15 @@ keywords = [
     "verifier"
 ]
 dependencies = [
-    'cryptography == 39.0.1',
+    'cryptography == 42.0.8',
     'ecdsa == 0.18.0',
     'lxml == 4.9.1',
     'signxml == 3.2.0',
     'xmlschema == 2.2.3',
-    'pyOpenSSL == 23.1.1',
+    'pyOpenSSL == 24.1.0',
     'PyJWT == 2.7.0',
     'nvidia-ml-py == 12.535.77',
-    'requests == 2.31.0'
+    'requests == 2.32.2'
 ]
 
 [tool.setuptools.package-data]

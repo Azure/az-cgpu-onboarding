@@ -1,6 +1,6 @@
 ## Introduction
 
-The following steps help create a Confidential GPU Windows Virtual Machine with an H100 NVIDIA GPU and a Platform Managed Key (PMK) using manual instructions.
+The following steps help create a Confidential GPU Virtual Machine with an H100 NVIDIA GPU and a Platform Managed Key (PMK) using manual instructions.
 
 -----------------------------------------------
 
@@ -17,12 +17,13 @@ The following steps help create a Confidential GPU Windows Virtual Machine with 
 ## Check-Requirements
 
 Please make sure you have these requirements before performing the following steps: 
+- [Powershell](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-windows?view=powershell-7.4#msi): version 7 and above (please run windows powershell as administrator)
 - [Azure Subscription](https://docs.microsoft.com/en-us/azure/cost-management-billing/manage/create-subscription)
   - This subscription needs to have been granted sufficient quotas for the NCC_H100_v5 SKU in order to successfully deploy any CGPU VMs
 - [Azure Tenant ID](https://learn.microsoft.com/en-us/azure/active-directory/fundamentals/active-directory-how-to-find-tenant#find-tenant-id-with-powershell)
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
   - Note: minimum version 2.46.0 is required, run `az --version` to check your version and run `az upgrade` to install the latest version if your version is older
-- Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V3.0.4/cgpu-onboarding-package.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-V3.0.4](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V3.0.4)
+- Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V3.0.6/cgpu-onboarding-package.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-V3.0.6](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V3.0.6)
 
 -------------------------------------------
 
@@ -35,17 +36,23 @@ az account set --subscription <your subscription ID>
 ```
 
 2. Deploy an NCC40 CGPU VM by replacing the following parameters with your own:
+
+Required Parameters:
 - $rg = your resource group name. If it does not already exist, it will create a new one
 - $vmname = the name of the virtual machine you want to deploy
 - $adminusername = the username you will use to log in to your virtual machine
 - $publickeypath = the path to your local public key 
+
+Additional optional parameters:
+- $location = the region you would like to deploy to. Currently we support eastus2 and westeurope
+- $osdisksize = the size of your OS disk. The maximum size is 4095 GB and for default, set to 100 GB
 
 Please note that this step may take a few minutes to complete. You can track your deployment in the portal under your resource group.
 ```
 az vm create `
 --resource-group $rg `
 --name $vmname `
---location eastus2 `
+--location $location `
 --image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:latest `
 --public-ip-sku Standard `
 --admin-username $adminusername `
@@ -55,7 +62,7 @@ az vm create `
 --enable-secure-boot $true `
 --enable-vtpm $true `
 --size Standard_NCC40ads_H100_v5 `
---os-disk-size-gb 100 `
+--os-disk-size-gb $osdisksize `
 --verbose
 ```
 
@@ -133,7 +140,7 @@ You should see: "CC Environment: PRODUCTION"
 Once you have finished the validation, you can execute the following commands to try a sample workload:
 
 ```
-sudo docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/${adminusername}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:24.03-tf2-py3 python /home/mnist-sample-workload.py
+sudo docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/${adminusername}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:24.05-tf2-py3 python /home/mnist-sample-workload.py
 ```
 
 If you have reached this point, congratulations! You have offically manually created an NCC40 CGPU VM!
