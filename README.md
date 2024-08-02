@@ -1,4 +1,4 @@
-# Confidential GPU Private Preview Onboarding 
+# Confidential GPU Public Preview Onboarding 
 
 Welcome to this preview! This onboarding document helps to create an Azure confidential VM with NVIDIA H100 Tensor Core GPU in Confidential Computing mode.  
 
@@ -59,7 +59,7 @@ We support the options to create confidential GPUs with Windows and Linux hosts,
 
 ## Availability and Reliability Expectations 
 
-This preview is currently availability in the East US 2 and West Europe regions. We plan to expand to more regions in a phased manner during public preview/General Availability (GA).  Non-production data is recommended during this phase of the preview. We are not providing a reliability SLA during the preview phase. 
+This public preview is currently availability in the East US 2 and West Europe regions. We plan to expand to more regions in a phased manner during General Availability (GA).  Non-production data is recommended during this phase of the preview. We are not providing a reliability SLA during the preview phase. 
 
 ## Contact Information
 
