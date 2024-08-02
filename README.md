@@ -1,6 +1,6 @@
 # Confidential GPU Public Preview Onboarding 
 
-Welcome to this preview! This onboarding document helps to create an Azure confidential VM with NVIDIA H100 Tensor Core GPU in Confidential Computing mode.  
+Welcome to this public preview! This onboarding document helps to create an Azure confidential VM with NVIDIA H100 Tensor Core GPU in Confidential Computing mode.  
 
 Please note that any associated materials or documentation below are strictly confidential and subject to obligations in the Non-Disclosure Agreement (NDA) signed between Microsoft and your organization. 
 
