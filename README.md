@@ -36,7 +36,7 @@ The following four major steps are provided to help deploy your first Confidenti
 4. Attestation Verification
 5. Workload Running
 
-Please make sure to follow all steps exactly as detailed. If you run into issues, please check the [FAQ page](https://github.com/Azure-Confidential-Computing/PrivatePreview/blob/release-3.0.6/Frequently-Asked-Questions.md) to check if there is more information or reach out using the contact information at the bottom of this document
+Please make sure to follow all steps exactly as detailed. If you run into issues, please check the [FAQ page](https://github.com/Azure-Confidential-Computing/PrivatePreview/blob/release-3.0.7/Frequently-Asked-Questions.md) to check if there is more information or reach out using the contact information at the bottom of this document
 
 ## Choose your Configuration 
 
@@ -63,7 +63,7 @@ This public preview is currently availability in the East US 2 and West Europe r
 
 ## Contact Information
 
-For any questions, please check the FAQ page here: [Frequently Asked Questions](https://github.com/Azure-Confidential-Computing/PrivatePreview/blob/release-3.0.6/Frequently-Asked-Questions.md)
+For any questions, please check the FAQ page here: [Frequently Asked Questions](https://github.com/Azure-Confidential-Computing/PrivatePreview/blob/release-3.0.7/Frequently-Asked-Questions.md)
 
 Support will be directly with the product team via the email Confidential GPU Preview: cgpupreview@microsoft.com   
 The service will be taken down around 1-2 times per month for security and performance updates.
