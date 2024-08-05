@@ -8,6 +8,10 @@ Kernel version 6.2.0.1018 is the only working kernel with driver version 535.129
 
 This does not mean SEV-SNP is not enabled, this is just a characteristic of CVMs which don't provide this interface. The firmware-generated SNP report is stored elsewhere.
 
+## Q: How can I capture an image of my VM and share it?
+
+A: Please refer to this page that contains detailed information on different VMI scenarios and which options are supported: [VMI Sharing Instructions](VMI-Sharing-Instrcutions.md)
+
 ## Q: How to update existing Nvidia driver from r535 (535.129.03 from release-3.0.2) to r550 (550.54.15 from releases-3.0.3 and onwards)?
 
 A: If you have created the VM using previous versions of onboarding packages, you can download the latest onboarding package and follow the steps below to update the Nvidia driver. It will also release the hold of the Linux kernel and update the kernel.
