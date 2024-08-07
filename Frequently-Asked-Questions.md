@@ -19,7 +19,7 @@ A: If you have created the VM using previous versions of onboarding packages, yo
 On the host:
 ```
 # Download a clean H100 onboarding package from the latest release
-https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V3.0.7/cgpu-onboarding-package.tar.gz
+https://github.com/Azure/az-cgpu-onboarding/releases/download/V3.0.7/cgpu-onboarding-package.tar.gz
  
 # Upload it to your VM
 scp -i <private key path> ".\cgpu-onboarding-package.tar.gz" <username>@<IP>:/home/<username>

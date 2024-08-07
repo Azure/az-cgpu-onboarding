@@ -1,20 +1,20 @@
-# Introductions
-Here is an overview of how to capture a CGPU VM image and what are the options for sharing it. In general, creating a SIG is simpler than storing things in a container since those are shared on a subscription/tenant-basis. 
+# Overview
+Here is an overview of the different options to capture and share a CGPU VM image. In general, creating a SIG is simpler than storing things in a container since those are shared on a subscription/tenant-basis. 
 
-Please note that the Azure Compute Gallery's direct share feature is still in a preview, so is subject to their preview terms. To learn more about it, take a look at their documentation [here](https://learn.microsoft.com/en-us/azure/virtual-machines/share-gallery-direct?tabs=portaldirect)
+Please note that the Azure Compute Gallery's direct share feature is still in a preview so is subject to their preview terms and conditions. To learn more about it, take a look at their documentation [here](https://learn.microsoft.com/en-us/azure/virtual-machines/share-gallery-direct?tabs=portaldirect).
 
 # Sharing within a subscription
 Option 1: Export image and VMGS file using a shared image gallery (SIG)
-- `ConfidentialVM` security type is supported for encrypted image (`ConfidentialVMSupported` security type for encrypted images will fail)
+- `ConfidentialVM` security type is required for images using Confidential disk encryption (`ConfidentialVMSupported` security type for encrypted images will fail)
 - `ConfidentialVMSupported` security type is supported for unencrypted images
-- Note: if you the VM was created with an encrypted disk and CMK flow, `Confidential Disk Encryption` must be set to `True`
+- Note: if the VM was created with an encrypted disk and customer-managed keys (CMK), `Confidential Disk Encryption` must be set to `True`
 
 # Sharing to other subscriptions
 Option 1: share an unencrypted image using a SIG
-- Needs to set security type to `ConfidentialVMSupported`
+- Must set security type to `ConfidentialVMSupported`
 
-Option 2: share an encrypted image using azure storage
-- The following is a workaround that allows you to create an encrypted image based off an existing VM, upload the disks to an azure storage container, and then create an image or VM based off that. This example uses a PMK flow: 
+Option 2: share an encrypted image using Azure Storage
+- The following is a workaround that allows you to create an image or VM based off an existing VM by copying the disks to an Azure Storage container. This example uses a PMK flow: 
  
 ```
 # Base resource to save as an image (e.g. from onboarding script)
@@ -53,5 +53,4 @@ az vm create --resource-group $rg --name $vm_name --attach-os-disk $disk_name --
 
 # Future investigations:
 There are still a few scenarios we want to look into:
-1. Using non-Confidential VM to create the image: export the generalized vhd, upload to a storage blob, create an image definition using the portal, create image version, and add customer subscription/tenant to the direct share
-2. Sharing CGPU image with integrity protected OS disk, unencrypted disk, and PMK flow outside the subscription/tenant
+1. Using a non-Confidential VM to create the image: export the generalized VHD, upload it to a storage blob, create an image definition using the portal, create image version, and add customer subscription/tenant to the direct share

@@ -2,7 +2,7 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # ----------------------------------------------------------------------------
 #
-# This Module helps build release packages for PrivatePreview.
+# This Module helps build release packages for az-cgpu-onboarding.
 #
 
 # Downloads the GPU driver and Nvidia verifier from given Azure storage location

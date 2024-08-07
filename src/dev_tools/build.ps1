@@ -2,7 +2,7 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # ----------------------------------------------------------------------------
 #
-# This Module helps build release packages for PrivatePreview.
+# This Module helps build release packages for az-cgpu-onboarding.
 #
 
 # Generates a 'Drop' folder that contains all 3 release packages:
