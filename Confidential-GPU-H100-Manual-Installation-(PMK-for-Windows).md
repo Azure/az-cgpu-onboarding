@@ -1,16 +1,21 @@
 ## Introduction
 
-The following steps help create a Confidential GPU Virtual Machine with an H100 NVIDIA GPU and a Platform Managed Key (PMK) using manual instructions.
+The following steps help create a Confidential GPU Virtual Machine with an H100 NVIDIA GPU and a Platform Managed Key (PMK) using manual instructions. This entails 2 parts: provisioning the CGPU VM and then preparing the guest environment.
 
 -----------------------------------------------
 
 ## Steps
 
-- [Check-Requirements](#Check-Requirements)
-- [Create-CGPU-VM](#Create-CGPU-VM)
-- [Upload-Package](#Upload-Package)
-- [Run-Onboarding-Package-Steps](#Run-Onboarding-Package-Steps)
-- [Validation](#Validation)
+- [Check Requirements](#Check-Requirements)
+- [Create CGPU VM](#Create-CGPU-VM)
+  - [Option 1: Portal](#Option-1:-Portal)
+  - [Option 2: Azure CLI](#Option-2:-Azure-CLI)
+  - [Option 3: ARM Template](#Option-3:-ARM-Template)
+- [CGPU Environment Setup](#CGPU-Environment-Setup)
+  - [Upload Package](#Upload-Package)
+  - [Run Onboarding Package Steps](#Run-Onboarding-Package-Steps)
+  - [Validation](#Validation)
+  - [Workload Running](#Workload-Running)
 
 -------------------------------------------
 
@@ -28,6 +33,20 @@ Please make sure you have these requirements before performing the following ste
 -------------------------------------------
 
 ## Create-CGPU-VM
+There are multiple ways you can manually provision a CGPU VM. We have instructions to deploy one using the portal, using the Azure command line interface, and using an ARM template.
+
+### Option 1: Portal
+There is general documentation to create VMs through the portal found [here](https://learn.microsoft.com/en-us/azure/virtual-machines/windows/quick-create-portal). In order to deploy a CGPU VM please select the following configurations under the Instance Details:
+```
+Region: must be eastus2 or west europe
+Security Type: Confidential virtual machines
+Image: Ubuntu server, must support Confidential virtual machines
+Size: Standard_NCC40ads_H100_v5
+```
+
+An example is shown below: ![Portal VM Creation Instance Details](image.png)
+
+### Option 2: Azure CLI
 
 1. Log in to your azure account and ensure you are under the right subscription that has quota for this VM:
 ```
@@ -66,9 +85,15 @@ az vm create `
 --verbose
 ```
 
+### Option 3: ARM Template
+
+
 ----------------------------------------------------
 
-## Upload-Package
+## CGPU Environment Setup
+Once your CGPU VM has been successfully deployed, there are several steps to configure the guest environment. These involve uploading our onboarding package, running the scripts within, validate the state of your VM, and optionally run a sample workload.
+
+### Upload-Package
 
 1. Once your virtual machine is created, manually upload the cgpu-onboarding-package that you downloaded from the release:
 - $privatekeypath = the path to your local private key 
@@ -88,7 +113,7 @@ ssh -i ${privatekeypath} $adminusername@$vmip
 tar -zxvf cgpu-onboarding-package.tar.gz
 ```
 
-## Run-Onboarding-Package-Steps
+### Run-Onboarding-Package-Steps
 1. Once the package has been extracted, enter the folder and run step 0 to prepare the kernel
 ```
 cd cgpu-onboarding-package
@@ -115,7 +140,7 @@ sudo bash step-2-attestation.sh
 sudo bash step-3-install-gpu-tools.sh
 ```
 
-## Validation
+### Validation
 In order to confirm that all the steps were performed successfully and to ensure that your CGPU VM is in the proper state, you can use the following commands:
 
 1. Check whether secureboot is enabled:
@@ -136,7 +161,7 @@ nvidia-smi conf-compute -e
 ```
 You should see: "CC Environment: PRODUCTION"
 
-## Workload-Running
+### Workload-Running
 Once you have finished the validation, you can execute the following commands to try a sample workload:
 
 ```

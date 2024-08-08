@@ -1,12 +1,10 @@
 # Frequently Asked Questions
 
-## Q: Why is the kernel version locked?
-
-Kernel version 6.2.0.1018 is the only working kernel with driver version 535.129.03. The latest Nvidia driver signed by Canonical does not have a signed RIM (Reference Integrity Manifest), which would case the GPU attestation to fail.
+Below are a list of frequently asked questions and answers. If you are using an older release version and your question is not listed below, please try checking the [Legacy FAQ](https://github.com/Azure/az-cgpu-onboarding/blob/main/Legacy-FAQ.md) page.
 
 ## Q: Why does the `dmesg` not display `AMD SEV-SNP`?
 
-This does not mean SEV-SNP is not enabled, this is just a characteristic of CVMs which don't provide this interface. The firmware-generated SNP report is stored elsewhere.
+A: This does not mean SEV-SNP is not enabled, this is just a characteristic of CVMs which don't provide this interface. The firmware-generated SNP report is stored elsewhere.
 
 ## Q: How can I capture an image of my VM and share it?
 
