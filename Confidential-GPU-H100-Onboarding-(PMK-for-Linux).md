@@ -21,7 +21,7 @@ This page is using platform managed keys. More information about platform manage
 - [Azure Tenant ID](https://learn.microsoft.com/en-us/azure/active-directory/fundamentals/active-directory-how-to-find-tenant#find-tenant-id-with-powershell)
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
   - Note: minimum version 2.42.0 is required, run `az --version` to check your version and run `az upgrade` to install the latest version if your version is older
-- Download [cgpu-h100-auto-onboarding-linux.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V3.0.6/cgpu-h100-auto-onboarding-linux.tar.gz) from [Azure-Confidential-Computing-CGPUPrivatePreview-V3.0.6](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/tag/V3.0.6)
+- Download [cgpu-h100-auto-onboarding-linux.tar.gz](https://github.com/Azure/az-cgpu-onboarding/releases/download/V3.0.7/cgpu-h100-auto-onboarding-linux.tar.gz) from [az-cgpu-onboarding-V3.0.7](https://github.com/Azure/az-cgpu-onboarding/releases/tag/V3.0.7)
 
 ----------------------------------------------------
 
@@ -41,7 +41,7 @@ E:\cgpu\.ssh>ssh-keygen -t rsa -b 4096 -C <your email here>
 2. Create VM using powershell script
 - This will create a Standard_NCC40ads_H100_v5 Confidential VM with a Platform Managed Key (PMK) with secure boot enabled in your specified resource group. If the resource group doesn't exist, it will create it with the specified name under the target subscription.
 
-- Decompress downloaded [cgpu-h100-auto-onboarding-linux.tar.gz](https://github.com/Azure-Confidential-Computing/PrivatePreview/releases/download/V3.0.6/cgpu-h100-auto-onboarding-linux.tar.gz) and enter the folder through your bash window.
+- Decompress downloaded [cgpu-h100-auto-onboarding-linux.tar.gz](https://github.com/Azure/az-cgpu-onboarding/releases/download/V3.0.7/cgpu-h100-auto-onboarding-linux.tar.gz) and enter the folder through your bash window.
 ```
 cd cgpu-h100-auto-onboarding-linux
 ```
@@ -99,7 +99,7 @@ sudo docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=6710886
 ******************************************************************************************
 Total VM to onboard: 1, total Success: 1.
 Detailed logs can be found at: .\logs\01-12-2024_14-42-44
-Transcript stopped, output file is D:\repo\PrivatePreview\drops\cgpu-h100-onboarding\logs\01-12-2024_14-42-44\current-operation.log
+Transcript stopped, output file is D:\repo\az-cgpu-onboarding\drops\cgpu-h100-onboarding\logs\01-12-2024_14-42-44\current-operation.log
 
 ------------------------------------------------------------------------------------------
 ```
