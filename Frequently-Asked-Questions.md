@@ -10,7 +10,7 @@ This does not mean SEV-SNP is not enabled, this is just a characteristic of CVMs
 
 ## Q: How can I capture an image of my VM and share it?
 
-A: Please refer to this page that contains detailed information on different VMI scenarios and which options are supported: [VMI Sharing Instructions](VMI-Sharing-Instrcutions.md)
+A: Please refer to this page that contains detailed information on different VMI scenarios and which options are supported: [VMI Sharing Instructions](https://github.com/Azure/az-cgpu-onboarding/blob/main/Frequently-Asked-Questions.md)
 
 ## Q: How to update existing Nvidia driver from r535 (535.129.03 from release-3.0.2) to r550 (550.54.15 from releases-3.0.3 and onwards)?
 
