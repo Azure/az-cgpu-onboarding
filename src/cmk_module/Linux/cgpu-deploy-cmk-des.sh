@@ -143,7 +143,7 @@ DEPLOY-CMK-DES() {
       echo "---------------------------------- Resource group [$resourceGroup] already exists ----------------------------------"
    fi
 
-   az keyvault create --name $keyVault --resource-group $resourceGroup --location $region --sku Premium --enable-purge-protection
+   az keyvault create --name $keyVault --resource-group $resourceGroup --location $region --sku Premium --enable-purge-protection --enable-rbac-authorization false
    echo "---------------------------------- KeyVault [$keyVault] created ----------------------------------"
 
    cvmAgent=$(az ad sp show --id $cvmAgentId | jq -r '.id')
