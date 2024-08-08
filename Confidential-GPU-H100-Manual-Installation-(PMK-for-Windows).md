@@ -8,9 +8,9 @@ The following steps help create a Confidential GPU Virtual Machine with an H100 
 
 - [Check Requirements](#Check-Requirements)
 - [Create CGPU VM](#Create-CGPU-VM)
-  - [Option 1: Portal](#Option-1:-Portal)
-  - [Option 2: Azure CLI](#Option-2:-Azure-CLI)
-  - [Option 3: ARM Template](#Option-3:-ARM-Template)
+  - [Option 1: Portal](#option-1-portal)
+  - [Option 2: Azure CLI](#option-2-Azure-CLI)
+  - [Option 3: ARM Template](#option-3-ARM-Template)
 - [CGPU Environment Setup](#CGPU-Environment-Setup)
   - [Upload Package](#Upload-Package)
   - [Run Onboarding Package Steps](#Run-Onboarding-Package-Steps)
