@@ -18,7 +18,7 @@ Once the image definition and version have been created, follow the instructions
 
 
 # Sharing to other subscriptions
-Option 1: share an unencrypted image using a SIG
+Option 1: share an unencrypted image using the shared image gallery (SIG) direct share feature
 - Must set security type to `ConfidentialVMSupported`
 
 Option 2: share an encrypted image using Azure Storage
