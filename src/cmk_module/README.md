@@ -2,6 +2,8 @@
 
 - Deploy CMK DES first if you need a CMK VM
 - You can use our deployDES.json and skr-policy.json, or define your own
+- You need to be subscription contirbutor role to create a new CMK Des in your subscription
+- (optional) Please update azcli (2.63.0) if possible
 
 ## On Linux Bash shell
 
