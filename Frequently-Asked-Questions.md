@@ -1,6 +1,6 @@
 # Frequently Asked Questions
 
-Below are a list of frequently asked questions and answers. If you are using an older release version and your question is not listed below, please try checking the [Legacy FAQ](Legacy-FAQ.md) page.
+Below are a list of frequently asked questions and answers.
 
 
 ## Q: How can I capture an image of my VM and share it?
@@ -35,3 +35,6 @@ CPUD leaf 0x4000000C’s EAX.bit0 is 1, and EBX.bit 0~3 is 2.
 (refer to https://elixir.bootlin.com/linux/latest/source/arch/x86/kernel/cpu/mshyperv.c#L445)
 
 NVIDIA is working on implementing SEV-SNP checks for Hyper-V and are planning on will releasing it with the TRD5 release in September 2024.
+
+## Q: My question is not listed above, where can I find the answer?
+If you are using an older release version and your question is not listed below, please try checking the [Legacy FAQ](Legacy-FAQ.md) page.
