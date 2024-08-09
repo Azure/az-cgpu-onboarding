@@ -362,7 +362,6 @@
         }
       },
       {
-        "condition": "[variables('hasTipSession')]",
         "type": "Microsoft.Compute/availabilitySets",
         "apiVersion": "2020-06-01",
         "name": "[variables('availabilitySetName')]",
@@ -386,7 +385,7 @@
         "location": "[resourceGroup().location]",
         "dependsOn": [
           "[concat('Microsoft.Network/networkInterfaces/', variables('networkInterfaceName'))]",
-          "[variables('availabilitySetName')]"
+          "[variables('availabilitySetName')]" // availabilitySet is conditionally deployed and will be automatically removed from dependency by ARM for non-tipsession cases
         ],
         "properties": {
           "hardwareProfile": {
@@ -423,7 +422,7 @@
             },
             "securityType" : "ConfidentialVM"
           },
-          "availabilitySet": "[if(variables('hasTipSession'), variables('availabilitySet'), json('null'))]",
+          "availabilitySet": "[variables('availabilitySet')]",
           "diagnosticsProfile": {
             "bootDiagnostics": {
               "enabled": "[variables('hasBootDiagnostics')]",

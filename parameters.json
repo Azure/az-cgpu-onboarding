@@ -2,8 +2,50 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "deploymentPrefix": {
-      "value": "cgpuvm"
+    "clusterName": {
+      "value": "AMS22PrdGPC13"
+    },
+    "vmSize": {
+      "value": "Standard_NCC40ads_H100_v5"
+    },
+    "adminUsername": {
+      "value": "<your admin username>"
+    },
+    "adminPasswordOrKey": {
+      "value": "<your password or SSH key>"
+    },
+    "vmName": {
+      "value": "<your VM name>" 
+    },
+    "osImageName": {
+      "value": "Ubuntu 22.04 LTS Gen 2"
+    },
+    "vnetNewOrExisting": {
+      "value": "new"
+    },
+    "subnetName": {
+      "value": "subnet-1"
+    },
+    "addressPrefix": {
+      "value": "10.1.16.0/24"
+    },
+    "subnetPrefix": {
+      "value": "10.1.16.0/24"
+    },
+    "osDiskType": {
+      "value": "StandardSSD_LRS"
+    },
+    "authenticationType": {
+      "value": "sshPublicKey"
+    },
+    "bootDiagnostics": {
+      "value": "false"
+    },
+    "securityType": {
+      "value": "DiskWithVMGuestState"
+    },
+    "secureBootEnabled": {
+      "value": "true"
     }
   }
 }
