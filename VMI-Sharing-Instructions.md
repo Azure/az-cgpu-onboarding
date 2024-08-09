@@ -1,7 +1,7 @@
 # Overview
 Here is an overview of the different options to capture and share a CGPU VM image. In general, creating a SIG is simpler than storing things in a container since those are shared on a subscription/tenant-basis. 
 
-Please note that the Azure Compute Gallery's direct share feature is still in a preview so is subject to their preview terms and conditions. To learn more about it, take a look at their documentation [here](https://learn.microsoft.com/en-us/azure/virtual-machines/share-gallery-direct?tabs=portaldirect).
+Please note that the Azure Compute Gallery's direct share feature is still in a preview so it is subject to their preview terms and conditions. Since it is still in preview, there are several onboarding steps required in order to use this feature. To learn more about it, take a look at their documentation and follow their instructions [here](https://learn.microsoft.com/en-us/azure/virtual-machines/share-gallery-direct?tabs=portaldirect).
 
 # Sharing within a subscription
 Option 1: Export image and VMGS file using a shared image gallery (SIG)

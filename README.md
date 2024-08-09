@@ -57,8 +57,6 @@ If you prefer to go through the steps manually, you can follow the following ins
 
 ## Future Capabilities  
 
-- Official support for Azure Portal and Native Azure CLI
-- Support for NVIDIA H100 PCIe driver in Linux Kernel
 - NVIDIA certified VMI-based provisioning with the GPU driver, CUDA, ML tools, and a customized local verifier already pre-installed
 - In-guest attestation evidence appraised by Microsoft Azure Attestation Service (MAA)
 
@@ -71,5 +69,4 @@ This public preview is currently availability in the East US 2 and West Europe r
 For any questions, please check the FAQ page here: [Frequently Asked Questions](Frequently-Asked-Questions.md)
 
 Support will be directly with the product team via the email Confidential GPU Preview: cgpupreview@microsoft.com   
-The service will be taken down around 1-2 times per month for security and performance updates.
 Thanks for your cooperation and help!
