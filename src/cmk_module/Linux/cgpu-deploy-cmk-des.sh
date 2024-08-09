@@ -125,7 +125,8 @@ DEPLOY-CMK-DES() {
    echo "DES ARM Template: $desArmTemplate"
 
    # Login to Azure
-   az login --tenant $tenantId
+   az account clear
+   az login --tenant $tenantId > /dev/null
    az account set --subscription $subscriptionId
    echo "---------------------------------- Login to [$subscriptionId] ----------------------------------"
 

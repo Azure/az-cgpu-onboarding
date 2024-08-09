@@ -99,6 +99,7 @@ function DEPLOY-CMK-DES{
     $desArmTemplate="deployDES.json"
   )
 
+  az account clear
   az login --tenant $tenantId
   az account set --subscription $subscriptionid
   Write-Host "---------------------------------- Login to [$($subscriptionId)] ----------------------------------"
