@@ -51,7 +51,7 @@ We support the options to create confidential GPUs with Windows and Linux hosts,
 - [Onboarding Docs (Linux host with CMK)](Confidential-GPU-H100-Onboarding-(CMK-for-Linux).md)
 
 
-If you prefer to go through the steps manually, you can follow the following instructions:
+If you prefer to go through the steps manually, you can follow these instructions:
 
 - [Manual Provisioning](https://github.com/Azure/az-cgpu-onboarding/blob/main/Confidential-GPU-H100-Manual-Installation-(PMK-for-Windows).md)
 
