@@ -5,7 +5,7 @@ Below are a list of frequently asked questions and answers. If you are using an 
 
 ## Q: How can I capture an image of my VM and share it?
 
-A: Please refer to this page that contains detailed information on different VMI scenarios and which options are supported: [VMI Sharing Instructions](https://github.com/Azure/az-cgpu-onboarding/blob/main/Frequently-Asked-Questions.md)
+A: Please refer to this page that contains detailed information on different VMI scenarios and which options are supported: [VMI Sharing Instructions](https://github.com/Azure/az-cgpu-onboarding/blob/main/VMI-Sharing-Instructions.md)
 
 
 ## Q: How can I use OpenSSL `(>=3.1.0)` for Confidential H100 GPU bandwidth improvement?
