@@ -100,7 +100,7 @@ function DEPLOY-CMK-DES{
   )
 
   az account clear
-  az login --tenant $tenantId
+  az login --tenant $tenantId 2>&1 | Out-Null
   az account set --subscription $subscriptionid
   Write-Host "---------------------------------- Login to [$($subscriptionId)] ----------------------------------"
 
