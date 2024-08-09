@@ -86,7 +86,22 @@ az vm create `
 ```
 
 ### Option 3: ARM Template
+An Azure Resource Manager (ARM) template is a JSON file that defines the resources and specifications needed to deploy a VM. To deploy a CGPU VM using an ARM template, use the following command with your own specifications and parameters:
 
+```
+az group create --resource-group $<your resource group> --location <"eastus2" or "westeurope">
+az deployment group create -g $rg -f "<your ARM template.json>" -p "<your parameter file.json>" `
+vmCount=1 `
+deploymentPrefix=<your deployment prefix> `
+virtualMachineSize="NCC24ads_A100_v4" `
+adminUsername=<your admin username> `
+adminPublicKey=<your SSH public key> `
+platform=Linux `
+linuxDistro=Ubuntu `
+enableAN=$false `
+installGpuDrivers=$false `
+enableTVM=$true
+```
 
 ----------------------------------------------------
 
