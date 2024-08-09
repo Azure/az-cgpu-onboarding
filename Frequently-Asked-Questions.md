@@ -1,11 +1,11 @@
 # Frequently Asked Questions
 
-Below are a list of frequently asked questions and answers. If you are using an older release version and your question is not listed below, please try checking the [Legacy FAQ](https://github.com/Azure/az-cgpu-onboarding/blob/main/Legacy-FAQ.md) page.
+Below are a list of frequently asked questions and answers. If you are using an older release version and your question is not listed below, please try checking the [Legacy FAQ](Legacy-FAQ.md) page.
 
 
 ## Q: How can I capture an image of my VM and share it?
 
-A: Please refer to this page that contains detailed information on different VMI scenarios and which options are supported: [VMI Sharing Instructions](https://github.com/Azure/az-cgpu-onboarding/blob/main/VMI-Sharing-Instructions.md)
+A: Please refer to this page that contains detailed information on different VMI scenarios and which options are supported: [VMI Sharing Instructions](VMI-Sharing-Instructions.md)
 
 
 ## Q: How can I use OpenSSL `(>=3.1.0)` for Confidential H100 GPU bandwidth improvement?
@@ -18,12 +18,12 @@ Run the following command to install it:
 ```
 sudo bash utilities-install-openssl.sh
 ```
-For more specifics on H100 GPU bandwidth using the different versions of SSL, refer to the [OpenSSL-Details](https://github.com/Azure/az-cgpu-onboarding/blob/main/OpenSSL-Details.md) page.
+For more specifics on H100 GPU bandwidth using the different versions of SSL, refer to the [OpenSSL-Details](OpenSSL-Details.md) page.
 
 
 ## Q: How can I deploy my CGPU VM manually if I don't want to run the auto-onboarding scripts?
 
-A: We have detailed out the options to deploy a CGPU VM manually [here](https://github.com/Azure/az-cgpu-onboarding/blob/main/Confidential-GPU-H100-Manual-Installation-(PMK-for-Windows).md). It also contains the following steps needed to fully set up the CGPU environment in order to run a sample workload.
+A: We have detailed out the options to deploy a CGPU VM manually [here](Confidential-GPU-H100-Manual-Installation-(PMK-for-Windows).md). It also contains the following steps needed to fully set up the CGPU environment in order to run a sample workload.
 
 
 ## Q: Why does the `dmesg` not display `AMD SEV-SNP`?
