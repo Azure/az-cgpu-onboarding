@@ -106,7 +106,7 @@ enableTVM=$true
 ----------------------------------------------------
 
 ## CGPU Environment Setup
-Once your CGPU VM has been successfully deployed, there are several steps to configure the guest environment. These involve uploading our onboarding package, running the scripts within, validate the state of your VM, and optionally run a sample workload.
+Once your CGPU VM has been successfully deployed, there are several steps to configure the guest environment. These involve uploading our onboarding package, running the scripts within, validate the state of your VM, and optionally running a sample workload.
 
 ### Upload-Package
 
