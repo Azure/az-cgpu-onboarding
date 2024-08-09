@@ -2,237 +2,435 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "deploymentPrefix": {
-            "type": "string"
-        },
-        "virtualMachineSize": {
-            "type": "string",
-            "defaultValue": "Standard_NCC24ads_A100_v4",
-            "allowedValues": [
-                "Standard_NCC24ads_A100_v4"
-            ],
-            "metadata": {
-                "description": "VM size"
-            }
-        },
-        "adminUsername": {
-            "type": "string"
-        },
-        "adminPublicKey": {
-            "type": "securestring"
-        },
-        "addressPrefix": {
-            "type": "string",
-            "defaultValue": "10.0.0.0/24"
-        },
-        "subnetName": {
-            "type": "string",
-            "defaultValue": "subnet"
-        },
-        "subnetPrefix": {
-            "type": "string",
-            "defaultValue": "10.0.0.0/24"
-        },
-        "publicIpAddressType": {
-            "type": "string",
-            "defaultValue": "Dynamic"
-        },
-        "imagePublisher": {
-            "type": "string",
-            "defaultValue": "Canonical"
-        },
-        "imageOffer": {
-            "type": "string",
-            "defaultValue": "0001-com-ubuntu-server-focal"
-        },
-        "imageSku": {
-            "type": "string",
-            "defaultValue": "20_04-lts-gen2"
-        },
-        "imageVersion": {
-            "type": "string",
-            "defaultValue": "latest"
-        },
-        "OsDiskSize": {
-            "type": "int",
-            "defaultValue": 30,
-            "metadata": {
-                "description": "Custom OS Disk Size"
-            }
-        },
-        "enableAN": {
-            "type": "bool",
-            "defaultValue": false,
-            "metadata": {
-                "description": "Whether to enable Accelerated Networking"
-            }
-        },
-        "enableTVM": {
-            "type": "bool",
-            "defaultValue": false,
-            "metadata": {
-                "description": "Whether to enable TVM"
-            }
-        },
-        "enableSecureBoot": {
-            "type": "bool",
-            "defaultValue": true,
-            "metadata": {
-                "description": "Whether to enable Secure boot (requires TVM)"
-            }
-        },
-        "enableVTPM": {
-            "type": "bool",
-            "defaultValue": true,
-            "metadata": {
-                "description": "Whether to enable VTPM (requires TVM)"
-            }
+      "vmName": {
+        "type": "string",
+        "metadata": {
+          "description": "Name of the VM."
         }
+      },
+      "vmSize": {
+        "type": "string",
+        "defaultValue": "Standard_NCC40ads_H100_v5",
+        "allowedValues": [
+          "Standard_DC2as_v5",
+          "Standard_DC4as_v5",
+          "Standard_DC8as_v5",
+          "Standard_DC16as_v5",
+          "Standard_DC32as_v5",
+          "Standard_DC48as_v5",
+          "Standard_DC64as_v5",
+          "Standard_DC96as_v5",
+          "Standard_DC2ads_v5",
+          "Standard_DC4ads_v5",
+          "Standard_DC8ads_v5",
+          "Standard_DC16ads_v5",
+          "Standard_DC32ads_v5",
+          "Standard_DC48ads_v5",
+          "Standard_DC64ads_v5",
+          "Standard_DC96ads_v5",
+          "Standard_EC2as_v5",
+          "Standard_EC4as_v5",
+          "Standard_EC8as_v5",
+          "Standard_EC16as_v5",
+          "Standard_EC20as_v5",
+          "Standard_EC32as_v5",
+          "Standard_EC48as_v5",
+          "Standard_EC64as_v5",
+          "Standard_EC96as_v5",
+          "Standard_EC96ias_v5",
+          "Standard_EC2ads_v5",
+          "Standard_EC4ads_v5",
+          "Standard_EC8ads_v5",
+          "Standard_EC16ads_v5",
+          "Standard_EC20ads_v5",
+          "Standard_EC32ads_v5",
+          "Standard_EC48ads_v5",
+          "Standard_EC64ads_v5",
+          "Standard_EC96ads_v5",
+          "Standard_EC96iads_v5",
+          "Standard_NCC40ads_H100_v5",
+          "Standard_NCC80ads_H100_v5"
+        ],
+        "metadata": {
+          "description": "Size of the VM."
+        }
+      },
+      "vnetNewOrExisting": {
+        "type": "string",
+        "defaultValue": "new",
+        "allowedValues": [
+          "new",
+          "existing"
+        ],
+        "metadata": {
+          "description": "Determines whether or not a new virtual network should be provisioned"
+        }
+      },
+      "virtualNetworkName": {
+        "type": "string",
+        "defaultValue": "(none)",
+        "metadata": {
+          "description": "Name of the existing VNET"
+        }
+      },
+      "virtualNetworkResourceGroup": {
+        "type": "string",
+        "defaultValue": "[resourceGroup().name]",
+        "metadata": {
+          "description": "Name of the existing VNET resource group"
+        }
+      },
+      "subnetName": {
+        "type": "string",
+        "defaultValue": "subnet-1",
+        "metadata": {
+          "description": "Name of the subnet in the virtual network you want to use"
+        }
+      },
+      "addressPrefix": {
+        "type": "string",
+        "defaultValue": "10.1.16.0/24",
+        "metadata": {
+          "description": "VNET address space"
+        }
+      },
+      "subnetPrefix": {
+        "type": "string",
+        "defaultValue": "10.1.16.0/24",
+        "metadata": {
+          "description": "Sets the subnet of the VM."
+        }
+      },
+      "osImageName": {
+        "type": "string",
+        "defaultValue": "Windows Server 2022 Gen 2",
+        "allowedValues": [
+          "Windows Server 2022 Gen 2",
+          "Windows Server 2019 Gen 2",
+          "Ubuntu 22.04 LTS Gen 2",
+          "Ubuntu 20.04 LTS Gen 2",
+          "Ubuntu 18.04 LTS Gen 2"
+        ],
+        "metadata": {
+          "description": "OS Image for the Virtual Machine"
+        }
+      },
+      "osDiskType": {
+        "type": "string",
+        "defaultValue": "StandardSSD_LRS",
+        "allowedValues": [
+          "Premium_LRS",
+          "Standard_LRS",
+          "StandardSSD_LRS"
+        ],
+        "metadata": {
+          "description": "OS disk type of the VM."
+        }
+      },
+      "diskEncryptionSetId": {
+        "type": "string",
+        "defaultValue": "(none)",
+        "metadata": {
+          "description": "Disk encryption set Id for CVM provisioning with CMK. If is (none), CVM provisioning with PMK"
+        }
+      },
+      "adminUsername": {
+        "type": "string",
+        "metadata": {
+          "description": "Admin user name of the VM."
+        }
+      },
+      "authenticationType": {
+        "type": "string",
+        "defaultValue": "sshPublicKey",
+        "allowedValues": [
+          "password",
+          "sshPublicKey"
+        ],
+        "metadata": {
+          "description": "Type of authentication to use on the Virtual Machine."
+        }
+      },
+      "adminPasswordOrKey": {
+        "type": "securestring",
+        "metadata": {
+          "description": "Password or ssh key for the Virtual Machine."
+        }
+      },
+      "bootDiagnostics": {
+        "type": "string",
+        "defaultValue": "false",
+        "allowedValues": [
+          "true",
+          "false"
+        ],
+        "metadata": {
+          "description": "Boot diagnostics setting of the VM."
+        }
+      },
+      "bootDiagnosticsStorageUri": {
+        "type": "string",
+        "defaultValue": "(none)",
+        "metadata": {
+          "description": "Storage account URL for CVM boot diagnostic logs."
+        }
+      },
+      "securityType": {
+        "type": "string",
+        "defaultValue": "DiskWithVMGuestState",
+        "allowedValues": [
+          "VMGuestStateOnly",
+          "DiskWithVMGuestState"
+        ],
+        "metadata": {
+            "description": "VM security type."
+        }
+      },
+      "secureBootEnabled": {
+        "type": "string",
+        "defaultValue": "true",
+        "allowedValues": [
+          "true",
+          "false"
+        ],
+        "metadata": {
+          "description": "Secure boot setting of the VM."
+        }
+      },
+      "clusterName": {
+        "type": "string",
+        "defaultValue": "(none)",
+        "metadata": {
+          "description": "Cluster name."
+        }
+      }
     },
+  
     "variables": {
-        "virtualMachineNamePrefix": "[concat(parameters('deploymentPrefix'), '-vm')]",
-        "networkInterfaceNamePrefix": "[concat(parameters('deploymentPrefix'), '-nic')]",
-        "publicIpAddressNamePrefix": "[concat(parameters('deploymentPrefix'), '-ip')]",
-        "virtualNetworkName": "[concat(parameters('deploymentPrefix'), '-vnet')]",
-        "networkSecurityGroupName": "[concat(parameters('deploymentPrefix'), '-nsg')]",
-        "vnetId": "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
-        "subnetRef": "[concat(variables('vnetId'), '/subnets/', parameters('subnetName'))]",
-        "linuxConfiguration": {
-            "disablePasswordAuthentication": true,
-            "ssh": {
-                "publicKeys": [
-                    {
-                        "path": "[concat('/home/', parameters('adminUsername'), '/.ssh/authorized_keys')]",
-                        "keyData": "[parameters('adminPublicKey')]"
-                    }
-                ]
+      "imageList": {
+        "Windows Server 2022 Gen 2": {
+          "publisher": "microsoftwindowsserver",
+          "offer": "windowsserver",
+          "sku":  "2022-datacenter-smalldisk-g2",
+          "version": "latest"
+        },
+        "Windows Server 2019 Gen 2": {
+          "publisher": "microsoftwindowsserver",
+          "offer": "windowsserver",
+          "sku": "2019-datacenter-smalldisk-g2",
+          "version": "latest"
+        },
+        "Ubuntu 22.04 LTS Gen 2": {
+          "publisher": "Canonical",
+          "offer": "0001-com-ubuntu-confidential-vm-jammy",
+          "sku": "22_04-lts-cvm",
+          "version": "22.04.202308220"
+        },
+        "Ubuntu 20.04 LTS Gen 2": {
+          "publisher": "Canonical",
+          "offer": "0001-com-ubuntu-confidential-vm-focal",
+          "sku": "20_04-lts-cvm",
+          "version": "latest"
+        },
+        "Ubuntu 18.04 LTS Gen 2": {
+          "publisher": "Canonical",
+          "offer": "0001-com-ubuntu-confidential-vm-experimental",
+          "sku": "18_04-gen2",
+          "version": "latest"
+        }
+      },
+      "imageReference": "[variables('imageList')[parameters('osImageName')]]",
+      "networkInterfaceName": "[concat(parameters('vmName'), '-nic')]",
+      "publicIPAddressName": "[concat(parameters('vmName'), '-ip')]",
+      "networkSecurityGroupName": "[concat(parameters('vmName'), '-nsg')]",
+      "networkSecurityGroupId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]",
+      "virtualNetworkName": "[if(equals(parameters('virtualNetworkName'), '(none)'), concat(parameters('vmName'), '-vnet'), parameters('virtualNetworkName'))]",
+      "virtualNetworkId": "[resourceId(resourceGroup().name, 'Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
+      "subnetRefExisting": "[resourceId(parameters('virtualNetworkResourceGroup'), 'Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'),  parameters('subnetName'))]",
+      "subnetName": "[concat(parameters('vmName'), '-sub')]",
+      "subnetRefNew": "[concat(variables('virtualNetworkId'), '/subnets/', variables('subnetName'))]",
+      "subnetRef": "[if(equals(parameters('vnetNewOrExisting'), 'new'), variables('subnetRefNew'), variables('subnetRefExisting'))]",
+      "isWindows": "[contains(parameters('osImageName'), 'Windows')]",
+      "linuxConfiguration": {
+        "disablePasswordAuthentication": "true",
+        "ssh": {
+          "publicKeys": [
+            {
+              "keyData": "[parameters('adminPasswordOrKey')]",
+              "path": "[concat('/home/', parameters('adminUsername'), '/.ssh/authorized_keys')]"
             }
-        },
-        "TVMSecurityProfile": {
-            "uefiSettings": {
-                "secureBootEnabled": "[parameters('enableSecureBoot')]",
-                "vTPMEnabled": "[parameters('enableVTPM')]"
-            },
-            "securityType": "TrustedLaunch"
-        },
-        "VMSecurityProfile": "[if(parameters('enableTVM'), variables('TVMSecurityProfile'), '')]"
+          ]
+        }
+      },
+      "windowsConfiguration": {
+        "enableAutomaticUpdates": "true",
+        "provisionVmAgent": "true"
+      },
+      "isPMK": "[equals(parameters('diskEncryptionSetId'), '(none)')]",
+      "PMKOSDiskSecurityProfile": {
+        "securityEncryptionType" : "[parameters('securityType')]"
+      },
+      "CMKOSDiskSecurityProfile": {
+        "securityEncryptionType" : "[parameters('securityType')]",
+        "diskEncryptionSet" : {
+          "id" : "[parameters('diskEncryptionSetId')]"
+        }
+      },
+      "hasBootDiagnostics": "[equals(parameters('bootDiagnostics'), 'true')]",
+      "availabilitySetName": "[concat(parameters('vmName'), '-availSet')]",
+      "availabilitySet": {
+        "id": "[resourceId('Microsoft.Compute/availabilitySets', variables('availabilitySetName'))]"
+      }
     },
+  
     "resources": [
-        {
-            "name": "[variables('virtualMachineNamePrefix')]",
-            "type": "Microsoft.Compute/virtualMachines",
-            "apiVersion": "[providers('Microsoft.Compute','virtualMachines').apiVersions[0]]",
-            "location": "[resourceGroup().location]",
-            "dependsOn": [
-                "[concat('Microsoft.Network/networkInterfaces/', variables('networkInterfaceNamePrefix'))]"
-            ],
-            "properties": {
-                "osProfile": {
-                    "computerName": "[variables('virtualMachineNamePrefix')]",
-                    "adminUsername": "[parameters('adminUsername')]",
-                    "linuxConfiguration": "[variables('linuxConfiguration')]"
-                },
-                "hardwareProfile": {
-                    "vmSize": "[parameters('virtualMachineSize')]"
-                },
-                "storageProfile": {
-                    "imageReference": {
-                        "publisher": "[parameters('imagePublisher')]",
-                        "offer": "[parameters('imageOffer')]",
-                        "sku": "[parameters('imageSku')]",
-                        "version": "[parameters('imageVersion')]"
-                    },
-                    "osDisk": {
-                        "createOption": "FromImage",
-                        "diskSizeGB": "[int(parameters('OsDiskSize'))]"
-                    },
-                    "dataDisks": []
-                },
-                "networkProfile": {
-                    "networkInterfaces": [
-                        {
-                            "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceNamePrefix'))]"
-                        }
-                    ]
-                },
-                "securityProfile": "[variables('VMSecurityProfile')]"
-            }
+      {
+        "type": "Microsoft.Network/publicIPAddresses",
+        "apiVersion": "2019-02-01",
+        "name": "[variables('publicIPAddressName')]",
+        "location": "[resourceGroup().location]",
+        "sku": {
+          "name": "Basic"
         },
-        {
-            "name": "[variables('virtualNetworkName')]",
-            "type": "Microsoft.Network/virtualNetworks",
-            "apiVersion": "2016-12-01",
-            "location": "[resourceGroup().location]",
-            "properties": {
-                "addressSpace": {
-                    "addressPrefixes": [
-                        "[parameters('addressPrefix')]"
-                    ]
-                },
-                "subnets": [
-                    {
-                        "name": "[parameters('subnetName')]",
-                        "properties": {
-                            "addressPrefix": "[parameters('subnetPrefix')]"
-                        }
-                    }
-                ]
-            }
-        },
-        {
-            "name": "[variables('networkInterfaceNamePrefix')]",
-            "type": "Microsoft.Network/networkInterfaces",
-            "apiVersion": "2016-09-01",
-            "location": "[resourceGroup().location]",
-            "dependsOn": [
-                "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
-                "[concat('Microsoft.Network/publicIpAddresses/', variables('publicIpAddressNamePrefix'))]",
-                "[concat('Microsoft.Network/networkSecurityGroups/', variables('networkSecurityGroupName'))]"
-            ],
-            "properties": {
-                "ipConfigurations": [
-                    {
-                        "name": "ipConfig",
-                        "properties": {
-                            "subnet": {
-                                "id": "[variables('subnetRef')]"
-                            },
-                            "privateIPAllocationMethod": "Dynamic",
-                            "publicIpAddress": {
-                                "id": "[resourceId('Microsoft.Network/publicIpAddresses', variables('publicIpAddressNamePrefix'))]"
-                            }
-                        }
-                    }
-                ],
-                "enableAcceleratedNetworking": "[parameters('enableAN')]",
+        "properties": {
+          "publicIpAllocationMethod": "Dynamic"
+        }
+      },
+      {
+        "type": "Microsoft.Network/networkSecurityGroups",
+        "apiVersion": "2019-02-01",
+        "name": "[variables('networkSecurityGroupName')]",
+        "location": "[resourceGroup().location]",
+        "properties": {}
+      },
+      {
+        "condition": "[equals(parameters('vnetNewOrExisting'), 'new')]",
+        "type": "Microsoft.Network/virtualNetworks",
+        "apiVersion": "2019-09-01",
+        "name": "[variables('virtualNetworkName')]",
+        "location": "[resourceGroup().location]",
+        "dependsOn": [
+          "[variables('networkSecurityGroupId')]"
+        ],
+        "properties": {
+          "addressSpace": {
+            "addressPrefixes": [
+              "[parameters('addressPrefix')]"
+            ]
+          },
+          "subnets": [
+            {
+              "name": "[variables('subnetName')]",
+              "properties": {
+                "addressPrefix": "[parameters('subnetPrefix')]",
                 "networkSecurityGroup": {
-                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]"
+                  "id": "[variables('networkSecurityGroupId')]"
                 }
+              }
             }
-        },
-        {
-            "name": "[variables('publicIpAddressNamePrefix')]",
-            "type": "Microsoft.Network/publicIpAddresses",
-            "apiVersion": "2017-08-01",
-            "location": "[resourceGroup().location]",
-            "properties": {
-                "publicIpAllocationMethod": "[parameters('publicIpAddressType')]"
-            }
-        },
-        {
-            "name": "[variables('networkSecurityGroupName')]",
-            "type": "Microsoft.Network/networkSecurityGroups",
-            "apiVersion": "2016-09-01",
-            "location": "[resourceGroup().location]",
-            "properties": {
-                "securityRules": []
-            }
+          ]
         }
-    ],
-    "outputs": {
-        "adminUsername": {
-            "type": "string",
-            "value": "[parameters('adminUsername')]"
+      },
+      {
+        "type": "Microsoft.Network/networkInterfaces",
+        "apiVersion": "2019-07-01",
+        "name": "[variables('networkInterfaceName')]",
+        "location": "[resourceGroup().location]",
+        "dependsOn": [
+          "[variables('networkSecurityGroupId')]",
+          "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
+          "[concat('Microsoft.Network/publicIpAddresses/', variables('publicIpAddressName'))]"
+        ],
+        "properties": {
+          "ipConfigurations": [
+            {
+              "name": "ipConfigNode",
+              "properties": {
+                "privateIPAllocationMethod": "Dynamic",
+                "subnet": {
+                  "id": "[variables('subnetRef')]"
+                },
+                "publicIpAddress": {
+                  "id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]"
+                }
+              }
+            }
+          ],
+          "networkSecurityGroup": {
+            "id": "[variables('networkSecurityGroupId')]"
+          }
         }
-    }
-}
+      },
+      {
+        "condition": "[variables('hasTipSession')]",
+        "type": "Microsoft.Compute/availabilitySets",
+        "apiVersion": "2020-06-01",
+        "name": "[variables('availabilitySetName')]",
+        "location": "[resourceGroup().location]",
+        "properties": {
+          "platformUpdateDomainCount": "1",
+          "platformFaultDomainCount": "1",
+          "internalData": {
+            "pinnedFabricCluster": "[parameters('clusterName')]"
+          }
+        },
+        "tags": {},
+        "sku": {
+          "name": "aligned"
+        }
+      },
+      {
+        "type": "Microsoft.Compute/virtualMachines",
+        "apiVersion": "2021-07-01",
+        "name": "[parameters('vmName')]",
+        "location": "[resourceGroup().location]",
+        "dependsOn": [
+          "[concat('Microsoft.Network/networkInterfaces/', variables('networkInterfaceName'))]",
+          "[variables('availabilitySetName')]"
+        ],
+        "properties": {
+          "hardwareProfile": {
+            "vmSize": "[parameters('vmSize')]"
+          },
+          "storageProfile": {
+            "osDisk": {
+              "createOption": "fromImage",
+              "managedDisk": {
+                "storageAccountType": "[parameters('osDiskType')]",
+                "securityProfile": "[if(variables('isPMK'), variables('PMKOSDiskSecurityProfile'), variables('CMKOSDiskSecurityProfile'))]"
+              }
+            },
+            "imageReference": "[variables('imageReference')]"
+          },
+          "networkProfile": {
+            "networkInterfaces": [
+              {
+                "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName'))]"
+              }
+            ]
+          },
+          "osProfile": {
+            "computerName": "[parameters('vmName')]",
+            "adminUsername": "[parameters('adminUsername')]",
+            "adminPassword": "[parameters('adminPasswordOrKey')]",
+            "linuxConfiguration": "[if(equals(parameters('authenticationType'), 'password'), json('null'), variables('linuxConfiguration'))]",
+            "windowsConfiguration": "[if(variables('isWindows'), variables('windowsConfiguration'), json('null'))]"
+          },
+          "securityProfile": {
+            "uefiSettings" : {
+              "secureBootEnabled": "[parameters('secureBootEnabled')]",
+              "vTpmEnabled": "true"
+            },
+            "securityType" : "ConfidentialVM"
+          },
+          "availabilitySet": "[if(variables('hasTipSession'), variables('availabilitySet'), json('null'))]",
+          "diagnosticsProfile": {
+            "bootDiagnostics": {
+              "enabled": "[variables('hasBootDiagnostics')]",
+              "storageUri": "[if(variables('hasBootDiagnostics'), parameters('bootDiagnosticsStorageUri'), json('null'))]"
+            }
+          }
+        }
+      }
+    ]
+  }

@@ -3,7 +3,7 @@
 Below are a list of frequently asked questions and answers.
 
 
-## Q: How can I capture an image of my VM and share it?
+## Q: How can I capture an image of my CGPU VM and share it?
 
 A: Please refer to this page that contains detailed information on different VMI scenarios and which options are supported: [VMI Sharing Instructions](VMI-Sharing-Instructions.md)
 

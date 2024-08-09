@@ -5,9 +5,17 @@ Please note that the Azure Compute Gallery's direct share feature is still in a 
 
 # Sharing within a subscription
 Option 1: Export image and VMGS file using a shared image gallery (SIG)
+
+Once you have an image gallery, then create an image definition based off your CGPU VM. When creating the image definition, make sure to select the right security type for your usecase:
+
 - `ConfidentialVM` security type is required for images using Confidential disk encryption (`ConfidentialVMSupported` security type for encrypted images will fail)
 - `ConfidentialVMSupported` security type is supported for unencrypted images
 - Note: if the VM was created with an encrypted disk and customer-managed keys (CMK), `Confidential Disk Encryption` must be set to `True`
+
+Documentation on how to create an image definition and an image version can be found here: [Create an image definition and an image version](https://learn.microsoft.com/en-us/azure/virtual-machines/image-version?tabs=portal%2Ccli2).
+
+Once the image definition and version have been created, follow the instructions here on [Sharing Azure images](https://learn.microsoft.com/en-us/azure/virtual-machines/shared-image-galleries?tabs=vmsource%2Cazure-cli)
+
 
 # Sharing to other subscriptions
 Option 1: share an unencrypted image using a SIG
