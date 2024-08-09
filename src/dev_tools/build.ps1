@@ -11,13 +11,13 @@
 # 3: cgpu-h100-auto-onboarding-linux.tar.gz containing linux onboarding script with onboarding package
 
 # Set all locations and paths
-$DropFolder="$PSScriptRoot\..\..\drops"
-$PackageFolder="$PSScriptRoot\..\..\packages"
-$CgpuOnboardingPackageFolder="cgpu-onboarding-package"
-$cgpuOnboardingPackage="cgpu-onboarding-package.tar.gz"
-$H100Package="cgpu-h100-auto-onboarding-linux"
+$DropFolder = "$PSScriptRoot\..\..\drops"
+$PackageFolder = "$PSScriptRoot\..\..\packages"
+$CgpuOnboardingPackageFolder = "cgpu-onboarding-package"
+$cgpuOnboardingPackage = "cgpu-onboarding-package.tar.gz"
+$H100Package = "cgpu-h100-auto-onboarding-linux"
 $packageDestination = "${DropFolder}\${CgpuOnboardingPackageFolder}"
-$H100PackageDestination="${DropFolder}\${H100Package}"
+$H100PackageDestination = "${DropFolder}\${H100Package}"
 
 function Cleanup {
 	# Removes if there are any old packages before starting
@@ -68,9 +68,9 @@ function Make-Cgpu-Onboarding-Package {
 		"$DropFolder\local_gpu_verifier.tar"
 
 	# Ensures each file will be in correct UNIX format
-	foreach($file in $files) {
+	foreach ($file in $files) {
 		$extn = [IO.Path]::GetExtension($file)
-		if ($extn -eq ".sh" ){
+		if ($extn -eq ".sh" ) {
 			((Get-Content $file) -join "`n") + "`n" | Set-Content -NoNewline $file
 		}
 		Copy-Item $file -Destination $packageDestination -Force
@@ -91,22 +91,35 @@ function Make-H100-Packages {
 	if (!(Test-Path $DropFolder\$H100Package -PathType Container)) {
 		New-Item -ItemType Directory -Force -Path $H100PackageDestination
 	}
-	$powershellScript="$PSScriptRoot\..\cgpu-h100-auto-onboarding.ps1"
 	Copy-Item $DropFolder\$cgpuOnboardingPackage -Destination $H100PackageDestination -Force
 
-	if (Get-Content $powershellScript -Delimiter "`0" | Select-String "[^`r]`n")
-    {
-        $content = Get-Content $powershellScript
-        $content | Set-Content $powershellScript
-    }
-	Compress-Archive -Path $powershellScript, $DropFolder\$cgpuOnboardingPackage, "$PSScriptRoot\..\cmk_module" -DestinationPath $DropFolder\cgpu-h100-auto-onboarding-windows.zip -Force
+	$onboardingPowershellScript = "$PSScriptRoot\..\cgpu-h100-auto-onboarding.ps1"
+	$cmkPowershellScript = "$PSScriptRoot\..\cmk_module\Windows\cgpu-deploy-cmk-des.psm1"
+
+	[String[]]$powershellScriptList = $onboardingPowershellScript, $cmkPowershellScript
+
+	foreach ($powershellScript in $powershellScriptList) {
+		if (Get-Content $powershellScript -Delimiter "`0" | Select-String "[^`r]`n") {
+			$content = Get-Content $powershellScript
+			$content | Set-Content $powershellScript
+		}
+	}
+
+	Compress-Archive -Path $onboardingPowershellScript, $DropFolder\$cgpuOnboardingPackage, "$PSScriptRoot\..\cmk_module" -DestinationPath $DropFolder\cgpu-h100-auto-onboarding-windows.zip -Force
 
 	# Generate linux (.tar.gz) H100 enabled package
 	echo "Generating linux package"
-	$linuxScript="$PSScriptRoot\..\cgpu-h100-auto-onboarding.sh"
-	$extn = [IO.Path]::GetExtension("${H100PackageDestination}\${linuxScript}")
-	((Get-Content $linuxScript) -join "`n") + "`n" | Set-Content -NoNewline $linuxScript
-	Copy-Item $linuxScript -Destination $H100PackageDestination
+
+	$onboardingLinuxScript = "$PSScriptRoot\..\cgpu-h100-auto-onboarding.sh"
+	$cmkLinuxScript = "$PSScriptRoot\..\cmk_module\Linux\cgpu-deploy-cmk-des.sh"
+
+	[String[]]$linuxScriptList = $onboardingLinuxScript, $cmkLinuxScript
+
+	foreach ($linuxScript in $linuxScriptList) {
+		((Get-Content $linuxScript) -join "`n") + "`n" | Set-Content -NoNewline $linuxScript
+	}
+
+	Copy-Item $onboardingLinuxScript -Destination $H100PackageDestination
 	Copy-Item "$PSScriptRoot\..\cmk_module" -Destination $H100PackageDestination -Recurse
 	Set-Location $DropFolder
 	tar -czvf "${H100Package}.tar.gz" -C $DropFolder $H100Package
