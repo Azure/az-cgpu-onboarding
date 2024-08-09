@@ -93,6 +93,8 @@ az group create --resource-group $<your resource group> --location <"eastus2" or
 az deployment group create -g $rg -f "<your ARM template.json>" -p "<your parameter file.json>" 
 ```
 
+A sample ARM template and parameter file for deploying a CGPU VM can be found here: [template.json](template.json) and [parameters.json](parameters.json).
+
 ----------------------------------------------------
 
 ## CGPU Environment Setup
