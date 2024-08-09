@@ -70,5 +70,4 @@ This public preview is currently availability in the East US 2 and West Europe r
 
 For any questions, please check the FAQ page here: [Frequently Asked Questions](Frequently-Asked-Questions.md)
 
-Support will be directly with the product team via the email Confidential GPU Preview: cgpupreview@microsoft.com   
-Thanks for your cooperation and help!
+For additional help, please open a support ticket through the Azure portal. Thanks for your cooperation and help!
