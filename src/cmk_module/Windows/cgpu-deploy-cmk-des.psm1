@@ -99,7 +99,8 @@ function DEPLOY-CMK-DES{
     $desArmTemplate="deployDES.json"
   )
 
-  az login --tenant $tenantId
+  az account clear
+  az login --tenant $tenantId 2>&1 | Out-Null
   az account set --subscription $subscriptionid
   Write-Host "---------------------------------- Login to [$($subscriptionId)] ----------------------------------"
 
@@ -114,7 +115,7 @@ function DEPLOY-CMK-DES{
     Write-Host "---------------------------------- Resource group [$($resourceGroup)] already exists ----------------------------------"
   }
 
-  az keyvault create --name $keyVault --resource-group $resourceGroup --location $region --sku Premium --enable-purge-protection 
+  az keyvault create --name $keyVault --resource-group $resourceGroup --location $region --sku Premium --enable-purge-protection --enable-rbac-authorization false
   Write-Host "---------------------------------- Keyvault [$($keyVault)] created ----------------------------------"
 
   $cvmAgent = az ad sp show --id $cvmAgentId | Out-String | ConvertFrom-Json
