@@ -44,7 +44,7 @@ Image: Ubuntu server, must support Confidential virtual machines
 Size: Standard_NCC40ads_H100_v5
 ```
 
-An example is shown below: ![Portal VM Creation Instance Details](image.png)
+An example is shown below: ![Portal VM Creation Instance Details](screenshot.png)
 
 ### Option 2: Azure CLI
 
