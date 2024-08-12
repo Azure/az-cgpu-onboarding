@@ -34,49 +34,13 @@ This page is using a customer managed keys. More information about customer mana
   az disk-encryption-set show -n $desName -g $resourceGroup --query [id] -o tsv
 ```
 
-1. If you do not have an existing CMK, please follow steps below to create a new one. Firstly, open Powershell as Admin
+1. If you do not have an existing CMK, please follow steps below to create a new one. Firstly, open Powershell as Admin and find the cmk module
+```
+cd <Repo Path>/src/cmk_module
+```
+Then follow the instructions in src/cmk_module/README.md to create a new CMK
 
-2. Import the CMK module
-```
-cd <Repo Path>\src\cmk_module
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-Import-Module -Name .\Windows\cgpu-deploy-cmk-des.psm1 -Force -DisableNameChecking
-```
 
-3. Define your parameters
-```
-  # Replace with your own subscription ID and tenant ID here
-  $subscriptionId = "<your subscription ID>"
-  $tenantId = "<your tenant ID>"
-
-  # Default parameters
-  $region = "eastus2"
-  $desArmTemplate = "deployDES.json"
-  $policyPath = "skr-policy.json"
-
-  # Auto generate the resource group name, key name, key vault name, des name, des deployment name from the current time
-  $timeString = Get-Date -Format "yyyyMMddHHmmss"
-  $resourceGroup ="CMK-$($timeString)-rg"
-  $keyName = "CMK-$($timeString)-key"
-  $keyVault = "CMK-$($timeString)-kv" 
-  $desName = "CMK-$($timeString)-des"
-  $deployName = "CMK-$($timeString)-desdeploy"
-  
-```
- Call the function with the parameters
-```
-DEPLOY-CMK-DES `
-  -subscriptionId $subscriptionId `
-  -tenantId $tenantId `
-  -region $region `
-  -resourceGroup $resourceGroup `
-  -keyName $keyName `
-  -keyVault $keyVault `
-  -policyPath $policyPath `
-  -desName $desName `
-  -deployName $deployName `
-  -desArmTemplate $desArmTemplate
-```
 ----------------------------------------------------
 
 ## Create-CGPU-VM
