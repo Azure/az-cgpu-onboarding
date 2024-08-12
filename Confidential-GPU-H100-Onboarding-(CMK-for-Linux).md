@@ -36,7 +36,7 @@ az disk-encryption-set show -n $desName -g $resourceGroup --query [id] -o tsv
 ```
 cd <Repo Path>/src/cmk_module
 ```
-Then follow the instructions in src/cmk_module/README.md to create a new CMK
+Then follow the instructions in [src/cmk_module/README.md](src/cmk_module/README.md) to create a new CMK
 
 ----------------------------------------------------
 
