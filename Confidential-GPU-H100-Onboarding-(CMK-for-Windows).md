@@ -38,7 +38,7 @@ This page is using a customer managed keys. More information about customer mana
 ```
 cd <Repo Path>/src/cmk_module
 ```
-Then follow the instructions in src/cmk_module/README.md to create a new CMK
+Then follow the instructions in [src/cmk_module/README.md](src/cmk_module/README.md) to create a new CMK
 
 
 ----------------------------------------------------
