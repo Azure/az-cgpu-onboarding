@@ -1,19 +1,34 @@
 # Overview
 Here is an overview of the different options to capture and share a CGPU VM image. In general, creating a SIG is simpler than storing things in a container since those are shared on a subscription/tenant-basis. 
 
-Please note that the Azure Compute Gallery's direct share feature is still in a preview so is subject to their preview terms and conditions. To learn more about it, take a look at their documentation [here](https://learn.microsoft.com/en-us/azure/virtual-machines/share-gallery-direct?tabs=portaldirect).
+Please note that the Azure Compute Gallery's direct share feature is still in a preview, so it is subject to their preview terms and conditions. Since it is still in preview, there are several onboarding steps required in order to use this feature. To learn more about it, take a look at their documentation and follow their instructions [here](https://learn.microsoft.com/en-us/azure/virtual-machines/share-gallery-direct?tabs=portaldirect).
+
+Once you have an image gallery, then create an image definition based off your CGPU VM. When creating the image definition, make sure to select the right security type for your use case:
+
+Documentation on how to create an image definition and an image version can be found here: [Create an image definition and an image version](https://learn.microsoft.com/en-us/azure/virtual-machines/image-version?tabs=portal%2Ccli2).
+
+Once the image definition and version have been created, instruction on sharing the image can be found here: [Sharing Azure images](https://learn.microsoft.com/en-us/azure/virtual-machines/shared-image-galleries?tabs=vmsource%2Cazure-cli)
+
 
 # Sharing within a subscription
-Option 1: Export image and VMGS file using a shared image gallery (SIG)
-- `ConfidentialVM` security type is required for images using Confidential disk encryption (`ConfidentialVMSupported` security type for encrypted images will fail)
-- `ConfidentialVMSupported` security type is supported for unencrypted images
+Option 1: Export the image and VMGS file using a shared image gallery (SIG)
+
+When creating the image definition, make sure to select the right security type for your use case:
+
+1. `ConfidentialVM` security type is required for images using Confidential disk encryption (`ConfidentialVMSupported` security type for encrypted images will fail). This security type is only allowed to be shared within subscriptions.
+
+2. `ConfidentialVMSupported` security type is supported for unencrypted images. This security type is allowed to be shared within subscriptions and tenants.
+
 - Note: if the VM was created with an encrypted disk and customer-managed keys (CMK), `Confidential Disk Encryption` must be set to `True`
 
-# Sharing to other subscriptions
-Option 1: share an unencrypted image using a SIG
+
+
+
+# Sharing to other subscriptions or tenant
+Option 1: Share an unencrypted image using the shared image gallery (SIG) direct share feature
 - Must set security type to `ConfidentialVMSupported`
 
-Option 2: share an encrypted image using Azure Storage
+Option 2: Share an encrypted image using Azure Storage
 - The following is a workaround that allows you to create an image or VM based off an existing VM by copying the disks to an Azure Storage container. This example uses a PMK flow: 
  
 ```
