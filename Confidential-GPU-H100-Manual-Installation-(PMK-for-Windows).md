@@ -2,6 +2,8 @@
 
 The following steps help create a Confidential GPU Virtual Machine with an H100 NVIDIA GPU and a Platform Managed Key (PMK) using manual instructions. This entails 2 parts: provisioning the CGPU VM and then preparing the guest environment.
 
+Hello
+
 -----------------------------------------------
 
 ## Steps
