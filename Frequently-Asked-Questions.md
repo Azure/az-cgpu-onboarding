@@ -2,6 +2,10 @@
 
 Below are a list of frequently asked questions and answers.
 
+## Q: How can I get quota for the NCC H100 v5 VM SKU?
+
+A: Fill out this [form](https://forms.office.com/Pages/ResponsePage.aspx?id=v4j5cvGGr0GRqy180BHbR37R7JFLKbBAml_g6YTMEqtUN0lDSFVRTVNJUFNRNlBaNk9RMVBZMjhOSS4u) with your information in order to be granted quota. Please ensure that the *Subscription* field is filled out before submitting since quotas are granted on a subscription-level basis.
+
 
 ## Q: How can I capture an image of my CGPU VM and share it?
 
@@ -10,7 +14,7 @@ A: Please refer to this page that contains detailed information on different VMI
 
 ## Q: How can I use OpenSSL `(>=3.1.0)` for Confidential H100 GPU bandwidth improvement?
 
-OpenSSL version 3.1.0 and above are known to significantly improve the bandwidth between H100 Confidential GPU and CPU, thanks to the encryption performance boost provided by AVX512.
+A: OpenSSL version 3.1.0 and above are known to significantly improve the bandwidth between H100 Confidential GPU and CPU, thanks to the encryption performance boost provided by AVX512.
 
 We have created a script to build and install OpenSSL 3.3.1 to `/opt/openssl` where you have the option to specify the `LD_LIBRARY_PATH` to `/opt/openssl/lib64`. Note that the system's OpenSSL 3.0.2 remains untouched and continues to be the default version.
 

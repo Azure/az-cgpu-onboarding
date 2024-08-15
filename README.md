@@ -24,7 +24,7 @@ In this preview, you can:
 ## Requirements 
 
 - [Azure subscription](https://learn.microsoft.com/en-us/azure/cost-management-billing/manage/create-subscription) and a contributor or administrator role to the subscription
-- Quota for the NCC H100 v5 VM SKU
+- [Quota for the NCC H100 v5 VM SKU](Frequently-Asked-Questions.md#q-how-can-i-get-quota-for-the-ncc-h100-v5-vm-sku)
 - [Install Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)
 
 ## Instructions
