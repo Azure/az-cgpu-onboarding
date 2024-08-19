@@ -39,7 +39,8 @@ There are multiple ways you can manually provision a CGPU VM. We have instructio
 There is general documentation to create VMs through the portal found [here](https://learn.microsoft.com/en-us/azure/virtual-machines/windows/quick-create-portal). In order to deploy a CGPU VM please select the following configurations under the Instance Details:
 ```
 Region: must be eastus2 or westeurope
-Security Type: Confidential virtual machines
+Availability options: No infrastructure redundancy required
+Security type: Confidential virtual machines
 Image: Ubuntu server, must support Confidential virtual machines
 Size: Standard_NCC40ads_H100_v5
 ```
