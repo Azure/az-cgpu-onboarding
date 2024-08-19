@@ -3,11 +3,18 @@ Here is an overview of the different options to capture and share a CGPU VM imag
 
 Please note that the Azure Compute Gallery's direct share feature is still in a preview, so it is subject to their preview terms and conditions. Since it is still in preview, there are several onboarding steps required in order to use this feature. To learn more about it, take a look at their documentation and follow their instructions [here](https://learn.microsoft.com/en-us/azure/virtual-machines/share-gallery-direct?tabs=portaldirect).
 
-Once you have an image gallery, then create an image definition based off your CGPU VM. When creating the image definition, make sure to select the right security type for your use case:
+These are the steps involved with creating and sharing a virtual machine image (VMI):
+1. Create an image gallery
+2. Create an image definition and an image cersion based off your CGPU VM
+3. Determine the right sharing configurations for your usecase
+4. Use the shared image gallery (SIG) or Azure Storage to share your image
 
-Documentation on how to create an image definition and an image version can be found here: [Create an image definition and an image version](https://learn.microsoft.com/en-us/azure/virtual-machines/image-version?tabs=portal%2Ccli2).
+If you have already created an Azure image gallery and definition, skip to the instructions on how to [share within a subscription](#sharing-within-a-subscription) or [share to other subscriptions or tenants](#sharing-to-other-subscriptions-or-tenant). If not, refer to the below documentations that contain detailed information on how to set up your image gallery and definitions:
 
-Once the image definition and version have been created, instruction on sharing the image can be found here: [Sharing Azure images](https://learn.microsoft.com/en-us/azure/virtual-machines/shared-image-galleries?tabs=vmsource%2Cazure-cli)
+1. [Create an image definition and an image version](https://learn.microsoft.com/en-us/azure/virtual-machines/image-version?tabs=portal%2Ccli2).
+2. More details on storing and image sharing options can be found here: [SStore and share images in an Azure Compute Gallery](https://learn.microsoft.com/en-us/azure/virtual-machines/shared-image-galleries?tabs=vmsource%2Cazure-cli)
+
+Before moving on to the sharing steps, please ensure you have a gallery and image definition similar to this example: ![Image Gallery Example](image.png)
 
 
 # Sharing within a subscription
@@ -20,8 +27,6 @@ When creating the image definition, make sure to select the right security type 
 2. `ConfidentialVMSupported` security type is supported for unencrypted images. This security type is allowed to be shared within subscriptions and tenants.
 
 - Note: if the VM was created with an encrypted disk and customer-managed keys (CMK), `Confidential Disk Encryption` must be set to `True`
-
-
 
 
 # Sharing to other subscriptions or tenant
