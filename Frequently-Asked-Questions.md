@@ -36,6 +36,17 @@ CPUD leaf 0x4000000C’s EAX.bit0 is 1, and EBX.bit 0~3 is 2.
 
 NVIDIA is working on implementing SEV-SNP checks for Hyper-V and are planning on will releasing it with the TRD5 release in September 2024.
 
+## Q: How can I check my CGPU VM's HyperV SEV-SNP status is enabled?
+
+A: Use the following command to check the HyperV SEV-SNP enablement on your machine: 
+```
+sudo apt-get update
+sudo apt install cpuid
+cpuid -l 0x4000000C -1 | awk '$4 ~ /^ebx=.*2$/ { print "AMD SEV-SNP is enabled"}'
+```
+
+For more detailed information on how to perform guest attestation for Azure SEV-SNP CVM, please refer to the following page: [SNP Guest Attestation](SNP-Guest-Attestation-Verification.md)
+
 ## Q: Can I get NVMe support for my CGPU VM?
 
 A: NVMe support is currently not supported for CGPU VMs, but this feature is being worked on for future releases. There are bugs that show NVMe attachment support when creating CGPU VMs from the Azure portal which we are working to resolve.

@@ -295,8 +295,8 @@ class CcAdminUtils:
 
             # Verify the OCSP response is within the validity period
             timestamp_format = "%Y/%m/%d %H:%M:%S UTC"
-            this_update = ocsp_response.this_update.replace(tzinfo=timezone.utc)
-            next_update = ocsp_response.next_update.replace(tzinfo=timezone.utc)
+            this_update = ocsp_response.this_update_utc
+            next_update = ocsp_response.next_update_utc
             next_update_extended = next_update + timedelta(hours=BaseSettings.OCSP_VALIDITY_EXTENSION_HRS)
             utc_now = datetime.now(timezone.utc)
             event_log.debug(f"Current time: {utc_now.strftime(timestamp_format)}")
@@ -357,7 +357,7 @@ class CcAdminUtils:
                 elif mode == BaseSettings.Certificate_Chain_Verification_Mode.VBIOS_RIM_CERT:
                     cert_revocation_extension_hrs = BaseSettings.OCSP_CERT_REVOCATION_VBIOS_RIM_EXTENSION_HRS
 
-                cert_revocation_time = ocsp_response.revocation_time.replace(tzinfo=timezone.utc)
+                cert_revocation_time = ocsp_response.revocation_time_utc
                 cert_revocation_reason = ocsp_response.revocation_reason
                 cert_revocation_time_extended = cert_revocation_time + timedelta(hours=cert_revocation_extension_hrs)
 
