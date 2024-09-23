@@ -7,18 +7,26 @@
 
 # Goes through all .md documentation files and onboarding scripts to replace versions
 function Replace-Release-Versions {
-   Write-Output "in replace"
+    Write-Output "in replace"
 
-   # Get all .md onboarding files and onboarding scripts
-   $mdFiles = Get-ChildItem -Path "..\..\" -Filter *.md
-   $mdFiles += Get-Item -Path "..\cgpu-h100-auto-onboarding.ps1"
-   $mdFiles += Get-Item -Path "..\cgpu-h100-auto-onboarding.sh"
+    # Get all .md onboarding files and onboarding scripts
+    $mdFiles = Get-ChildItem -Path "..\..\" -Filter *.md
+    $mdFiles += Get-Item -Path "..\cgpu-h100-auto-onboarding.ps1"
+    $mdFiles += Get-Item -Path "..\cgpu-h100-auto-onboarding.sh"
 
-   Write-Output $mdFiles
+    Write-Output $mdFiles
 
-   foreach ($file in $mdFiles) {
-        $oldVersion = "V3.0.10"
+    # Get the old version by looking at onboarding script
+    $scriptContent = Get-Content "..\cgpu-h100-auto-onboarding.ps1" -Raw
+    $versionPattern = 'V\d+\.\d+\.\d+'
+    $patternMatch = [regex]::Match($scriptContent, $pattern)
+    $oldVersion = $patternMatch.Value
     
+    # Print out old and new vrsions
+    Write-Output "Old version is: $oldVersion"
+    Write-Output "New version is: $newVersion"
+
+    foreach ($file in $mdFiles) {    
         # Read the content of the file
         $content = Get-Content -Path $file.FullName
 
