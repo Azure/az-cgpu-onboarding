@@ -12,7 +12,7 @@ A: If you have created the VM using previous versions of onboarding packages, yo
 On the host:
 ```
 # Download a clean H100 onboarding package from the latest release
-https://github.com/Azure/az-cgpu-onboarding/releases/download/V3.0.7/cgpu-onboarding-package.tar.gz
+https://github.com/Azure/az-cgpu-onboarding/releases/download/V3.0.10/cgpu-onboarding-package.tar.gz
  
 # Upload it to your VM
 scp -i <private key path> ".\cgpu-onboarding-package.tar.gz" <username>@<IP>:/home/<username>
@@ -20,7 +20,7 @@ scp -i <private key path> ".\cgpu-onboarding-package.tar.gz" <username>@<IP>:/ho
 
 Log in to your VM and run the following commands:
 ```
-# Unzip the new CGPU onboarding pacakge to home folder
+# Unzip the new CGPU onboarding package to home folder
 tar -zxvf cgpu-onboarding-package.tar.gz; cd cgpu-onboarding-package
 
 # Uninstall Nvidia r535 driver and unhold Linux kernel
