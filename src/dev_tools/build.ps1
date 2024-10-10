@@ -21,14 +21,14 @@ $H100PackageDestination = "${DropFolder}\${H100Package}"
 
 function Cleanup {
 	# Removes if there are any old packages before starting
-	echo "Cleaning up"
+	Write-Output "Cleaning up"
 	if (Test-Path $DropFolder -PathType Container) {
 		Remove-Item -LiteralPath $DropFolder -Force -Recurse
 	}
 }
 
 function Build-Packages {
-	echo "Building Packages"
+	Write-Output "Building Packages"
 
 	# Creates folder for final packages
 	if (!(Test-Path $DropFolder -PathType Container)) {
@@ -77,7 +77,7 @@ function Make-Cgpu-Onboarding-Package {
 	}
 
 	# Creates main .tar.gz
-	echo "Generating cgpu-onboarding-package.tar.gz"
+	Write-Output "Generating cgpu-onboarding-package.tar.gz"
 	tar -czvf $cgpuOnboardingPackage -C $DropFolder $CgpuOnboardingPackageFolder
 	Move-Item $cgpuOnboardingPackage $DropFolder -Force
 
@@ -87,7 +87,7 @@ function Make-Cgpu-Onboarding-Package {
 
 function Make-H100-Packages {
 	# Generate windows (zip) H100 package
-	echo "Generating windows package"
+	Write-Output "Generating windows package"
 	if (!(Test-Path $DropFolder\$H100Package -PathType Container)) {
 		New-Item -ItemType Directory -Force -Path $H100PackageDestination
 	}
@@ -108,7 +108,7 @@ function Make-H100-Packages {
 	Compress-Archive -Path $onboardingPowershellScript, $DropFolder\$cgpuOnboardingPackage, "$PSScriptRoot\..\cmk_module" -DestinationPath $DropFolder\cgpu-h100-auto-onboarding-windows.zip -Force
 
 	# Generate linux (.tar.gz) H100 enabled package
-	echo "Generating linux package"
+	Write-Output "Generating linux package"
 
 	$onboardingLinuxScript = "$PSScriptRoot\..\cgpu-h100-auto-onboarding.sh"
 	$cmkLinuxScript = "$PSScriptRoot\..\cmk_module\Linux\cgpu-deploy-cmk-des.sh"

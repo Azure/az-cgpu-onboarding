@@ -25,14 +25,14 @@ function Download-Blobs {
 
     # Downloads each blob into given destination
     $blobs | Get-AzStorageBlobContent -Destination $destination -Force
-    echo "Downloaded all blobs to ${destination}"
+    Write-Output "Downloaded all blobs to ${destination}"
 }
 
 # Ensures pre-reqs are installed: Azure CLI
 # And logs in to Azure account
 function Setup {
     # Installs Az Powershell module if not installed already
-    echo "Setting up environment"
+    Write-Output "Setting up environment"
     if (Get-Module -ListAvailable -Name Az) {
         Write-Host "Az setup already"
     } 

@@ -1,10 +1,10 @@
-# Confidential GPU Public Preview Onboarding 
+# Confidential GPU Onboarding 
 
-Welcome to this preview! This onboarding document helps to create an Azure confidential VM with NVIDIA H100 Tensor Core GPU in Confidential Computing mode.  
+Welcome! This onboarding document helps to create an Azure confidential VM with NVIDIA H100 Tensor Core GPU in Confidential Computing mode.  
 
 Please note that any associated materials or documentation below are strictly confidential and subject to obligations in the Non-Disclosure Agreement (NDA) signed between Microsoft and your organization. 
 
-In this preview, you can:
+Through this onboarding process, you can:
 1. Deploy a secure boot enabled Azure confidential virtual machine. 
 2. Attach One (1) NVIDIA H100 PCIe Tensor Core GPU in Confidential Computing mode.
 3. Perform in-guest platform attestation to retrieve raw hardware evidence.
@@ -24,7 +24,7 @@ In this preview, you can:
 ## Requirements 
 
 - [Azure subscription](https://learn.microsoft.com/en-us/azure/cost-management-billing/manage/create-subscription) and a contributor or administrator role to the subscription
-- Quota for the NCC H100 v5 VM SKU
+- [Quota for the NCC H100 v5 VM SKU](Frequently-Asked-Questions.md#q-how-can-i-get-quota-for-creating-an-ncc-cgpu-vm)
 - [Install Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)
 
 ## Instructions
@@ -62,9 +62,9 @@ If you prefer to go through the steps manually, you can follow these instruction
 - NVIDIA certified VMI-based provisioning with the GPU driver, CUDA, ML tools, and a customized local verifier already pre-installed
 - In-guest attestation evidence appraised by Microsoft Azure Attestation Service (MAA)
 
-## Availability and Reliability Expectations 
+## Availability
 
-This public preview is currently availability in the East US 2 and West Europe regions. We plan to expand to more regions in a phased manner during General Availability (GA).  Non-production data is recommended during this phase of the preview. We are not providing a reliability SLA during the preview phase. 
+This offer is currently available in the East US 2 and West Europe regions. We plan to expand to more regions in a phased manner during upcoming semesters.
 
 ## Contact Information
 
