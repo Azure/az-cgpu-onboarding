@@ -43,7 +43,7 @@ install_gpu_driver() {
 
         # Install r550 nvidia driver
         sudo apt install -y gcc g++ make
-        sudo apt install -y nvidia-driver-550-server-open linux-modules-nvidia-550-server-open-6.5.0-1025-azure
+        sudo apt install -y nvidia-driver-550-server-open linux-modules-nvidia-550-server-open-$current_kernel
 
         # capture transient couldn't get lock issue and retry the operation with maximum retry count of 3.
         lockError=$(cat logs/current-operation.log | grep "Could not get lock")

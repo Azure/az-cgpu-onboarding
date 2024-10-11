@@ -76,9 +76,9 @@ class CcAdminUtils:
     def extract_fwid(cert):
         """ A static function to extract the FWID data from the given certificate.
         Args:
-            cert (OpenSSL.crypto.X509): The certificate whose FWID data is needed to be fetched. 
+            cert (OpenSSL.crypto.X509): The certificate whose FWID data is needed to be fetched.
         Returns:
-            [str]: the FWID as a hex string extracted from the certificate if 
+            [str]: the FWID as a hex string extracted from the certificate if
                     it is present otherwise returns an empty string.
         """
         result = ''
@@ -125,7 +125,7 @@ class CcAdminUtils:
                                cert at the end of the list.
             settings (config.HopperSettings): the object containing the various config info.
             mode (<enum 'CERT CHAIN VERIFICATION MODE'>): Used to determine if the certificate chain
-                            verification is for the GPU attestation certificate chain or RIM certificate chain 
+                            verification is for the GPU attestation certificate chain or RIM certificate chain
                             or the ocsp response certificate chain.
 
         Raises:
@@ -210,7 +210,7 @@ class CcAdminUtils:
             cert_chain (list): the list of the input certificates of the certificate chain.
             settings (config.HopperSettings): the object containing the various config info.
             mode (<enum 'CERT CHAIN VERIFICATION MODE'>): Used to determine if the certificate chain
-                            verification is for the GPU attestation certificate chain or RIM certificate chain 
+                            verification is for the GPU attestation certificate chain or RIM certificate chain
                             or the ocsp response certificate chain.
 
         Returns:
@@ -295,8 +295,8 @@ class CcAdminUtils:
 
             # Verify the OCSP response is within the validity period
             timestamp_format = "%Y/%m/%d %H:%M:%S UTC"
-            this_update = ocsp_response.this_update.replace(tzinfo=timezone.utc)
-            next_update = ocsp_response.next_update.replace(tzinfo=timezone.utc)
+            this_update = ocsp_response.this_update_utc
+            next_update = ocsp_response.next_update_utc
             next_update_extended = next_update + timedelta(hours=BaseSettings.OCSP_VALIDITY_EXTENSION_HRS)
             utc_now = datetime.now(timezone.utc)
             event_log.debug(f"Current time: {utc_now.strftime(timestamp_format)}")
@@ -325,6 +325,7 @@ class CcAdminUtils:
                 buffer=ocsp_response.certificates[0].public_bytes(serialization.Encoding.DER),
             )
             ocsp_cert_chain = [ocsp_response_leaf_cert]
+
             for j in range(i, len(cert_chain)):
                 ocsp_cert_chain.append(CcAdminUtils.convert_cert_from_cryptography_to_pyopenssl(cert_chain[j]))
             ocsp_cert_chain_verification_status = CcAdminUtils.verify_certificate_chain(
@@ -346,8 +347,13 @@ class CcAdminUtils:
             elif i == end_index - 1:
                 settings.mark_gpu_certificate_ocsp_signature_as_verified()
 
-            # Verifying the ocsp response certificate status.
-            if ocsp_response.certificate_status != ocsp.OCSPCertStatus.GOOD:
+            # The OCSP response certificate status is unknown
+            if ocsp_response.certificate_status == ocsp.OCSPCertStatus.UNKNOWN:
+                info_log.error(f"\t\t\tTHE {cert_common_name} certificate revocation status is UNKNOWN")
+                return False
+            
+            # The OCSP response certificate status is revoked
+            if ocsp_response.certificate_status == ocsp.OCSPCertStatus.REVOKED:
                 # Get cert revoke timestamp
                 cert_revocation_extension_hrs = 0
                 if mode == BaseSettings.Certificate_Chain_Verification_Mode.GPU_ATTESTATION:
@@ -357,7 +363,7 @@ class CcAdminUtils:
                 elif mode == BaseSettings.Certificate_Chain_Verification_Mode.VBIOS_RIM_CERT:
                     cert_revocation_extension_hrs = BaseSettings.OCSP_CERT_REVOCATION_VBIOS_RIM_EXTENSION_HRS
 
-                cert_revocation_time = ocsp_response.revocation_time.replace(tzinfo=timezone.utc)
+                cert_revocation_time = ocsp_response.revocation_time_utc
                 cert_revocation_reason = ocsp_response.revocation_reason
                 cert_revocation_time_extended = cert_revocation_time + timedelta(hours=cert_revocation_extension_hrs)
 
@@ -370,7 +376,7 @@ class CcAdminUtils:
                 # Cert is revoked but certificate_hold is allowed
                 if x509.ReasonFlags.certificate_hold == cert_revocation_reason and BaseSettings.allow_hold_cert:
                     event_log.warning(
-                        f"THE CERTIFICATE {cert_common_name} IS REVOKED FOR '{cert_revocation_reason.value}' " 
+                        f"THE CERTIFICATE {cert_common_name} IS REVOKED FOR '{cert_revocation_reason.value}' "
                         f"BUT STILL GOOD FOR ATTESTATION WITH allow_hold_cert ENABLED.")
 
                 # Cert is revoked but within the extension period
@@ -390,7 +396,8 @@ class CcAdminUtils:
                     info_log.error(f"\t\t\tERROR: {cert_revocation_novalid_msg}")
                     info_log.error("\t\t\tThe certificate chain revocation status verification was not successful")
                     return False
-
+        
+        info_log.info(f"\t\t\tThe certificate chain revocation status verification successful.")
         return True
 
     @staticmethod
@@ -562,8 +569,8 @@ class CcAdminUtils:
 
     @staticmethod
     def get_vbios_rim_file_id(project, project_sku, chip_sku, vbios_version):
-        """ A static method to generate the required VBIOS RIM file id which needs to be fetched from the RIM service 
-            according to the vbios flashed onto the system. 
+        """ A static method to generate the required VBIOS RIM file id which needs to be fetched from the RIM service
+            according to the vbios flashed onto the system.
 
         Args:
             attestation_report (AttestationReport): the object representing the attestation report.
@@ -577,8 +584,8 @@ class CcAdminUtils:
 
     @staticmethod
     def get_driver_rim_file_id(driver_version):
-        """ A static method to generate the driver RIM file id to be fetched from the RIM service corresponding to 
-            the driver installed onto the system. 
+        """ A static method to generate the driver RIM file id to be fetched from the RIM service corresponding to
+            the driver installed onto the system.
 
         Args:
             driver_version (str): the driver version of the installed driver.
