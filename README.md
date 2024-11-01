@@ -42,20 +42,20 @@ Please make sure to follow all steps exactly as detailed. If you run into issues
 
 We support the options to create confidential GPUs with Windows and Linux hosts, as well as with customer (CMK) and platform (PMK) managed keys. We recommend for first time users to try out the PMK option since it's simpler to onboard. If you want to use a one step auto-onboarding script, you can chose between the following instruction options:
 
-- [Onboarding Docs (Windows host with PMK)](Confidential-GPU-H100-Onboarding-(PMK-for-Windows).md)
+- [Onboarding Docs (Windows host with PMK)](docs\Confidential-GPU-H100-Onboarding-(PMK-for-Windows).md)
 
-- [Onboarding Docs (Linux host with PMK)](Confidential-GPU-H100-Onboarding-(PMK-for-Linux).md)
+- [Onboarding Docs (Linux host with PMK)](docs\Confidential-GPU-H100-Onboarding-(PMK-for-Linux).md)
 
-- [Onboarding Docs (Windows host with CMK)](Confidential-GPU-H100-Onboarding-(CMK-for-Windows).md)
+- [Onboarding Docs (Windows host with CMK)](docs\Confidential-GPU-H100-Onboarding-(CMK-for-Windows).md)
 
-- [Onboarding Docs (Linux host with CMK)](Confidential-GPU-H100-Onboarding-(CMK-for-Linux).md)
+- [Onboarding Docs (Linux host with CMK)](docs\Confidential-GPU-H100-Onboarding-(CMK-for-Linux).md)
 
 
 If you prefer to go through the steps manually, you can follow these instructions:
 
-- [Manual Provisioning](https://github.com/Azure/az-cgpu-onboarding/blob/main/Confidential-GPU-H100-Manual-Installation-(PMK-for-Windows).md)
+- [Manual Provisioning](docs\Confidential-GPU-H100-Manual-Installation-(PMK-for-Windows).md)
 
-- [Manual GPU Environment Setup](https://github.com/Azure/az-cgpu-onboarding/blob/main/Confidential-GPU-H100-Manual-Installation-(PMK-for-Windows).md#upload-package)
+- [Manual GPU Environment Setup](docs\Confidential-GPU-H100-Manual-Installation-(PMK-for-Windows).md#upload-package)
 
 ## Future Capabilities  
 
