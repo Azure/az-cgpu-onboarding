@@ -4,16 +4,12 @@ Below are a list of frequently asked questions and answers.
 
 ## Q: How can I get quota for creating an NCC CGPU VM?
 
-A: Details for the specific process to be granted quota for an NCC CGPU VM can be found on the [CGPU Quota](docs\CGPU-Quota.md) page.
+A: If you do not have quota in your subscription for the `Standard NCCads2023 Family vCPUs` SKU, you will need open a new quota request ticket. In order to check your current quota status, within the Azure portal, go to your subscription page and under the 'Settings' tab, select 'Usage + quotas'. Here you should be able to filter and see your current quota status and usage. If you do not have quota, or would like to request additional quota, select the 'Yes' button under the 'Adjustable' column to fill out a request: ![Quota usage](quota_page.png) From here, fill out the form as follows with the new desired quota amount: ![Quota request form](new_request_form.png)
 
 
 ## Q: How can I capture an image of my CGPU VM and share it?
 
-A: There are separate instructions for creating and sharing virtual machine images (VMIs) for within-subscription and across-subscription use cases. Please refer to the document that is applicable to your situation: 
-
-1. [Internal VMI Creation And Sharing Instructions](docs\Internal-VMI-Creation-And-Sharing-Instructions.md): used within the same subscription
-2. [External VMI Creation And Sharing Instructions](docs\External-VMI-Creation-And-Sharing-Instructions.md): used between different subscriptions
-
+A: Please refer to this page that contains detailed information on different VMI scenarios and which options are supported: [VMI Sharing Instructions](VMI-Sharing-Instructions.md)
 
 
 ## Q: How can I use OpenSSL `(>=3.1.0)` for Confidential H100 GPU bandwidth improvement?
@@ -26,12 +22,12 @@ Run the following command to install it:
 ```
 sudo bash utilities-install-openssl.sh
 ```
-For more specifics on H100 GPU bandwidth using the different versions of SSL, refer to the [OpenSSL-Details](docs\OpenSSL-Details.md) page.
+For more specifics on H100 GPU bandwidth using the different versions of SSL, refer to the [OpenSSL-Details](OpenSSL-Details.md) page.
 
 
 ## Q: How can I deploy my CGPU VM manually if I don't want to run the auto-onboarding scripts?
 
-A: We have detailed out the options to deploy a CGPU VM manually [here](docs\Confidential-GPU-H100-Manual-Installation-(PMK-for-Windows).md). It also contains the following steps needed to fully set up the CGPU environment in order to run a sample workload.
+A: We have detailed out the options to deploy a CGPU VM manually [here](Confidential-GPU-H100-Manual-Installation-(PMK-for-Windows).md). It also contains the following steps needed to fully set up the CGPU environment in order to run a sample workload.
 
 
 ## Q: Why does the `dmesg` not display `AMD SEV-SNP`?
@@ -53,11 +49,11 @@ sudo apt install cpuid
 cpuid -l 0x4000000C -1 | awk '$4 ~ /^ebx=.*2$/ { print "AMD SEV-SNP is enabled"}'
 ```
 
-For more detailed information on how to perform guest attestation for Azure SEV-SNP CVM, please refer to the following page: [SNP Guest Attestation](docs\SNP-Guest-Attestation-Verification.md)
+For more detailed information on how to perform guest attestation for Azure SEV-SNP CVM, please refer to the following page: [SNP Guest Attestation](SNP-Guest-Attestation-Verification.md)
 
 ## Q: Can I get NVMe support for my CGPU VM?
 
 A: NVMe support is currently not supported for CGPU VMs, but this feature is being worked on for future releases. There are bugs that show NVMe attachment support when creating CGPU VMs from the Azure portal which we are working to resolve.
 
 ## Q: My question is not listed above, where can I find the answer?
-If you are using an older release version and your question is not listed below, please try checking the [Legacy FAQ](docs\Legacy-FAQ.md) page.
+If you are using an older release version and your question is not listed below, please try checking the [Legacy FAQ](Legacy-FAQ.md) page.
