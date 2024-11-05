@@ -10,7 +10,7 @@ function Replace-Release-Versions {
     Write-Output "in replace"
 
     # Get all .md onboarding files and onboarding scripts
-    $filesToUpdate = Get-ChildItem -Path "..\..\" -Filter *.md
+    $filesToUpdate = Get-ChildItem -Path "..\..\docs\" -Filter *.md
     $filesToUpdate += Get-Item -Path "..\cgpu-h100-auto-onboarding.ps1"
     $filesToUpdate += Get-Item -Path "..\cgpu-h100-auto-onboarding.sh"
 
