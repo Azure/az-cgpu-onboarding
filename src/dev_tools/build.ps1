@@ -65,6 +65,7 @@ function Make-Cgpu-Onboarding-Package {
 		"$PSScriptRoot\..\utilities-uninstall-r535-driver.sh",
 		"$PSScriptRoot\..\nvidia-lkca.conf",
 		"$PSScriptRoot\..\mnist-sample-workload.py", 
+		"$PSScriptRoot\..\version.txt", 
 		"$DropFolder\local_gpu_verifier.tar"
 
 	# Ensures each file will be in correct UNIX format
