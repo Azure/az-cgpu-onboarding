@@ -220,6 +220,7 @@ class CcAdminUtils:
         assert isinstance(cert_chain, list)
         revoked_status = False
         start_index = 0
+        gpu_attestation_warning_msg_list = []
 
         if mode == BaseSettings.Certificate_Chain_Verification_Mode.GPU_ATTESTATION:
             start_index = 1
@@ -281,17 +282,17 @@ class CcAdminUtils:
 
             # Verify the OCSP response status
             if ocsp_response.response_status != ocsp.OCSPResponseStatus.SUCCESSFUL:
-                info_log.error("\t\tCouldn't receive a proper response from the OCSP server.")
-                return False
+                error_msg = "Couldn't receive a proper response from the OCSP server."
+                info_log.error(f"\t\t{error_msg}")
+                return False, error_msg
 
             # Verify the Nonce in the OCSP response
             if nonce is not None and nonce != ocsp_response.extensions.get_extension_for_class(OCSPNonce).value.nonce:
-                info_log.error(
-                    "\t\tThe nonce in the OCSP response message is not matching with the one passed in the OCSP request message."
-                )
-                return False
+                error_msg = "The nonce in the OCSP response message is not matching with the one passed in the OCSP request message."
+                info_log.error(f"\t\t{error_msg}")
+                return False, error_msg
             elif i == end_index - 1:
-                settings.mark_gpu_certificate_ocsp_nonce_as_matching()
+                info_log.debug("\t\tGPU Certificate OCSP Nonce is matching")
 
             # Verify the OCSP response is within the validity period
             timestamp_format = "%Y/%m/%d %H:%M:%S UTC"
@@ -308,6 +309,7 @@ class CcAdminUtils:
             if not (this_update <= utc_now <= next_update):
                 ocsp_outside_validity_msg = f"OCSP FOR {cert_common_name} IS EXPIRED AFTER {next_update.strftime(timestamp_format)}."
                 event_log.warning(ocsp_outside_validity_msg)
+                gpu_attestation_warning_msg_list.append(ocsp_outside_validity_msg)
 
             # Outside extended validity period
             if not (this_update <= utc_now <= next_update_extended):
@@ -317,7 +319,7 @@ class CcAdminUtils:
                 )
                 event_log.error(ocsp_outside_extended_validity_msg)
                 info_log.error(f"\t\tERROR: {ocsp_outside_extended_validity_msg}")
-                return False
+                return False, ocsp_outside_extended_validity_msg
 
             # Verifying the ocsp response certificate chain.
             ocsp_response_leaf_cert = crypto.load_certificate(
@@ -333,25 +335,26 @@ class CcAdminUtils:
             )
 
             if not ocsp_cert_chain_verification_status:
-                info_log.error(f"\t\tThe ocsp response certificate chain verification failed for {cert_common_name}.")
-                return False
+                error_msg = f"The ocsp response certificate chain verification failed for {cert_common_name}."
+                info_log.error(f"\t\t{error_msg}")
+                return False, error_msg
             elif i == end_index - 1:
-                settings.mark_gpu_certificate_ocsp_cert_chain_as_verified(mode)
+                info_log.debug("\t\tGPU Certificate OCSP Cert chain is verified")
 
             # Verifying the signature of the ocsp response message.
             if not CcAdminUtils.verify_ocsp_signature(ocsp_response):
-                info_log.error(
-                    f"\t\tThe ocsp response response for certificate {cert_common_name} failed due to signature verification failure."
-                )
-                return False
+                error_msg = f"The ocsp response response for certificate {cert_common_name} failed due to signature verification failure."
+                info_log.error(f"\t\t{error_msg}")
+                return False, error_msg
             elif i == end_index - 1:
-                settings.mark_gpu_certificate_ocsp_signature_as_verified()
+                info_log.debug("\t\tGPU Certificate OCSP Signature is verified")
 
             # The OCSP response certificate status is unknown
             if ocsp_response.certificate_status == ocsp.OCSPCertStatus.UNKNOWN:
-                info_log.error(f"\t\t\tTHE {cert_common_name} certificate revocation status is UNKNOWN")
-                return False
-            
+                error_msg = f"The {cert_common_name} certificate revocation status is UNKNOWN"
+                info_log.error(f"\t\t\t{error_msg}")
+                return False, error_msg
+
             # The OCSP response certificate status is revoked
             if ocsp_response.certificate_status == ocsp.OCSPCertStatus.REVOKED:
                 # Get cert revoke timestamp
@@ -368,23 +371,31 @@ class CcAdminUtils:
                 cert_revocation_time_extended = cert_revocation_time + timedelta(hours=cert_revocation_extension_hrs)
 
                 # Cert is revoked, print warning
-                event_log.warning(
+                cert_revocation_msg = (
                     f"THE CERTIFICATE {cert_common_name} IS REVOKED FOR '{cert_revocation_reason.value}' "
                     f"AT {cert_revocation_time.strftime(timestamp_format)}."
                 )
+                event_log.warning(cert_revocation_msg)
+                gpu_attestation_warning_msg_list.append(cert_revocation_msg)
 
                 # Cert is revoked but certificate_hold is allowed
                 if x509.ReasonFlags.certificate_hold == cert_revocation_reason and BaseSettings.allow_hold_cert:
-                    event_log.warning(
+                    cert_revocation_hold_allowed_msg = (
                         f"THE CERTIFICATE {cert_common_name} IS REVOKED FOR '{cert_revocation_reason.value}' "
-                        f"BUT STILL GOOD FOR ATTESTATION WITH allow_hold_cert ENABLED.")
+                        f"BUT STILL GOOD FOR ATTESTATION WITH allow_hold_cert ENABLED."
+                    )
+                    event_log.warning(cert_revocation_hold_allowed_msg)
+                    gpu_attestation_warning_msg_list.append(cert_revocation_hold_allowed_msg)
 
                 # Cert is revoked but within the extension period
                 elif datetime.now(timezone.utc) <= cert_revocation_time_extended:
-                    event_log.warning(
-                        f"THE CERTIFICATE {cert_common_name} IS REVOKED FOR '{cert_revocation_reason.value}' BUT STILL GOOD FOR ATTESTATION "
-                        f"UNTIL {cert_revocation_time_extended.strftime(timestamp_format)} WITH {cert_revocation_extension_hrs} HOURS OF GRACE PERIOD."
+                    cert_revocation_within_extension_msg = (
+                        f"THE CERTIFICATE {cert_common_name} IS REVOKED FOR '{cert_revocation_reason.value}' "
+                        f"BUT STILL GOOD FOR ATTESTATION UNTIL {cert_revocation_time_extended.strftime(timestamp_format)} WITH "
+                        f"{cert_revocation_extension_hrs} HOURS OF GRACE PERIOD."
                     )
+                    event_log.warning(cert_revocation_within_extension_msg)
+                    gpu_attestation_warning_msg_list.append(cert_revocation_within_extension_msg)
 
                 # Cert is revoked and outside the extension period
                 else:
@@ -393,12 +404,13 @@ class CcAdminUtils:
                         f"AND NO LONGER GOOD FOR ATTESTATION AFTER {cert_revocation_time_extended.strftime(timestamp_format)}."
                     )
                     event_log.error(cert_revocation_novalid_msg)
+                    gpu_attestation_warning_msg_list.append(cert_revocation_novalid_msg)
                     info_log.error(f"\t\t\tERROR: {cert_revocation_novalid_msg}")
                     info_log.error("\t\t\tThe certificate chain revocation status verification was not successful")
-                    return False
-        
+                    return False, '\n'.join(gpu_attestation_warning_msg_list)
+
         info_log.info(f"\t\t\tThe certificate chain revocation status verification successful.")
-        return True
+        return True, '\n'.join(gpu_attestation_warning_msg_list)
 
     @staticmethod
     def fetch_ocsp_response_from_url(ocsp_request_data, url, max_retries):
@@ -713,6 +725,7 @@ class CcAdminUtils:
                                                                                          settings.HashFunction)
         if attestation_report_verification_status:
             info_log.info("\t\tAttestation report signature verification successful.")
+            settings.mark_attestation_report_signature_verified()
 
         else:
             err_msg = "\t\tAttestation report signature verification failed."

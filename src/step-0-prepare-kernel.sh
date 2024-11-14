@@ -37,9 +37,9 @@ fi
 
 # Due to inconsistency upgrade from VM just booting up, adding 5 second delay. 
 sleep 5
-sudo apt update
+sudo apt -o DPkg::Lock::Timeout=300 update
 sudo sed -i 's/#$nrconf{restart} = '"'"'i'"'"';/$nrconf{restart} = '"'"'a'"'"';/g' /etc/needrestart/needrestart.conf
-echo Y | sudo apt upgrade
+echo Y | sudo apt -o DPkg::Lock::Timeout=300 upgrade
 
 echo "Rebooting system to apply kernel updates..."
 sudo reboot
