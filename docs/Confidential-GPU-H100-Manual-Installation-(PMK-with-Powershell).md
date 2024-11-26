@@ -28,7 +28,7 @@ Please make sure you have these requirements before performing the following ste
 - [Azure Tenant ID](https://learn.microsoft.com/en-us/azure/active-directory/fundamentals/active-directory-how-to-find-tenant#find-tenant-id-with-powershell)
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
   - Note: minimum version 2.46.0 is required, run `az --version` to check your version and run `az upgrade` to install the latest version if your version is older
-- Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure/az-cgpu-onboarding/releases/download/V3.0.10/cgpu-onboarding-package.tar.gz) from [az-cgpu-onboarding-V3.0.10](https://github.com/Azure/az-cgpu-onboarding/releases/tag/V3.0.10)
+- Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure/az-cgpu-onboarding/releases/download/V3.2.1/cgpu-onboarding-package.tar.gz) from [az-cgpu-onboarding-V3.2.1](https://github.com/Azure/az-cgpu-onboarding/releases/tag/V3.2.1)
 
 -------------------------------------------
 
@@ -39,12 +39,13 @@ There are multiple ways you can manually provision a CGPU VM. We have instructio
 There is general documentation to create VMs through the portal found [here](https://learn.microsoft.com/en-us/azure/virtual-machines/windows/quick-create-portal). In order to deploy a CGPU VM please select the following configurations under the Instance Details:
 ```
 Region: must be eastus2 or westeurope
-Security Type: Confidential virtual machines
+Availability options: No infrastructure redundancy required
+Security type: Confidential virtual machines
 Image: Ubuntu server, must support Confidential virtual machines
 Size: Standard_NCC40ads_H100_v5
 ```
 
-An example is shown below: ![Portal VM Creation Instance Details](screenshot.png)
+An example is shown below: ![Portal VM Creation Instance Details](../images/vm_creation.png)
 
 ### Option 2: Azure CLI
 
