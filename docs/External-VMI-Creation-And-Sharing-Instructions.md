@@ -15,10 +15,14 @@ Detailed documentation on creating an image definition and image version can be 
 
 Please note that the security type of your base VM must be set to `Confidential supported` or `Trusted launch and confidential supported`. If the OS disk is encrypted via `DiskWithVMGuestState`, the disk will be encypted and will not enable it to be used for created Confidential supported images. 
 
-### 1. Create a storage account
-First create a storage account. The storage account must be `Storage V2 Premium_LRS`. This is where the your OS disk will get uploaded in the format of a VHD file.
+### 1. Create an image gallery
+First create an Azure Image Gallery which will be used to store and share your images. When creating this gallery, please make sure to navigate to the `Sharing` tab and select the `RBAC + direct share (Preview)` option to ensure the direct share feature is enabled for your gallery:
+![Image Gallery Sharing](../images/gallery_sharing_example.png)
 
-### 2. Export the VHD
+### 2. Create a storage account
+Next create a storage account. The storage account must be `Storage V2 Premium_LRS`. This is where the your OS disk will get uploaded in the format of a VHD file.
+
+### 3. Export the VHD
 Once you have a storage account, replace the following parameters with your own values and run the commands to generalize the VM and export the VHD.
 ```
 # set your own parameters
@@ -47,7 +51,7 @@ os_disk_id=$(az vm show -d -g $vm_rg_name -n $vm_name --query "storageProfile.os
 disk_sas=$(az disk grant-access --access-level Read --duration-in-seconds 3600 --ids $os_disk_id --query "accessSas" -o tsv)
 ```
 
-### 3. Upload the VHD to a storage account
+### 4. Upload the VHD to a storage account
 Next, upload the OS disk to the storage account previously created. This disassociates the disk from a Confidential Virtual Machine (CVM) and enables it to be used for CVM-supported images. The following commands use `azcopy` to upload, if you do not already have it installed, please refer to the documentation and installation instructions [here](https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-v10?tabs=dnf).
 
 ```
@@ -55,7 +59,7 @@ export AZCOPY_AUTO_LOGIN_TYPE="AZCLI"
 azcopy copy "$disk_sas" "$vhd_uri" --blob-type PageBlob
 ```
 
-### 4. Create an image definition with security type ConfidentialVMSupported
+### 5. Create an image definition with security type ConfidentialVMSupported
 Once the OS disk has been uploaded to your storage account, you can use it to create a new image version:
 
 ```
@@ -66,14 +70,13 @@ You should now have a gallery and image definition like this: ![Image Gallery Ex
 
 
 ## Sharing to other subscriptions or tenant
-Sharing the VMI is done by assigning role assignments for the specific image. This can be configured by navigating to the `Access Control (IAM)` tab and click on `Add role assignment`. Here you can select the appropriate role (eg. `Reader`, `Contributor`) for the Azure account.
-![Add role assignment](../images/add_role_assignment.png)
+Sharing the VMI is done by using the previously mentioned Compute Gallery with the new direct share feature. Within your image gallery, under the `Sharing` tab, select `Add` and choose the option that allows you to share with your intended audience like shown here: ![External Sharing Button](../images/external_sharing.png)
 
 ## Deploying a VM based off a shared VMI
 Once the VMI has been shared, there are 3 options to use it to deploy a VM:
 
 ### 1. Using the portal
-If deploying a VM using the Azure portal, navigate to `Create a Virtual Machine`. Within the image section, select the browse option and search within the `Shared` tab as shown below: ![Shared image selection](../images/shared_images_portal.png)
+If deploying a VM using the Azure portal, navigate to `Create a Virtual Machine`. When under `Select an image` click on `Direct Shared Images (PREVIEW)` to see all the images that have been shared with your subscription or tenant and are now available for your use.
 
 ### 2. Using the Azure CLI
 If deploying a VM using the Azure CLI, ensure the image reference is in the following format, where <subscription ID>, <resource group name>, <image gallery name>, <image name>, and <version number> are replaced with those from the VMI:

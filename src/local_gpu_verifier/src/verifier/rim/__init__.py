@@ -1,7 +1,7 @@
 #
 # SPDX-FileCopyrightText: Copyright (c) 2021-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #
@@ -80,19 +80,19 @@ class RIM:
         """
         assert isinstance(parent_element, etree._Element)
         assert type(name_of_element) is str
-        
+
         for child in parent_element.getchildren():
 
             if (child.tag).find(name_of_element) != -1:
                 return child
-        
+
         return None
 
     @staticmethod
     def get_all_elements(parent_element, name_of_element):
         assert isinstance(parent_element, etree._Element)
         assert type(name_of_element) is str
-        
+
         list_of_elements = list()
         for child in parent_element.getchildren():
 
@@ -113,7 +113,7 @@ class RIM:
         if base_RIM_path is not None and content is None:
             try:
                 assert type(base_RIM_path) is str
-        
+
                 with open(base_RIM_path, 'rb') as f:
                     read_data = f.read()
 
@@ -133,7 +133,7 @@ class RIM:
         new_swidtag_tree = etree.parse(file_stream, parser) 
         new_root = new_swidtag_tree.getroot()
         return new_root
-    
+
     def validate_schema(self, schema_path):
         """ Performs the schema validation of the base RIM against a given schema.
 
@@ -153,11 +153,11 @@ class RIM:
         except Exception:
             err_msg = "\t\tRIM Schema validation failed."
             event_log.error(err_msg)
-            
+
             raise RIMSchemaValidationError(err_msg)
 
         return result
-    
+
     def get_colloquial_version(self):
         """ Parses RIM to return the driver/vbios version which is present in the RIM as
         colloquial version.
@@ -174,14 +174,14 @@ class RIM:
             err_msg = "\t\tNo Meta element found in the RIM."
             info_log.error(err_msg)
             raise ElementNotFoundError(err_msg)
-        
+
         version = Meta.attrib['colloquialVersion']
 
         if version is None or version == '':
             err_msg = "Driver version not found in the RIM."
             info_log.error(err_msg)
             raise EmptyElementError(err_msg)
-        
+
         event_log.debug(f'The driver version in the RIM file is {version}')
         version = version.lower()
         return version
@@ -223,7 +223,7 @@ class RIM:
                 err_msg = "X509Certificates not found in the RIM."
                 info_log.error(err_msg)
                 raise ElementNotFoundError(err_msg)
-            
+
             result = list()
             for i in range(len(X509Certificates) - 1):
                 header = "-----BEGIN CERTIFICATE-----\n"
@@ -245,7 +245,7 @@ class RIM:
             raise InvalidCertificateError(err_msg)
 
         return result
-    
+
     def verify_signature(self, settings):
         """ Verifies the signature of the base RIM.
         
@@ -257,9 +257,9 @@ class RIM:
                 raises RIMSignatureVerificationError.
         """
         if self.rim_name == 'driver':
-            settings.mark_driver_rim_cert_extracted_successfully()
+            event_log.info("Driver rim cert has been extracted successfully")
         else:
-            settings.mark_vbios_rim_cert_extracted_successfully()
+            event_log.info("Vbios rim cert has been extracted successfully")
         try:
             # performs the signature verification of the RIM. We will get the root of the RIM
             # if the signature verification is successful otherwise, it raises InvalidSignature exception.
@@ -274,7 +274,7 @@ class RIM:
             err_msg = "\t\t\tRIM signature verification failed."
             event_log.error(err_msg)
             raise RIMSignatureVerificationError(err_msg)
-        
+
         except Exception as error:
             info_log.error(error)
             err_msg = "\t\t\tRIM signature verification failed."
@@ -283,8 +283,12 @@ class RIM:
 
         info_log.info(f"\t\t\t{self.rim_name} RIM signature verification successful.")
         self.root = verified_root
+        if self.rim_name == 'driver':
+            settings.mark_driver_rim_cert_validated_successfully()
+        else:
+            settings.mark_vbios_rim_cert_validated_successfully()
         return True
-    
+
     def get_measurements(self):
         """ Returns the dictionary object that contains the golden measurement.
 
@@ -322,7 +326,7 @@ class RIM:
             index = int(child.attrib['index'])
             alternatives = int(child.attrib['alternatives'])
             measurements_values = list()
-            
+
             for i in range(alternatives):
                 measurements_values.append(child.attrib[settings.HashFunctionNamespace + 'Hash' + str(i)])
 
@@ -335,14 +339,14 @@ class RIM:
                                                    active = active)
             if index in self.measurements_obj:
                 raise InvalidMeasurementIndexError(f"Multiple measurement are assigned same index in {self.rim_name} rim.")
-            
+
             self.measurements_obj[index] = golden_measurement
 
         if len(self.measurements_obj) == 0:
             raise NoRIMMeasurementsError(f"\tNo golden measurements found in {self.rim_name} rim.\n\tQuitting now.")
 
         event_log.debug(f"{self.rim_name} golden measurements are : \n\t\t\t\t\t\t\t")
-        
+
         for idx in self.measurements_obj:
             event_log.debug(f"\n\t\t\t\t\t\t\t index : {idx}")
             event_log.debug(f"\t\t\t\t\t\t\t number of alternative values : {self.measurements_obj[idx].get_number_of_alternatives()}")
@@ -353,7 +357,30 @@ class RIM:
             settings.mark_rim_driver_measurements_as_available()
         else:
             settings.mark_rim_vbios_measurements_as_available()
-        
+
+    def get_manufacturer_id(self, driver_rim_content):
+        """Returns the manufacturer id of the RIM.
+        Returns:
+            [str]: the manufacturer id of the RIM.
+        """
+        root = etree.fromstring(driver_rim_content)
+
+        ns = {
+            "ns0": "http://standards.iso.org/iso/19770/-2/2015/schema.xsd",
+            "ns1": "https://trustedcomputinggroup.org/resource/tcg-reference-integrity-manifest-rim-information-model/",
+        }
+        meta = root.find(".//ns0:Meta", ns)
+        if meta is None:
+            event_log.error("Meta element not found in the RIM.")
+            return ""
+
+        firmware_manufacturer_id = meta.attrib.get(
+            "{https://trustedcomputinggroup.org/resource/tcg-reference-integrity-manifest-rim-information-model/}FirmwareManufacturerId",
+            "",
+        )
+        if not firmware_manufacturer_id:
+            event_log.error("FirmwareManufacturerId attribute not found in Meta element.")
+        return firmware_manufacturer_id
 
     def verify(self, version, settings, schema_path = ''): 
         """ Performs the schema validation if it is successful then signature verification is done.
@@ -380,7 +407,7 @@ class RIM:
 
         if self.validate_schema(schema_path = schema_path):
             info_log.info("\t\t\tRIM Schema validation passed.")
-            
+
             if self.rim_name == 'driver':
                 settings.mark_driver_rim_schema_validated()
             else:
@@ -415,13 +442,13 @@ class RIM:
 
             info_log.info(f"\t\t\t{self.rim_name} RIM certificate chain verification successful.")
 
-            rim_cert_chain_ocsp_revocation_status = CcAdminUtils.ocsp_certificate_chain_validation(rim_cert_chain, settings, mode)
+            rim_cert_chain_ocsp_revocation_status, gpu_attestation_warning = CcAdminUtils.ocsp_certificate_chain_validation(rim_cert_chain, settings, mode)
 
             if not rim_cert_chain_ocsp_revocation_status:
                 raise RIMCertChainOCSPVerificationError(f"\t\t\t{self.rim_name} RIM cert chain ocsp status verification failed.")
-            
-            return self.verify_signature(settings)
-        
+
+            return self.verify_signature(settings), gpu_attestation_warning
+
         else:            
             raise RIMSchemaValidationError(f"\t\t\tSchema validation of {self.rim_name} RIM failed.")
 
@@ -452,6 +479,6 @@ class RIM:
             settings.mark_driver_rim_fetched()
         else:
             settings.mark_vbios_rim_fetched()
- 
+
         self.colloquialVersion = self.get_colloquial_version()
         self.parse_measurements(settings)
