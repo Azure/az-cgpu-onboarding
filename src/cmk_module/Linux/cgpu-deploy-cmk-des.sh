@@ -20,7 +20,6 @@
 ##-m "deployDES.json"
 ##```
 
-
 # Initialize variables
 subscriptionId=""
 tenantId=""
@@ -39,32 +38,34 @@ cvmAgentId="bf7b6499-ff71-4aa2-97a4-f372087be7f0"
 SET-SERVICEPRINCIPAL() {
 
    # Update the list of packages
-   sudo apt-get update
-
-   sudo apt-get install -y jq
+   sudo apt-get -o DPkg::Lock::Timeout=300 update
+   sudo apt-get -o DPkg::Lock::Timeout=300 install -y jq
 
    # TODO Add check for service principal
    servicePrincipalExists=$(az ad sp list --filter "appId eq '$cvmAgentId'" | jq -r '.[].appId')
    if [ "$servicePrincipalExists" == "$cvmAgentId" ]; then
       echo "---------------------------------- Service principal [$cvmAgentId] already exists ----------------------------------"
-      
+
    else
       echo "---------------------------------- Creating service principal [$cvmAgentId] ----------------------------------"
-      
+
       # Install pre-requisite packages
-      sudo apt-get install -y wget apt-transport-https software-properties-common
+      sudo apt-get -o DPkg::Lock::Timeout=300 install -y wget apt-transport-https software-properties-common
 
       # Download the Microsoft repository GPG keys
       wget -q "https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb"
 
       # Register the Microsoft repository GPG keys
+      while sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do
+         sleep 10
+      done
       sudo dpkg -i packages-microsoft-prod.deb
 
       # Enable the "universe" repositories
       sudo add-apt-repository universe
 
       # Install PowerShell
-      sudo apt-get install -y powershell
+      sudo apt-get -o DPkg::Lock::Timeout=300 install -y powershell
 
       #- (Prerequisite) Set MgServicePrincipal
       # Install Microsoft.Graph PowerShell module
@@ -87,7 +88,6 @@ SET-SERVICEPRINCIPAL() {
       echo "---------------------------------- Service principal [$cvmAgentId] created ----------------------------------"
    fi
 
-
 }
 
 # Deploy CMK DES
@@ -107,7 +107,7 @@ DEPLOY-CMK-DES() {
          n) desName=$OPTARG;;
          m) desArmTemplate=$OPTARG;;
          \?) echo "Invalid option -$OPTARG" >&2
-               return 1
+         return 1
          ;;
       esac
    done
@@ -126,7 +126,7 @@ DEPLOY-CMK-DES() {
 
    # Login to Azure
    az account clear
-   az login --tenant $tenantId > /dev/null
+   az login --tenant $tenantId >/dev/null
    az account set --subscription $subscriptionId
    echo "---------------------------------- Login to [$subscriptionId] ----------------------------------"
 
@@ -157,7 +157,7 @@ DEPLOY-CMK-DES() {
    echo "---------------------------------- encryptionKeyVaultId [$encryptionKeyVaultId]----------------------------------"
 
    encryptionKeyURL=$(az keyvault key show --vault-name $keyVault --name $keyName --query "key.kid" -o tsv)
-   encryptionKeyURL=$(echo "$encryptionKeyURL" | tr -cd '[:alnum:]-/,.:')  
+   encryptionKeyURL=$(echo "$encryptionKeyURL" | tr -cd '[:alnum:]-/,.:')
    echo "---------------------------------- encryptionKeyURL [$encryptionKeyURL]----------------------------------"
 
    az deployment group create \
@@ -183,8 +183,7 @@ DEPLOY-CMK-DES() {
    desID=$(az disk-encryption-set show -n $desName -g $resourceGroup --query [id] -o tsv)
    desID=$(echo "$desID" | tr -cd '[:alnum:]-/,.:')
    echo "---------------------------------- [$desID] is the desID ----------------------------------"
-
 }
 
 # call DEPLOY-CMK-DES and pass all the arguments
-DEPLOY-CMK-DES "$@" 2>&1 
+DEPLOY-CMK-DES "$@" 2>&1

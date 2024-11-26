@@ -1,6 +1,6 @@
 # Confidential GPU Onboarding 
 
-Welcome! This onboarding document helps to create an Azure confidential VM with NVIDIA H100 Tensor Core GPU in Confidential Computing mode.  
+Welcome! This onboarding document helps to create an Azure Confidential VM (CVM) with NVIDIA H100 Tensor Core GPU in Confidential Computing mode.  
 
 Please note that any associated materials or documentation below are strictly confidential and subject to obligations in the Non-Disclosure Agreement (NDA) signed between Microsoft and your organization. 
 
@@ -40,22 +40,22 @@ Please make sure to follow all steps exactly as detailed. If you run into issues
 
 ## Choose your Configuration 
 
-We support the options to create confidential GPUs with Windows and Linux hosts, as well as with customer (CMK) and platform (PMK) managed keys. We recommend for first time users to try out the PMK option since it's simpler to onboard. If you want to use a one step auto-onboarding script, you can chose between the following instruction options:
+We support the options to create confidential GPUs with Windows and Linux hosts, as well as with customer (CMK) and platform (PMK) managed keys. We recommend for first time users to try out the PMK option since it's simpler to onboard. You can chose between the following instruction options depending on your preferred configuration. We have created an easy to use one-step auto-onboarding script for bash and powershell users:
 
-- [Onboarding Docs (Windows host with PMK)](docs/Confidential-GPU-H100-Onboarding-(PMK-for-Windows).md)
+- [PMK flow in Powershell](docs/Confidential-GPU-H100-Onboarding-(PMK-with-Powershell).md)
 
-- [Onboarding Docs (Linux host with PMK)](docs/Confidential-GPU-H100-Onboarding-(PMK-for-Linux).md)
+- [PMK flow in Bash](docs/Confidential-GPU-H100-Onboarding-(PMK-with-Bash).md)
 
-- [Onboarding Docs (Windows host with CMK)](docs/Confidential-GPU-H100-Onboarding-(CMK-for-Windows).md)
+- [CMK flow in Powershell](docs/Confidential-GPU-H100-Onboarding-(CMK-with-Powershell).md)
 
-- [Onboarding Docs (Linux host with CMK)](docs/Confidential-GPU-H100-Onboarding-(CMK-for-Linux).md)
+- [CMK flow in Bash](docs/Confidential-GPU-H100-Onboarding-(CMK-with-Bash).md)
 
 
 If you prefer to go through the steps manually, you can follow these instructions:
 
-- [Manual Provisioning](docs/Confidential-GPU-H100-Manual-Installation-(PMK-for-Windows).md)
+- [Manual Provisioning](docs/Confidential-GPU-H100-Manual-Installation-(PMK-with-Powershell).md)
 
-- [Manual GPU Environment Setup](docs/Confidential-GPU-H100-Manual-Installation-(PMK-for-Windows).md#upload-package)
+- [Manual GPU Environment Setup](docs/Confidential-GPU-H100-Manual-Installation-(PMK-with-Powershell).md#upload-package)
 
 ## Future Capabilities  
 

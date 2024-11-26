@@ -1,6 +1,6 @@
 ## Introduction
 
-The following steps help create a Confidential GPU Linux Virtual Machine with an H100 NVIDIA GPU.
+The following steps help create a Confidential GPU Linux Virtual Machine with an H100 NVIDIA GPU using a bash script.
 This page is using platform managed keys. More information about platform managed keys can be found here: 
 [Azure Key Management](https://learn.microsoft.com/en-us/azure/security/fundamentals/key-management).
 
@@ -21,7 +21,7 @@ This page is using platform managed keys. More information about platform manage
 - [Azure Tenant ID](https://learn.microsoft.com/en-us/azure/active-directory/fundamentals/active-directory-how-to-find-tenant#find-tenant-id-with-powershell)
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
   - Note: minimum version 2.42.0 is required, run `az --version` to check your version and run `az upgrade` to install the latest version if your version is older
-- Download [cgpu-h100-auto-onboarding-linux.tar.gz](https://github.com/Azure/az-cgpu-onboarding/releases/download/V3.0.10/cgpu-h100-auto-onboarding-linux.tar.gz) from [az-cgpu-onboarding-V3.0.10](https://github.com/Azure/az-cgpu-onboarding/releases/tag/V3.0.10)
+- Download [cgpu-h100-auto-onboarding-linux.tar.gz](https://github.com/Azure/az-cgpu-onboarding/releases/download/V3.2.1/cgpu-h100-auto-onboarding-linux.tar.gz) from [az-cgpu-onboarding-V3.2.1](https://github.com/Azure/az-cgpu-onboarding/releases/tag/V3.2.1)
 
 ----------------------------------------------------
 
@@ -38,10 +38,10 @@ This page is using platform managed keys. More information about platform manage
 E:\cgpu\.ssh>ssh-keygen -t rsa -b 4096 -C <your email here>
 ```
 
-2. Create VM using powershell script
+2. Create VM using a bash script
 - This will create a Standard_NCC40ads_H100_v5 Confidential VM with a Platform Managed Key (PMK) with secure boot enabled in your specified resource group. If the resource group doesn't exist, it will create it with the specified name under the target subscription.
 
-- Decompress downloaded [cgpu-h100-auto-onboarding-linux.tar.gz](https://github.com/Azure/az-cgpu-onboarding/releases/download/V3.0.10/cgpu-h100-auto-onboarding-linux.tar.gz) and enter the folder through your bash window.
+- Decompress downloaded [cgpu-h100-auto-onboarding-linux.tar.gz](https://github.com/Azure/az-cgpu-onboarding/releases/download/V3.2.1/cgpu-h100-auto-onboarding-linux.tar.gz) and enter the folder through your bash window.
 ```
 cd cgpu-h100-auto-onboarding-linux
 ```
