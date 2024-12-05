@@ -15,6 +15,16 @@ A: There are separate instructions for creating and sharing virtual machine imag
 2. [External VMI Creation And Sharing Instructions](docs/External-VMI-Creation-And-Sharing-Instructions.md): used between different subscriptions
 
 
+## Q: How can I check my driver version and update it?
+
+A: First please make sure all your currently running workloads are saved and termated, then run the following command to check your driver version and then update it:
+```
+sudo apt update && sudo apt upgrade
+```
+
+After running this, the VM has to be rebooted before running attestation or launching any workloads. Alternatively, please refer to the [Driver Failure Mitigation](docs/Driver-Failure-Mitigation.md) page that has detailed instructions on how to fully uninstall and reinstall the driver.
+
+
 ## Q: My CGPU driver stopped working after an unattended update, how can I fix it?
 
 A: There is an NVIDIA driver/library version mismatch which can cause a failure if you are running certain NVIDIA driver versions when your machine runs an unattended upgrade. Possible error messages you may see if this is the case are: 
@@ -24,6 +34,16 @@ A: There is an NVIDIA driver/library version mismatch which can cause a failure 
 `NVIDIA-SMI has failed because it couldn't communicate with the NVIDIA driver. Make sure that the latest NVIDIA driver is installed and running.`
 
 If this is the case for you, please refer to to the following page for more detailed mitigation instructions: [Driver Failure Mitigation](docs/Driver-Failure-Mitigation.md)
+
+
+## Q: How can I re-enable Unattended-Upgrades?
+
+A: By default, Unattended-Upgrades is disabled through our onboarding script. Unattended-Upgrades is a package for Ubuntu that allows the automatic installation of security updates. This means that critical updates are installed without user intervention, but these installations can cause potential runtime service interruptions to currently running workloads and attestation.
+
+If you would like to re-enable unattended upgrades on your VM, please run:
+```
+sudo apt install unattended-upgrades
+```
 
 
 ## Q: How can I use OpenSSL `(>=3.1.0)` for Confidential H100 GPU bandwidth improvement?

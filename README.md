@@ -12,6 +12,16 @@ Through this onboarding process, you can:
 5. Run AI Workload in HW based Trusted Execution Environments (TEE).
 6. Give us feedback and request features to help shape this VM SKU. 
 
+
+## Updates
+For existing customers, please note the following changes that have been made to the onboarding flow that may impact your VM configurations:
+
+**Dec. 4, 2024:** 
+Unattended-upgrades package has been removed by default in order to avoid potential runtime service interruptions caused by unattended driver and kernel updates. 
+This means that patches for security CVEs will not be automatically installed so important security updates must be checked for and installed manually. 
+To learn more about this change or re-enable this package, please visit our FAQ page here: [Unattended-Upgrates](Frequently-Asked-Questions.md#q-howccan-i-re-enable-unattended-upgrades?)
+
+
 ## Virtual Machine Features 
 
 - Next-generation CPUs: AMD 4th Gen EPYC processors with SEV-SNP technology to meet CPU performance for AI training/inference.
