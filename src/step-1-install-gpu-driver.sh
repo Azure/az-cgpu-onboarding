@@ -42,7 +42,7 @@ install_gpu_driver() {
 
         # Install r550 nvidia driver
         sudo apt -o DPkg::Lock::Timeout=300 install -y gcc g++ make
-        sudo apt -o DPkg::Lock::Timeout=300 install -y nvidia-driver-550-server-open linux-modules-nvidia-550-server-open-$current_kernel
+        sudo apt -o DPkg::Lock::Timeout=300 install -y nvidia-driver-550-server-open linux-modules-nvidia-550-server-open-azure
 
         # Enable persistence mode and set GPU ready state on boot
         sudo nvidia-smi -pm 1

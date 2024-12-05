@@ -6,6 +6,7 @@
 
 ENABLE_UBUNTU_PROPOSED_SOURCE_LIST=0
 ENABLE_UBUNTU_SNAPSHOT_SERVICE=0
+DISABLE_UBUNTU_UNATTENDED_UPGRADES=1
 TIMESTAMP_UBUNTU_SNAPSHOT_SERVICE=20240405T120000Z
 
 # Parse command-line arguments
@@ -35,7 +36,13 @@ if [ "$ENABLE_UBUNTU_SNAPSHOT_SERVICE" = "1" ]; then
     enable_ubuntu_snapshot_service
 fi
 
-# Due to inconsistency upgrade from VM just booting up, adding 5 second delay. 
+# Disable Ubuntu unattended upgrades
+if [ "$DISABLE_UBUNTU_UNATTENDED_UPGRADES" = "1" ]; then
+    sudo systemctl stop unattended-upgrades
+    sudo apt-get -o DPkg::Lock::Timeout=300 purge -y unattended-upgrades
+fi
+
+# Due to inconsistency upgrade from VM just booting up, adding 5 second delay.
 sleep 5
 sudo apt -o DPkg::Lock::Timeout=300 update
 sudo sed -i 's/#$nrconf{restart} = '"'"'i'"'"';/$nrconf{restart} = '"'"'a'"'"';/g' /etc/needrestart/needrestart.conf
