@@ -26,7 +26,7 @@
 # Optional parameters:
 #    location: the location of your resources (if not specified, the default is eastus2)
 #    osdisksize: the size of your OS disk (if not specified, the default is 100 GB)
-# 
+#    encryptiontype: the type of CVM encryption for the OS disk (if not specified, the default is DiskWithVMGuestState)
 # EG:
 # CGPU-H100-Onboarding `
 # -tenantid "8af6653d-c9c0-4957-ab01-615c7212a40b" `
@@ -50,6 +50,7 @@ function CGPU-H100-Onboarding{
 		$location,
 		$publickeypath,
 		$privatekeypath,
+		$encryptiontype,
 		$desid,
 		$cgpupackagepath,
 		$adminusername,
@@ -57,7 +58,7 @@ function CGPU-H100-Onboarding{
 		$osdisksize,
 		$totalvmnumber)
 
-		$ONBOARDING_PACKAGE_VERSION="v3.0.7"
+		$ONBOARDING_PACKAGE_VERSION="V3.2.1"
 		Write-Host "Confidential GPU H100 Onboarding Package Version: $ONBOARDING_PACKAGE_VERSION"
 
 		$logpath=$(Get-Date -Format "MM-dd-yyyy_HH-mm-ss")
@@ -129,6 +130,21 @@ function Auto-Onboard-CGPU-Multi-VM {
 		Write-Host "${cgpupackagepath} does not exist, please verify file path"
 	return
 	}
+
+	# Sets the encryption type to DiskWithVMGuestState if not otherwise specified
+	if (-not $encryptiontype) {
+		$encryptiontype = "DiskWithVMGuestState"
+		Write-Host "Encryption type not specified, defaulting to DiskWithVMGuestState."
+	} elseif ($encryptiontype -ne "DiskWithVMGuestState" -And $desid) {
+		Write-Host "Encryption type must be DiskWithVMGuestState if Disk Encryption Set ID is provided."
+		return
+	} elseif ($encryptiontype -eq "DiskWithVMGuestState" -Or $encryptiontype -eq "DiskWithCustomerManagedKey") {
+		Write-Host "Allowed encryption type selected."
+	} else {
+		Write-Host "Encryption type must be DiskWithVMGuestState or VMGuestStateOnly."
+		return
+	}
+	Write-Host "Encryption type: ${encryptiontype}"
 
 	Write-Host "Admin user name:  ${adminusername}"
 	Write-Host "Disk encryption set:  ${desid}"
@@ -355,7 +371,7 @@ function VM-Creation {
 				--admin-username $adminusername `
 				--ssh-key-values $publickeypath `
 				--security-type ConfidentialVM `
-				--os-disk-security-encryption-type DiskWithVMGuestState `
+				--os-disk-security-encryption-type $encryptiontype `
 				--enable-secure-boot $true `
 				--enable-vtpm $true `
 				--size Standard_NCC40ads_H100_v5 `

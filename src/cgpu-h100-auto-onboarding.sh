@@ -18,6 +18,7 @@
 # Optional Arguments:
 #    -l <region>: the location of your resources (if not specified, the default is eastus2)
 #    -o <OS disk size>: the size of your OS disk (if not specified, the default is 100 GB)
+#    -e <encryption type>: the type of CVM encryption for your OS disk (if not specified, the default is DiskWithVMGuestState)
 # 
 # Example:
 # bash secureboot-enable-onboarding-from-vmi.sh  \
@@ -36,25 +37,29 @@
 
 # Auto Create and Onboard Multiple CGPU VM with Nvidia Driver pre-installed image. 
 cgpu_h100_onboarding() {
-	while getopts t:s:r:l:p:i:d:c:a:v:o:n: flag
+	while getopts t:s:r:l:p:i:e:d:c:a:v:o:n:-: flag
 	do
 	    case "${flag}" in
-		t) tenant_id=${OPTARG};;
-		s) subscription_id=${OPTARG};;
-	        r) rg=${OPTARG};;
-		l) location=${OPTARG};;
-	        p) public_key_path=${OPTARG};;
-	        i) private_key_path=${OPTARG};;
-		d) des_id=${OPTARG};;
-	        c) cgpu_package_path=${OPTARG};;
-	        a) adminuser_name=${OPTARG};;
-	        v) vmname_prefix=${OPTARG};;
-		o) os_disk_size=${OPTARG};;
-	        n) total_vm_number=${OPTARG};;
+			t) tenant_id=${OPTARG};;
+			s) subscription_id=${OPTARG};;
+			r) rg=${OPTARG};;
+			l) location=${OPTARG};;
+			p) public_key_path=${OPTARG};;
+			i) private_key_path=${OPTARG};;
+			e) encryption_type=${OPTARG};;
+			d) des_id=${OPTARG};;
+			c) cgpu_package_path=${OPTARG};;
+			a) adminuser_name=${OPTARG};;
+			v) vmname_prefix=${OPTARG};;
+			o) os_disk_size=${OPTARG};;
+			n) total_vm_number=${OPTARG};;
+			-) case "${OPTARG}" in
+				skip-az-login) skip_az_login=true;;
+			esac;;
 	    esac
 	done
 	
-	ONBOARDING_PACKAGE_VERSION="v3.0.7"
+	ONBOARDING_PACKAGE_VERSION="V3.2.1"
 	echo "Confidential GPU H100 Onboarding Package Version: $ONBOARDING_PACKAGE_VERSION"
 
 	if [ "$(az --version | grep azure-cli)" == "" ]; then
@@ -105,6 +110,20 @@ cgpu_h100_onboarding() {
     		return
 	fi
 
+	if [[ -z "${encryption_type}" ]]; then
+		echo "Encryption type was not specified, setting to DiskWithVMGuestState."
+		encryption_type="DiskWithVMGuestState"
+	elif [[ "${encryption_type}" != "DiskWithVMGuestState" && -n "${des_id}" ]]; then
+		echo "CMK only supports encryption type DiskWithVMGuestState."
+		return
+	elif [[ "$encryption_type" == "DiskWithVMGuestState" ]] || [[ "$encryption_type" == "VMGuestStateOnly" ]]; then
+		echo "Allowed encryption type set."
+	else
+		echo "Encryption type must be DiskWithVMGuestState or VMGuestStateOnly."
+		return
+	fi
+ 	echo "Encryption type: ${encryption_type}"
+
 	echo "Disk encryption Id: ${des_id}"
 
 	echo "Cgpu onboarding package path:  ${cgpu_package_path}"
@@ -130,9 +149,14 @@ cgpu_h100_onboarding() {
 
 	echo "Total VM number:  ${total_vm_number}"
 
-	echo "Clear previous account info."
-	az account clear
-	az login --tenant ${tenant_id} > "$log_dir/login-operation.log"
+	if [[ -n "${skip_az_login}" ]]; then
+		echo "Skipping az login"
+	else
+		echo "Clear previous account info."
+		az account clear
+		az login --tenant ${tenant_id} > "$log_dir/login-operation.log"
+	fi
+
 	az account set --subscription $subscription_id >> "$log_dir/login-operation.log"
 	az config set core.display_region_identified=false
 
@@ -184,7 +208,9 @@ cgpu_h100_onboarding() {
 	echo "sudo docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/${adminuser_name}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:24.05-tf2-py3 python /home/mnist-sample-workload.py";
 	echo "******************************************************************************************"
 
-	az account clear
+	if [[ -z "${skip_az_login}" ]]; then
+		az account clear
+	fi
 }
 
 # Checks that user has access to direct share image
@@ -371,7 +397,7 @@ create_vm() {
 				--admin-username $adminuser_name \
 				--ssh-key-values $public_key_path_with_at \
 				--security-type ConfidentialVM \
-				--os-disk-security-encryption-type DiskWithVMGuestState \
+				--os-disk-security-encryption-type $encryption_type \
 				--enable-secure-boot true \
 				--enable-vtpm true \
 				--size Standard_NCC40ads_H100_v5 \
@@ -391,7 +417,7 @@ create_vm() {
 }
 
 validation() {
-	echo "Validate Confidential GPU capability."	
+	echo "Validate Confidential GPU capability."
 	try_connect
 	
 	secure_boot_state=$(ssh -i $private_key_path $vm_ssh_info "mokutil --sb-state;")

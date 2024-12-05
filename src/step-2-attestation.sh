@@ -9,7 +9,6 @@
 ##
 
 REQUIRED_DRIVER_INTERFACE_VERSION="550.54.14"
-MAX_RETRY=3
 
 attestation() {
     # verify nvdia gpu driver has been install correctly.
@@ -26,26 +25,15 @@ attestation() {
         pushd .
         cd local_gpu_verifier && echo "Open verifier folder successfully!"
 
-        sudo apt install -y python3-pip
+        sudo apt -o DPkg::Lock::Timeout=300 update
+        sudo apt -o DPkg::Lock::Timeout=300 install -y python3-pip
         sudo pip install -U pip
-        sudo apt install -y python3.10-venv
+        sudo apt -o DPkg::Lock::Timeout=300 install -y python3.10-venv
 
         #source ./prodtest/bin/activate
         sudo pip3 install .
         sudo python3 -m verifier.cc_admin
         popd >/dev/null
-
-        lockError=$(cat logs/current-operation.log | grep "Could not get lock")
-        if [ "$lockError" != "" ] && [ $MAX_RETRY \> 0 ]; then
-            # start of retry, clean up current-operation log.
-            MAX_RETRY=$((MAX_RETRY - 1)) >logs/current-operation.log
-            echo "Found lock error retry attestation step."
-            echo "Retry left:"
-            echo $MAX_RETRY
-            sudo apt-get install -y libgl1 binutils xserver-xorg-core
-            sudo apt --fix-broken install
-            attestation "$@"
-        fi
     fi
 }
 

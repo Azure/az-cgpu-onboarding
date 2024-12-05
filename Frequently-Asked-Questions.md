@@ -2,10 +2,28 @@
 
 Below are a list of frequently asked questions and answers.
 
+## Q: How can I get quota for creating an NCC CGPU VM?
+
+A: Details for the specific process to be granted quota for an NCC CGPU VM can be found on the [CGPU Quota](docs/CGPU-Quota.md) page.
+
 
 ## Q: How can I capture an image of my CGPU VM and share it?
 
-A: Please refer to this page that contains detailed information on different VMI scenarios and which options are supported: [VMI Sharing Instructions](VMI-Sharing-Instructions.md)
+A: There are separate instructions for creating and sharing virtual machine images (VMIs) for within-subscription and across-subscription use cases. Please refer to the document that is applicable to your situation: 
+
+1. [Internal VMI Creation And Sharing Instructions](docs/Internal-VMI-Creation-And-Sharing-Instructions.md): used within the same subscription
+2. [External VMI Creation And Sharing Instructions](docs/External-VMI-Creation-And-Sharing-Instructions.md): used between different subscriptions
+
+
+## Q: My CGPU driver stopped working after an unattended update, how can I fix it?
+
+A: There is an NVIDIA driver/library version mismatch which can cause a failure if you are running certain NVIDIA driver versions when your machine runs an unattended upgrade. Possible error messages you may see if this is the case are: 
+
+`Failed to initialize NVML: Driver/Library version mismatch` or 
+
+`NVIDIA-SMI has failed because it couldn't communicate with the NVIDIA driver. Make sure that the latest NVIDIA driver is installed and running.`
+
+If this is the case for you, please refer to to the following page for more detailed mitigation instructions: [Driver Failure Mitigation](docs/Driver-Failure-Mitigation.md)
 
 
 ## Q: How can I use OpenSSL `(>=3.1.0)` for Confidential H100 GPU bandwidth improvement?
@@ -18,12 +36,12 @@ Run the following command to install it:
 ```
 sudo bash utilities-install-openssl.sh
 ```
-For more specifics on H100 GPU bandwidth using the different versions of SSL, refer to the [OpenSSL-Details](OpenSSL-Details.md) page.
+For more specifics on H100 GPU bandwidth using the different versions of SSL, refer to the [OpenSSL-Details](docs/OpenSSL-Details.md) page.
 
 
 ## Q: How can I deploy my CGPU VM manually if I don't want to run the auto-onboarding scripts?
 
-A: We have detailed out the options to deploy a CGPU VM manually [here](Confidential-GPU-H100-Manual-Installation-(PMK-for-Windows).md). It also contains the following steps needed to fully set up the CGPU environment in order to run a sample workload.
+A: We have detailed out the options to deploy a CGPU VM manually [here](docs/Confidential-GPU-H100-Manual-Installation-(PMK-for-Windows).md). It also contains the following steps needed to fully set up the CGPU environment in order to run a sample workload.
 
 
 ## Q: Why does the `dmesg` not display `AMD SEV-SNP`?
@@ -36,9 +54,23 @@ CPUD leaf 0x4000000C’s EAX.bit0 is 1, and EBX.bit 0~3 is 2.
 
 NVIDIA is working on implementing SEV-SNP checks for Hyper-V and are planning on will releasing it with the TRD5 release in September 2024.
 
+
+## Q: How can I check my CGPU VM's HyperV SEV-SNP status is enabled?
+
+A: Use the following command to check the HyperV SEV-SNP enablement on your machine: 
+```
+sudo apt-get update
+sudo apt install cpuid
+cpuid -l 0x4000000C -1 | awk '$4 ~ /^ebx=.*2$/ { print "AMD SEV-SNP is enabled"}'
+```
+
+For more detailed information on how to perform guest attestation for Azure SEV-SNP CVM, please refer to the following page: [SNP Guest Attestation](docs/SNP-Guest-Attestation-Verification.md)
+
+
 ## Q: Can I get NVMe support for my CGPU VM?
 
 A: NVMe support is currently not supported for CGPU VMs, but this feature is being worked on for future releases. There are bugs that show NVMe attachment support when creating CGPU VMs from the Azure portal which we are working to resolve.
 
+
 ## Q: My question is not listed above, where can I find the answer?
-If you are using an older release version and your question is not listed below, please try checking the [Legacy FAQ](Legacy-FAQ.md) page.
+If you are using an older release version and your question is not listed below, please try checking the [Legacy FAQ](docs/Legacy-FAQ.md) page.
