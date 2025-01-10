@@ -2,8 +2,6 @@
 
 Welcome! This onboarding document helps to create an Azure Confidential VM (CVM) with NVIDIA H100 Tensor Core GPU in Confidential Computing mode.  
 
-Please note that any associated materials or documentation below are strictly confidential and subject to obligations in the Non-Disclosure Agreement (NDA) signed between Microsoft and your organization. 
-
 Through this onboarding process, you can:
 1. Deploy a secure boot enabled Azure confidential virtual machine. 
 2. Attach One (1) NVIDIA H100 PCIe Tensor Core GPU in Confidential Computing mode.
