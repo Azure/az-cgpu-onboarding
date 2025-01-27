@@ -5,10 +5,22 @@
 ##      Minimum kernel version:     6.5.0-1017-azure
 ##
 ## Example:
-##      sudo bash step-2-attestation.sh
+##      sudo bash step-2-attestation.sh [--install-to-usr-local]
 ##
 
 REQUIRED_DRIVER_INTERFACE_VERSION="550.54.14"
+INSTALL_TO_USR_LOCAL=0
+
+# Parse command-line arguments
+if [ $# -ne 0 ]; then
+    if [ "$1" = "--install-to-usr-local" ]; then
+        INSTALL_TO_USR_LOCAL=1
+    else
+        echo "Invalid argument: $1"
+        echo "Usage: $0 [--install-to-usr-local]"
+        exit 1
+    fi
+fi
 
 attestation() {
     # verify nvdia gpu driver has been install correctly.
@@ -20,19 +32,37 @@ attestation() {
         echo "Please retry step-1-install-gpu-driver."
     else
         echo "Current driver version: $current_driver_interface_version"
-        mkdir local_gpu_verifier
-        tar -xvf local_gpu_verifier.tar -C local_gpu_verifier
-        pushd .
-        cd local_gpu_verifier && echo "Open verifier folder successfully!"
 
+        # Install Python3 pip and venv
         sudo apt -o DPkg::Lock::Timeout=300 update
-        sudo apt -o DPkg::Lock::Timeout=300 install -y python3-pip
-        sudo pip install -U pip
-        sudo apt -o DPkg::Lock::Timeout=300 install -y python3.10-venv
+        sudo apt -o DPkg::Lock::Timeout=300 install -y python3-pip python3-venv
 
-        #source ./prodtest/bin/activate
-        sudo pip3 install .
-        sudo python3 -m verifier.cc_admin
+        # Install to /usr/local/lib
+        if [ "$INSTALL_TO_USR_LOCAL" = "1" ]; then
+            echo "Installing local_gpu_verifier in /usr/local/lib"
+
+            # Remove existing folder if present
+            if [ -d "/usr/local/lib/local_gpu_verifier" ]; then
+                echo "Removing existing /usr/local/lib/local_gpu_verifier"
+                sudo rm -rf "/usr/local/lib/local_gpu_verifier"
+            fi
+
+            sudo mkdir -p /usr/local/lib/local_gpu_verifier
+            sudo tar -xvf local_gpu_verifier.tar -C /usr/local/lib/local_gpu_verifier
+            pushd /usr/local/lib/local_gpu_verifier >/dev/null
+
+        # Install to current folder
+        else
+            mkdir local_gpu_verifier
+            tar -xvf local_gpu_verifier.tar -C local_gpu_verifier
+            pushd ./local_gpu_verifier >/dev/null
+        fi
+        echo "Open verifier folder successfully!"
+
+        sudo rm -rf ./prodtest
+        sudo python3 -m venv ./prodtest
+        sudo ./prodtest/bin/python3 -m pip install .
+        sudo ./prodtest/bin/python3 -m verifier.cc_admin
         popd >/dev/null
     fi
 }

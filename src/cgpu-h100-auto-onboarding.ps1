@@ -27,6 +27,10 @@
 #    location: the location of your resources (if not specified, the default is eastus2)
 #    osdisksize: the size of your OS disk (if not specified, the default is 100 GB)
 #    encryptiontype: the type of CVM encryption for the OS disk (if not specified, the default is DiskWithVMGuestState)
+#	 osdistribution [Ubuntu22.04, Ubuntu24.04]: the OS distribution of the VM (if not specified, the default is Ubuntu22.04)
+#	 skipazlogin: skip az login if you have already logged in
+#	 installgpuverifier: install gpu verifier to /usr/local/lib/local_gpu_verifier
+#
 # EG:
 # CGPU-H100-Onboarding `
 # -tenantid "8af6653d-c9c0-4957-ab01-615c7212a40b" `
@@ -56,9 +60,14 @@ function CGPU-H100-Onboarding{
 		$adminusername,
 		$vmnameprefix,
 		$osdisksize,
-		$totalvmnumber)
+		$totalvmnumber,
+		[ValidateSet("Ubuntu22.04", "Ubuntu24.04", ErrorMessage="Unsupported OS Distribution. Please choose either Ubuntu22.04 or Ubuntu24.04.")]
+		[string]$osdistribution="Ubuntu22.04",
+		[bool]$skipazlogin=$false,
+		[bool]$installgpuverifier=$false
+		)
 
-		$ONBOARDING_PACKAGE_VERSION="V3.2.2"
+		$ONBOARDING_PACKAGE_VERSION="V3.2.3"
 		Write-Host "Confidential GPU H100 Onboarding Package Version: $ONBOARDING_PACKAGE_VERSION"
 
 		$logpath=$(Get-Date -Format "MM-dd-yyyy_HH-mm-ss")
@@ -150,6 +159,7 @@ function Auto-Onboard-CGPU-Multi-VM {
 	Write-Host "Disk encryption set:  ${desid}"
 	Write-Host "Vm Name prefix:  ${vmnameprefix}"
 	Write-Host "Total VM number:  ${totalvmnumber}"
+	Write-Host "OS distribution:  ${osdistribution}"
 
 	# Makes sure the OS disk size is set to an allowed value
 	if (-not $osdisksize) {
@@ -165,11 +175,16 @@ function Auto-Onboard-CGPU-Multi-VM {
 	}
 	Write-Host "OS disk size: ${osdisksize}"
 
-	Write-Host "Clear previous account info."
-	az account clear
-	az login --tenant $tenantid 2>&1 | Out-File -filepath ".\logs\$logpath\login-operation.log"
-	az account set --subscription $subscriptionid
-	az account show
+	if ($skipazlogin) {
+		Write-Host "Skipping az login"
+	}
+	else {
+		Write-Host "Clear previous account info."
+		az account clear
+		az login --tenant $tenantid 2>&1 | Out-File -filepath ".\logs\$logpath\login-operation.log"
+		az account set --subscription $subscriptionid
+		az account show
+	}
 
 	$global:issuccess = "succeeded"
 	Prepare-Subscription-And-Rg 2>&1 | Out-File -filepath ".\logs\$logpath\login-operation.log"
@@ -216,7 +231,9 @@ function Auto-Onboard-CGPU-Multi-VM {
 	Write-Host "Total VM to onboard: ${totalvmnumber}, total Success: ${successcount}."
 	Write-Host "Detailed logs can be found at: .\logs\$logpath"
 	
-	az account clear
+	if (-not $skipazlogin) {
+		az account clear
+	}
 }
 
 function Prepare-Subscription-And-Rg {
@@ -355,6 +372,11 @@ function VM-Creation {
 	$global:issuccess = "failed"
 
 	$publickeypath="@${publickeypath}"
+	switch ($osdistribution) {
+		"Ubuntu22.04" { $imagename = "Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm" }
+		"Ubuntu24.04" { $imagename = "Canonical:ubuntu-24_04-lts:cvm" }
+		default { Write-Host "Unsupported OS Distribution"; return }
+	}
 	$imageversion = "latest"
 
 	# Check if VM name already exists within given resource group
@@ -366,7 +388,7 @@ function VM-Creation {
 				--resource-group $rg `
 				--name $vmname `
 				--location $location `
-				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:$imageversion `
+				--image ${imagename}:${imageversion} `
 				--public-ip-sku Standard `
 				--admin-username $adminusername `
 				--ssh-key-values $publickeypath `
@@ -383,7 +405,7 @@ function VM-Creation {
 				--resource-group $rg `
 				--name $vmname `
 				--location $location `
-				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:$imageversion `
+				--image ${imagename}:${imageversion} `
 				--public-ip-sku Standard `
 				--admin-username $adminusername `
 				--ssh-key-values $publickeypath `
@@ -506,8 +528,13 @@ function Attestation {
 	}
 	Write-Host "VM connection success."
 
+	if ($installgpuverifier) {
+		$attstationcommand = "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh --install-to-usr-local;"
+	} else {
+		$attstationcommand = "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh;"
+	}
 	Write-Host "Start installing attestation package - this may take up to 5 minutes."
-	echo $(ssh  -i ${privatekeypath} ${vmsshinfo} "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh;") 2>&1 | Out-File -filepath ".\logs\$logpath\attestation.log"
+	echo $(ssh  -i ${privatekeypath} ${vmsshinfo} ${attstationcommand}) 2>&1 | Out-File -filepath ".\logs\$logpath\attestation.log"
 
 	$attestationmessage=(Get-content -tail 20 .\logs\$logpath\attestation.log)
 	echo $attestationmessage

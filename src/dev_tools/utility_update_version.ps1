@@ -6,8 +6,19 @@
 #
 
 # Goes through all .md documentation files and onboarding scripts to replace versions
+
+# Allows version value to be passed in from pipeline or gets read from version.txt file if run manually
+param(
+    [string]$newVersion
+)
+
 function Replace-Release-Versions {
-    Write-Output "in replace"
+    if (-not $newVersion) {
+        Write-Output "No default given, reading in from version.txt"
+        $newVersion = Get-Content -Path "..\version.txt"
+    } else {
+        Write-Output "New version passed in is: $newVersion"
+    }
 
     # Get all .md onboarding files and onboarding scripts
     $filesToUpdate = Get-ChildItem -Path "..\..\docs\" -Filter *.md
@@ -46,10 +57,17 @@ function Replace-Release-Versions {
         # Output the file processed (optional)
         Write-Output "Finished updating: $file"
     }
-}
 
-# Gets the release version from release_version.txt
-$newVersion = Get-Content -Path "..\version.txt"
+    # Update the pipeline with only version number (no 'V')
+    $pipelineFile = Get-Item -Path "..\..\.pipelines\release\Acc-CGPU-Onboarding-Release.Buddy.yml"
+    $newVersionNumber = $newVersion.Substring(1)
+    $oldVersionNumber = $patternMatch.Value.Substring(1)
+    $content = Get-Content -Path $pipelineFile.FullName
+    $updatedContent = $content -replace [regex]::Escape($oldVersionNumber), $newVersionNumber
+    Set-Content -Path $pipelineFile.FullName -Value $updatedContent
+    Write-Output "Finished updating: $pipelineFile"
+
+}
 
 # Replaces occurrences in all .md and onboarding script files
 Replace-Release-Versions

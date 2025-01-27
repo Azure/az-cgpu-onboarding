@@ -19,6 +19,9 @@
 #    -l <region>: the location of your resources (if not specified, the default is eastus2)
 #    -o <OS disk size>: the size of your OS disk (if not specified, the default is 100 GB)
 #    -e <encryption type>: the type of CVM encryption for your OS disk (if not specified, the default is DiskWithVMGuestState)
+#    --os-distribution [Ubuntu22.04, Ubuntu24.04]: the OS distribution for your VM (if not specified, the default is Ubuntu22.04)
+#    --skip-az-login: skip az login
+#    --install-gpu-verifier-to-usr-local: install gpu verifier to /usr/local/lib/local_gpu_verifier
 # 
 # Example:
 # bash secureboot-enable-onboarding-from-vmi.sh  \
@@ -37,6 +40,10 @@
 
 # Auto Create and Onboard Multiple CGPU VM with Nvidia Driver pre-installed image. 
 cgpu_h100_onboarding() {
+	# Default argument values
+	os_distribution="Ubuntu22.04"
+
+	# Parse input arguments
 	while getopts t:s:r:l:p:i:e:d:c:a:v:o:n:-: flag
 	do
 	    case "${flag}" in
@@ -54,12 +61,14 @@ cgpu_h100_onboarding() {
 			o) os_disk_size=${OPTARG};;
 			n) total_vm_number=${OPTARG};;
 			-) case "${OPTARG}" in
+				os-distribution) os_distribution="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ));;
 				skip-az-login) skip_az_login=true;;
+				install-gpu-verifier-to-usr-local) install_gpu_verifier_to_usr_local=true;;
 			esac;;
 	    esac
 	done
 	
-	ONBOARDING_PACKAGE_VERSION="V3.2.2"
+	ONBOARDING_PACKAGE_VERSION="V3.2.3"
 	echo "Confidential GPU H100 Onboarding Package Version: $ONBOARDING_PACKAGE_VERSION"
 
 	if [ "$(az --version | grep azure-cli)" == "" ]; then
@@ -148,6 +157,13 @@ cgpu_h100_onboarding() {
  	echo "OS disk size: ${os_disk_size}" 
 
 	echo "Total VM number:  ${total_vm_number}"
+	
+	echo "OS distribution:  ${os_distribution}"
+	valid_os_distribution=("Ubuntu22.04" "Ubuntu24.04")
+	if [[ ! " ${valid_os_distribution[@]} " =~ " ${os_distribution} " ]]; then
+		echo "Unsupported OS Distribution. Please choose either Ubuntu22.04 or Ubuntu24.04."
+		return
+	fi
 
 	if [[ -n "${skip_az_login}" ]]; then
 		echo "Skipping az login"
@@ -327,7 +343,11 @@ install_gpu_driver() {
 attestation() {
 	try_connect
 	echo "Start verifier installation and attestation. Please wait, this process can take up to 2 minutes."
-	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh;"
+	if [[ -n "${install_gpu_verifier_to_usr_local}" ]]; then
+		ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh --install-to-usr-local;"
+	else
+		ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh;"
+	fi
 	#ssh -i $private_key_path $vm_ssh_info 'cd cgpu-onboarding-package/$(ls -1 cgpu-onboarding-package | grep verifier | head -1); sudo python3 cc_admin.py'
 	echo "Finished attestation."
 }
@@ -360,6 +380,20 @@ create_vm() {
 	echo "Start creating VM: '${vmname}'. Please wait, this process can take up to 10 minutes."
 
 	public_key_path_with_at="@$public_key_path"
+
+	case "$os_distribution" in
+		"Ubuntu22.04")
+			image_name="Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm"
+			;;
+		"Ubuntu24.04")
+			image_name="Canonical:ubuntu-24_04-lts:cvm"
+			;;
+		*)
+			echo "Unsupported OS distribution. Please choose either Ubuntu22.04 or Ubuntu24.04."
+			is_success="failed"
+			return
+			;;
+	esac
 	image_version="latest"
 
 	# Check if VM name already exists within given resource group (returns 1 if exists, 0 if not)
@@ -373,7 +407,7 @@ create_vm() {
 				--resource-group $rg \
 				--name $vmname \
 				--location $location \
-				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:$image_version \
+				--image $image_name:$image_version \
 				--public-ip-sku Standard \
 				--admin-username $adminuser_name \
 				--ssh-key-values $public_key_path_with_at \
@@ -392,7 +426,7 @@ create_vm() {
 				--resource-group $rg \
 				--name $vmname \
 				--location $location \
-				--image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:$image_version \
+				--image $image_name:$image_version \
 				--public-ip-sku Standard \
 				--admin-username $adminuser_name \
 				--ssh-key-values $public_key_path_with_at \
