@@ -327,7 +327,7 @@ upload_package() {
 update_kernel() {
 	try_connect
 	echo "Start update kernel."
-	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; bash step-0-prepare-kernel.sh;" 
+	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; bash step-0-prepare-kernel.sh 2>&1;" 
 	echo "Finished update kernel."
 	echo "Rebooting.."
 }
@@ -335,7 +335,7 @@ update_kernel() {
 install_gpu_driver() {
 	try_connect
 	echo "Start install gpu driver"
-	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; bash step-1-install-gpu-driver.sh;" 
+	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; bash step-1-install-gpu-driver.sh 2>&1;" 
 	echo "Finished install gpu driver"
 }
 
@@ -344,9 +344,9 @@ attestation() {
 	try_connect
 	echo "Start verifier installation and attestation. Please wait, this process can take up to 2 minutes."
 	if [[ -n "${install_gpu_verifier_to_usr_local}" ]]; then
-		ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh --install-to-usr-local;"
+		ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh --install-to-usr-local 2>&1;"
 	else
-		ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh;"
+		ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh 2>&1;"
 	fi
 	#ssh -i $private_key_path $vm_ssh_info 'cd cgpu-onboarding-package/$(ls -1 cgpu-onboarding-package | grep verifier | head -1); sudo python3 cc_admin.py'
 	echo "Finished attestation."
@@ -355,7 +355,7 @@ attestation() {
 install_gpu_tool() {
 	try_connect
 	echo "Start install gpu tool."
-	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; echo Y | bash step-3-install-gpu-tools.sh;" 
+	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; echo Y | bash step-3-install-gpu-tools.sh 2>&1;" 
 	echo "Finished install gpu tool."
 }
 
