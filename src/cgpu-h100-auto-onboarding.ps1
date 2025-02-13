@@ -506,6 +506,8 @@ function Install-GPU-Driver {
 	} 
 	Write-Host "VM connection success."
 
+ 	Start-sleep -Seconds 120
+
 	Write-Host "Start GPU Driver install."
 	ssh  -i ${privatekeypath} ${vmsshinfo} "cd cgpu-onboarding-package; bash step-1-install-gpu-driver.sh;"
 	Write-Host "Finished install driver."
