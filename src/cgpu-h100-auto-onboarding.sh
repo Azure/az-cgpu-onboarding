@@ -334,7 +334,11 @@ update_kernel() {
 
 install_gpu_driver() {
 	try_connect
+
+ 	sleep 120
+  
 	echo "Start install gpu driver"
+ 	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; cat step-1-install-gpu-driver.sh 2>&1;" 
 	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; bash step-1-install-gpu-driver.sh 2>&1;" 
 	echo "Finished install gpu driver"
 }
