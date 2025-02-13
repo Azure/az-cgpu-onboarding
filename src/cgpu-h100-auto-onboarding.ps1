@@ -506,7 +506,7 @@ function Install-GPU-Driver {
 	} 
 	Write-Host "VM connection success."
 
- 	Start-sleep -Seconds 120
+ 	Start-sleep -Seconds 15
 
 	Write-Host "Start GPU Driver install."
 	ssh  -i ${privatekeypath} ${vmsshinfo} "cd cgpu-onboarding-package; bash step-1-install-gpu-driver.sh;"
@@ -583,7 +583,7 @@ function Try-Connect {
 	while ($connectionoutput -ne "connected" -and $currentRetry -lt $maxretrycount)
 	{
 		Write-Host "Trying to connect";
-		$connectionoutput=ssh -i ${privatekeypath} -o "StrictHostKeyChecking no" ${vmsshinfo} "sudo echo 'connected'; "
+		$connectionoutput=ssh -i ${privatekeypath} -o "StrictHostKeyChecking no" ${vmsshinfo} "bash -c 'echo \"connect\"'"
 		echo $connectionoutput
 		if ($connectionoutput -eq "connected") {
 			$global:issuccess = "succeeded"
