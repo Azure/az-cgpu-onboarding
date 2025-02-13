@@ -335,7 +335,7 @@ update_kernel() {
 install_gpu_driver() {
 	try_connect
 
- 	sleep 120
+ 	sleep 15
   
 	echo "Start install gpu driver"
  	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; cat step-1-install-gpu-driver.sh 2>&1;" 
@@ -371,7 +371,7 @@ try_connect() {
    connectionoutput=""
    while [[ "$connectionoutput" != "Connected to VM" ]] && [[ $retries -lt $MAX_RETRY ]];
    do
-       connectionoutput=$(ssh -i "${private_key_path}" -o "StrictHostKeyChecking=no" "${vm_ssh_info}" "echo 'Connected to VM';")
+	connectionoutput=$(ssh -i "${private_key_path}" -o "StrictHostKeyChecking=no" "${vm_ssh_info}" "bash -c \"echo 'Connected to VM'\"") 
        echo $connectionoutput
 	   sleep 1
        retries=$((retries+1))
