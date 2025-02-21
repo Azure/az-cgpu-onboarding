@@ -583,7 +583,7 @@ function Try-Connect {
 	while ($connectionoutput -ne "connected" -and $currentRetry -lt $maxretrycount)
 	{
 		Write-Host "Trying to connect";
-		$connectionoutput=ssh -i ${privatekeypath} -o "StrictHostKeyChecking no" ${vmsshinfo} "bash -c 'echo \"connect\"'"
+		$connectionoutput=ssh -i ${privatekeypath} -o "StrictHostKeyChecking no" ${vmsshinfo} "bash -c 'echo \"connected\"'"
 		echo $connectionoutput
 		if ($connectionoutput -eq "connected") {
 			$global:issuccess = "succeeded"
