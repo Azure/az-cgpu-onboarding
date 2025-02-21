@@ -185,23 +185,23 @@ def main():
         sys.exit(1)
 
 
-def collect_gpu_evidence(nonce: str, no_gpu_mode=False):
+def collect_gpu_evidence(nonce: str, no_gpu_mode=False, standalone_mode=True):
     """Method to Collect GPU Evidence used by Attestation SDK
     Args:
         nonce (String): Hex string representation of Nonce
         no_gpu_mode (Boolean): Represents if the function should run in No GPU (test) mode
+        standalone_mode (Boolean): Represents if the function should run in Standalone mode
     Returns:
         list of NVMLHandler objects containing GPU Evidence
     """
     info_log.debug("collect_gpu_evidence called")
     evidence_list = []
     try:
-        init_nvml()
         if no_gpu_mode:
             evidence_nonce = BaseSettings.NONCE
             number_of_available_gpus = NvmlHandlerTest.get_number_of_gpus()
         else:
-            init_nvml()
+            init_nvml(standalone_mode=standalone_mode)
             evidence_nonce = CcAdminUtils.validate_and_extract_nonce(nonce)
 
             number_of_available_gpus = NvmlHandler.get_number_of_gpus()
@@ -226,26 +226,28 @@ def collect_gpu_evidence(nonce: str, no_gpu_mode=False):
         return evidence_list
 
 
-def collect_gpu_evidence_local(nonce: str, no_gpu_mode=False):
+def collect_gpu_evidence_local(nonce: str, no_gpu_mode=False, standalone_mode=True):
     """Method to Collect GPU Evidence for Local GPU Attestation workflow
     Args:
         nonce (String): Hex string representation of Nonce
         no_gpu_mode (Boolean): Represents if the function should run in No GPU (test) mode
+        standalone_mode (Boolean): Represents if the function should run in Standalone mode
     Returns:
         list of NVMLHandler objects containing GPU Evidence
     """
-    return collect_gpu_evidence(nonce, no_gpu_mode)
+    return collect_gpu_evidence(nonce, no_gpu_mode, standalone_mode)
 
 
-def collect_gpu_evidence_remote(nonce: str, no_gpu_mode=False):
+def collect_gpu_evidence_remote(nonce: str, no_gpu_mode=False, standalone_mode=True):
     """Method to Collect GPU Evidence for Remote GPU Attestation workflow
     Args:
         nonce (String): Hex string representation of Nonce
         no_gpu_mode (Boolean): Represents if the function should run in No GPU (test) mode
+        standalone_mode (Boolean): Represents if the function should run in Standalone mode
     Returns:
         GPU Evidence list containing Base64 Encoded GPU certificate chain and Attestation Report as Hex String
     """
-    evidence_list = collect_gpu_evidence(nonce, no_gpu_mode)
+    evidence_list = collect_gpu_evidence(nonce, no_gpu_mode, standalone_mode)
     remote_evidence_list = []
     for gpu_info_obj in evidence_list:
         gpu_cert_chain = gpu_info_obj.get_attestation_cert_chain()
@@ -260,26 +262,43 @@ def collect_gpu_evidence_remote(nonce: str, no_gpu_mode=False):
     return remote_evidence_list
 
 
-def init_nvml():
+def init_nvml(standalone_mode: bool):
     """Method to Initialize NVML library"""
-    event_log.debug("Initializing the nvml library")
-    NvmlHandler.init_nvml()
-    # Ensuring that the system is running either in Confidential Compute mode or PPCIE mode
-    if not NvmlHandler.is_cc_enabled() and not NvmlHandler.is_ppcie_mode_enabled():
-        event_log.debug(
-            "The confidential compute is",
-            NvmlHandler.is_cc_enabled(),
-            "and the PPCIE mode is",
-            NvmlHandler.is_ppcie_mode_enabled(),
-        )
-        err_msg = (
-            "The confidential compute feature and PPCIE mode is disabled !! Exiting now. Please enable one of "
-            "the feature and try again"
-        )
-        raise Error(err_msg)
+    try:
+        event_log.debug("Initializing the nvml library")
+        NvmlHandler.init_nvml()
 
-    if NvmlHandler.is_cc_dev_mode():
-        info_log.info("The system is running in CC DevTools mode !!")
+        # Ensuring that the system is running either in Confidential Compute mode or PPCIE mode
+        if not NvmlHandler.is_cc_enabled() and not NvmlHandler.is_ppcie_mode_enabled():
+            event_log.debug(
+                "The confidential compute is",
+                NvmlHandler.is_cc_enabled(),
+                "and the PPCIE mode is",
+                NvmlHandler.is_ppcie_mode_enabled(),
+            )
+            err_msg = (
+                "The confidential compute feature and PPCIE mode is disabled !! Exiting now. Please enable one of "
+                "the feature and try again"
+            )
+            info_log.error(err_msg)
+            sys.exit()
+
+        if NvmlHandler.is_ppcie_mode_enabled() and standalone_mode:
+            err_msg = (
+                "Attestation Failed! Attestation in standalone mode is not supported for PPCIE system. Exiting "
+                "now."
+            )
+            info_log.error(err_msg)
+            sys.exit()
+
+        if NvmlHandler.is_cc_dev_mode():
+            info_log.info("The system is running in CC DevTools mode !!")
+
+    except Exception as error:
+        info_log.error(
+            "Error occurred while initializing the NVML library. Error: %s", error
+        )
+        sys.exit()
 
 
 def attest(arguments_as_dictionary, nonce, gpu_evidence_list):
@@ -495,11 +514,16 @@ def attest(arguments_as_dictionary, nonce, gpu_evidence_list):
                 driver_rim = RIM(rim_name="driver", settings=settings, rim_path=settings.DRIVER_RIM_PATH)
             else:
                 info_log.info("\t\t\tFetching the driver RIM from the RIM service.")
-                driver_rim_file_id = CcAdminUtils.get_driver_rim_file_id(driver_version)
-                driver_rim_content = CcAdminUtils.fetch_rim_file(
-                    driver_rim_file_id, BaseSettings.RIM_SERVICE_RETRY_COUNT
-                )
-                driver_rim = RIM(rim_name="driver", settings=settings, content=driver_rim_content)
+                try:
+                    driver_rim_file_id = CcAdminUtils.get_driver_rim_file_id(driver_version)
+                    driver_rim_content = CcAdminUtils.fetch_rim_file(
+                        driver_rim_file_id, BaseSettings.RIM_SERVICE_RETRY_COUNT
+                    )
+                    driver_rim = RIM(rim_name="driver", settings=settings, content=driver_rim_content)
+                except Exception as error:
+                    info_log.error(f"Error occurred while fetching the driver RIM from the RIM service due to {error}")
+                    sys.exit()
+                
                 try:
                     driver_rim_manufacturer_id = driver_rim.get_manufacturer_id(driver_rim_content)
                 except Exception as error:
@@ -554,14 +578,19 @@ def attest(arguments_as_dictionary, nonce, gpu_evidence_list):
                 project_sku = project_sku.upper()
                 chip_sku = chip_sku.decode("ascii").strip().strip("\x00")
                 chip_sku = chip_sku.upper()
-                vbios_rim_file_id = CcAdminUtils.get_vbios_rim_file_id(
-                    project, project_sku, chip_sku, vbios_version_for_id
-                )
-                event_log.debug(f"vbios_rim_file_id is {vbios_rim_file_id}")
-                vbios_rim_content = CcAdminUtils.fetch_rim_file(
-                    vbios_rim_file_id, BaseSettings.RIM_SERVICE_RETRY_COUNT
-                )
-                vbios_rim = RIM(rim_name="vbios", settings=settings, content=vbios_rim_content)
+
+                try:
+                    vbios_rim_file_id = CcAdminUtils.get_vbios_rim_file_id(
+                        project, project_sku, chip_sku, vbios_version_for_id
+                    )
+                    event_log.debug(f"vbios_rim_file_id is {vbios_rim_file_id}")
+                    vbios_rim_content = CcAdminUtils.fetch_rim_file(
+                        vbios_rim_file_id, BaseSettings.RIM_SERVICE_RETRY_COUNT
+                    )
+                    vbios_rim = RIM(rim_name="vbios", settings=settings, content=vbios_rim_content)
+                except Exception as error:
+                    info_log.error(f"Error occurred while fetching the VBIOS RIM from the RIM service due to {error}")
+                    sys.exit()
 
             vbios_rim_verification_status, gpu_attestation_warning = vbios_rim.verify(
                 version=vbios_version, settings=settings
@@ -596,13 +625,9 @@ def attest(arguments_as_dictionary, nonce, gpu_evidence_list):
 
     except Exception as error:
         info_log.error(error)
-
-        if arguments_as_dictionary["test_no_gpu"]:
-            return
-        else:
-            current_gpu_uuid = gpu_info_obj.get_uuid()
-            current_gpu_claims = ClaimsUtils.get_current_gpu_claims(settings, current_gpu_uuid)
-            gpu_claims_list.append((i, current_gpu_uuid, current_gpu_claims))
+        current_gpu_uuid = gpu_info_obj.get_uuid()
+        current_gpu_claims = ClaimsUtils.get_current_gpu_claims(settings, current_gpu_uuid)
+        gpu_claims_list.append((i, current_gpu_uuid, current_gpu_claims))
 
     finally:
         # Checking the attestation status.
@@ -613,9 +638,11 @@ def attest(arguments_as_dictionary, nonce, gpu_evidence_list):
                     NvmlHandler.set_gpu_ready_state(True)
                 else:
                     info_log.info("\tGPU Ready State is already READY")
-            info_log.info(f"All GPUs verified successfully.")
+            info_log.info(f"GPU Attestation is Successful.")
         elif arguments_as_dictionary["test_no_gpu"]:
             pass
+        else:
+            info_log.info(f"GPU Attestation failed.")
 
         jwt_claims = ClaimsUtils.create_detached_eat_claims(
             overall_status,

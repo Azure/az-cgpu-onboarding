@@ -22,7 +22,7 @@ This page is using a customer managed keys. More information about customer mana
 - [Azure Tenant ID](https://learn.microsoft.com/en-us/azure/active-directory/fundamentals/active-directory-how-to-find-tenant#find-tenant-id-with-powershell)
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
   - Note: minimum version 2.42.0 is required, run `az --version` to check your version and run `az upgrade` to install the latest version if your version is older
-- Download [cgpu-h100-auto-onboarding-linux.tar.gz](https://github.com/Azure/az-cgpu-onboarding/releases/download/V3.2.2/cgpu-h100-auto-onboarding-linux.tar.gz) from [az-cgpu-onboarding-V3.2.2](https://github.com/Azure/az-cgpu-onboarding/releases/tag/V3.2.2)
+- Download [cgpu-h100-auto-onboarding-linux.tar.gz](https://github.com/Azure/az-cgpu-onboarding/releases/download/V3.2.3/cgpu-h100-auto-onboarding-linux.tar.gz) from [az-cgpu-onboarding-V3.2.3](https://github.com/Azure/az-cgpu-onboarding/releases/tag/V3.2.3)
 -------------------------------------------
 
 ## Prepare-Customer-Managed-Key
@@ -56,7 +56,7 @@ E:\cgpu\.ssh>ssh-keygen -t rsa -b 4096 -C <your email here>
 2. Create VM using a bash script
 - This will create a Standard_NCC40ads_H100_v5 Confidential VM with a Customer Managed Key (CMK) with secure boot enabled in your specified resource group. If the resource group doesn't exist, it will create it with the specified name under the target subscription.
 
-- Decompress downloaded [cgpu-h100-auto-onboarding-linux.tar.gz](https://github.com/Azure/az-cgpu-onboarding/releases/download/V3.2.2/cgpu-h100-auto-onboarding-linux.tar.gz) and enter the folder through your bash window.
+- Decompress downloaded [cgpu-h100-auto-onboarding-linux.tar.gz](https://github.com/Azure/az-cgpu-onboarding/releases/download/V3.2.3/cgpu-h100-auto-onboarding-linux.tar.gz) and enter the folder through your bash window.
 ```
 cd cgpu-h100-auto-onboarding-linux
 ```
@@ -81,6 +81,10 @@ cd cgpu-h100-auto-onboarding-linux
 #                If left blank, they will default to eastus2 region
 # -o <OS disk size>: the size of your OS disk. The current maximum supported size is 4095 GB
 #                If left blank, it will default to 100 GB
+# --os-distribution [Ubuntu22.04, Ubuntu24.04]: the OS distribution for your VM 
+                 If left blank, the default is Ubuntu22.04
+# --skip-az-login: skip az login
+# --install-gpu-verifier-to-usr-local: install gpu verifier to /usr/local/lib/local_gpu_verifier
 
 bash cgpu-h100-auto-onboarding.sh  \
 -t "<your Tenant ID>" \

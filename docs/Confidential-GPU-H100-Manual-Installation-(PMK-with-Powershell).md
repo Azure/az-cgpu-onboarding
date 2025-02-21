@@ -28,7 +28,7 @@ Please make sure you have these requirements before performing the following ste
 - [Azure Tenant ID](https://learn.microsoft.com/en-us/azure/active-directory/fundamentals/active-directory-how-to-find-tenant#find-tenant-id-with-powershell)
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
   - Note: minimum version 2.46.0 is required, run `az --version` to check your version and run `az upgrade` to install the latest version if your version is older
-- Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure/az-cgpu-onboarding/releases/download/V3.2.2/cgpu-onboarding-package.tar.gz) from [az-cgpu-onboarding-V3.2.2](https://github.com/Azure/az-cgpu-onboarding/releases/tag/V3.2.2)
+- Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure/az-cgpu-onboarding/releases/download/V3.2.3/cgpu-onboarding-package.tar.gz) from [az-cgpu-onboarding-V3.2.3](https://github.com/Azure/az-cgpu-onboarding/releases/tag/V3.2.3)
 
 -------------------------------------------
 
@@ -66,6 +66,9 @@ Required Parameters:
 Additional optional parameters:
 - $location = the region you would like to deploy to. Currently we support eastus2 and westeurope
 - $osdisksize = the size of your OS disk. The maximum size is 4095 GB and for default, set to 100 GB
+- $osdistribution = the OS distribution for your VM. Currently we support Ubuntu22.04 and Ubuntu24.04
+- $skipazlogin = skip az login
+- $installgpuverifier = install gpu verifier to /usr/local/lib/local_gpu_verifier
 
 Please note that this step may take a few minutes to complete. You can track your deployment in the portal under your resource group.
 ```

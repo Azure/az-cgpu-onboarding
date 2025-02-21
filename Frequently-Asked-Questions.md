@@ -17,9 +17,14 @@ A: There are separate instructions for creating and sharing virtual machine imag
 
 ## Q: How can I check my driver version and update it?
 
-A: First please make sure all your currently running workloads are saved and termated, then run the following command to check your driver version and then update it:
+A: First please make sure all your currently running workloads are saved and termated, then run the following commands to check your driver version and then update it:
 ```
-sudo apt update && sudo apt upgrade
+# check the version
+nvidia-smi
+
+# run the updates
+sudo apt update
+sudo apt upgrade
 ```
 
 After running this, the VM has to be rebooted before running attestation or launching any workloads. Alternatively, please refer to the [Driver Failure Mitigation](docs/Driver-Failure-Mitigation.md) page that has detailed instructions on how to fully uninstall and reinstall the driver.
@@ -33,7 +38,7 @@ A: There is an NVIDIA driver/library version mismatch which can cause a failure 
 
 `NVIDIA-SMI has failed because it couldn't communicate with the NVIDIA driver. Make sure that the latest NVIDIA driver is installed and running.`
 
-If this is the case for you, please refer to to the following page for more detailed mitigation instructions: [Driver Failure Mitigation](docs/Driver-Failure-Mitigation.md)
+If this is the case for you, please refer to the following page for more detailed mitigation instructions: [Driver Failure Mitigation](docs/Driver-Failure-Mitigation.md)
 
 
 ## Q: How can I re-enable Unattended-Upgrades?

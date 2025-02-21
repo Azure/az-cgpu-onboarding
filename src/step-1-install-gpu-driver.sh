@@ -54,6 +54,9 @@ install_gpu_driver() {
     fi
 }
 
+# Due to inconsistency upgrade from VM just booting up, adding 5 second delay.
+sleep 5
+
 if [[ "${#BASH_SOURCE[@]}" -eq 1 ]]; then
     if [ ! -d "logs" ]; then
         mkdir logs

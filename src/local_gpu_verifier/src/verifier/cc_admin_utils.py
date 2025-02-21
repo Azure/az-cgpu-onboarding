@@ -199,7 +199,19 @@ class CcAdminUtils:
         request_builder = request_builder.add_certificate(cert, issuer, SHA384())
         if nonce is not None:
             request_builder = request_builder.add_extension(extval=OCSPNonce(nonce), critical=True)
-        return request_builder.build()
+        ocsp_request = request_builder.build()
+
+        # Log the OCSP request details
+        ocsp_cert_common_name = cert.subject.get_attributes_for_oid(x509.oid.NameOID.COMMON_NAME)[0].value
+        ocsp_cert_serial_number = cert.serial_number
+        ocsp_issuer_key_hash_base64 = base64.b64encode(ocsp_request.issuer_key_hash).decode('utf-8')
+        ocsp_issuer_name_hash_base64 = base64.b64encode(ocsp_request.issuer_name_hash).decode('utf-8')
+        event_log.debug(f"Building OCSP request for {ocsp_cert_common_name}:")
+        event_log.debug(f"\tSerial Number: {ocsp_cert_serial_number}")
+        event_log.debug(f"\tIssuer Key Hash: {ocsp_issuer_key_hash_base64}")
+        event_log.debug(f"\tIssuer Name Hash: {ocsp_issuer_name_hash_base64}")
+
+        return ocsp_request
 
     @staticmethod
     def ocsp_certificate_chain_validation(cert_chain, settings, mode):
@@ -240,6 +252,9 @@ class CcAdminUtils:
                 else None
             )
             ocsp_request = CcAdminUtils.build_ocsp_request(cert_chain[i], cert_chain[i + 1], nonce)
+
+
+
             try:
                 ocsp_response = function_wrapper_with_timeout(
                     [
