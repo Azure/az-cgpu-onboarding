@@ -51,22 +51,43 @@ function Build-Packages {
 }
 
 function Make-Cgpu-Onboarding-Package {
-	# Make .tar of verifier
-	cd "$PSScriptRoot\.."
-	tar -cvf "$DropFolder\local_gpu_verifier.tar" -C "local_gpu_verifier" .
-	cd "$PSScriptRoot"
+	# Lists out all folders to be included as .tar in cgpu onboarding package
+	[String[]]$foldersToTar = "$PSScriptRoot\..\local_gpu_verifier", 
+		"$PSScriptRoot\..\local_gpu_verifier_http_service"
+
+	# Ensures shell scripts under the folders will be in correct UNIX format
+	foreach ($folder in $foldersToTar) {
+		Get-ChildItem $folder -Recurse | ForEach-Object {
+			$extn = [IO.Path]::GetExtension($_.FullName)
+			if ($extn -eq ".sh" ) {
+				((Get-Content $_.FullName) -join "`n") + "`n" | Set-Content -NoNewline $_.FullName
+			}
+		}
+	}
+	
+	# Make tar to drop folder. Add result tar file to a list
+	[String[]]$tarFiles = @()
+	foreach ($folder in $foldersToTar) {
+		$tarFilePath = "$DropFolder\$($folder.Split("\")[-1]).tar"
+		Write-Output "Generating $tarFilePath"
+		tar -cvf $tarFilePath -C $folder .
+		$tarFiles += $tarFilePath
+	}
 
 	# Lists out all files to be included in .tar.gz archive
+	Set-Location "$PSScriptRoot"
 	[String[]]$files = "$PSScriptRoot\..\step-0-prepare-kernel.sh", 
 		"$PSScriptRoot\..\step-1-install-gpu-driver.sh", 
 		"$PSScriptRoot\..\step-2-attestation.sh", 
 		"$PSScriptRoot\..\step-3-install-gpu-tools.sh", 
 		"$PSScriptRoot\..\utilities-update-kernel.sh",
 		"$PSScriptRoot\..\utilities-uninstall-r535-driver.sh",
+		"$PSScriptRoot\..\utilities-install-openssl.sh",
+		"$PSScriptRoot\..\utilities-install-local-gpu-verfier-service.sh",
 		"$PSScriptRoot\..\nvidia-lkca.conf",
 		"$PSScriptRoot\..\mnist-sample-workload.py", 
-		"$PSScriptRoot\..\version.txt", 
-		"$DropFolder\local_gpu_verifier.tar"
+		"$PSScriptRoot\..\version.txt"
+	$files += $tarFiles
 
 	# Ensures each file will be in correct UNIX format
 	foreach ($file in $files) {
@@ -82,8 +103,10 @@ function Make-Cgpu-Onboarding-Package {
 	tar -czvf $cgpuOnboardingPackage -C $DropFolder $CgpuOnboardingPackageFolder
 	Move-Item $cgpuOnboardingPackage $DropFolder -Force
 
-	# Clean up local verifier tar
-	Remove-Item "$DropFolder\local_gpu_verifier.tar" -Force -Recurse
+	# Clean up folder tar files
+	foreach ($tarFile in $tarFiles) {
+		Remove-Item $tarFile -Force -Recurse
+	}
 }
 
 function Make-H100-Packages {

@@ -22,6 +22,7 @@
 #    --os-distribution [Ubuntu22.04, Ubuntu24.04]: the OS distribution for your VM (if not specified, the default is Ubuntu22.04)
 #    --skip-az-login: skip az login
 #    --install-gpu-verifier-to-usr-local: install gpu verifier to /usr/local/lib/local_gpu_verifier
+#    --enable-gpu-verifier-service: enable gpu verifier service
 # 
 # Example:
 # bash secureboot-enable-onboarding-from-vmi.sh  \
@@ -64,11 +65,12 @@ cgpu_h100_onboarding() {
 				os-distribution) os_distribution="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ));;
 				skip-az-login) skip_az_login=true;;
 				install-gpu-verifier-to-usr-local) install_gpu_verifier_to_usr_local=true;;
+				enable-gpu-verifier-service) enable_gpu_verifier_service=true;;
 			esac;;
 	    esac
 	done
 	
-	ONBOARDING_PACKAGE_VERSION="V3.2.3"
+	ONBOARDING_PACKAGE_VERSION="V3.2.4"
 	echo "Confidential GPU H100 Onboarding Package Version: $ONBOARDING_PACKAGE_VERSION"
 
 	if [ "$(az --version | grep azure-cli)" == "" ]; then
@@ -306,6 +308,15 @@ auto_onboard_cgpu_single_vm() {
 
 	# Install docker gpu tools
 	install_gpu_tool
+
+	# Enable gpu verifier service
+	if [[ -n "${enable_gpu_verifier_service}" ]]; then
+		if [[ -z "${install_gpu_verifier_to_usr_local}" ]]; then
+			echo "WARNING: The GPU verifier is not installed. If you want to enable the GPU verifier service, pass '--install-gpu-verifier-to-usr-local'."
+		else
+			enable_gpu_verifier_service
+		fi
+	fi
 	
 	vm_ssh_info_arr[$current_vm_count]=$vm_ssh_info
 }
@@ -335,8 +346,8 @@ update_kernel() {
 install_gpu_driver() {
 	try_connect
 
- 	sleep 15
-  
+	sleep 15
+
 	echo "Start install gpu driver"
 	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; bash step-1-install-gpu-driver.sh 2>&1;" 
 	echo "Finished install gpu driver"
@@ -362,6 +373,13 @@ install_gpu_tool() {
 	echo "Finished install gpu tool."
 }
 
+enable_gpu_verifier_service() {
+	try_connect
+	echo "Start enable gpu verifier service."
+	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; sudo bash utilities-install-local-gpu-verfier-service.sh;" 
+	echo "Finished enable gpu verifier service."
+}
+
 # Try to connect to VM with 50 maximum retry.
 try_connect() {
    echo "Starting trying to connect to VM"
@@ -370,8 +388,8 @@ try_connect() {
    connectionoutput=""
    while [[ "$connectionoutput" != "Connected to VM" ]] && [[ $retries -lt $MAX_RETRY ]];
    do
-	   connectionoutput=$(ssh -i "${private_key_path}" -o "StrictHostKeyChecking=no" "${vm_ssh_info}" "bash -c \"echo 'Connected to VM'\"")
-       echo $connectionoutput
+	   connectionoutput=$(ssh -i "${private_key_path}" -o "StrictHostKeyChecking=no" "${vm_ssh_info}" "bash -c \"echo 'Connected to VM'\"")        
+	   echo $connectionoutput
 	   sleep 1
        retries=$((retries+1))
    done
