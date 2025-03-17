@@ -28,7 +28,7 @@ Please make sure you have these requirements before performing the following ste
 - [Azure Tenant ID](https://learn.microsoft.com/en-us/azure/active-directory/fundamentals/active-directory-how-to-find-tenant#find-tenant-id-with-powershell)
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
   - Note: minimum version 2.46.0 is required, run `az --version` to check your version and run `az upgrade` to install the latest version if your version is older
-- Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure/az-cgpu-onboarding/releases/download/V3.2.3/cgpu-onboarding-package.tar.gz) from [az-cgpu-onboarding-V3.2.3](https://github.com/Azure/az-cgpu-onboarding/releases/tag/V3.2.3)
+- Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure/az-cgpu-onboarding/releases/download/V3.2.4/cgpu-onboarding-package.tar.gz) from [az-cgpu-onboarding-V3.2.4](https://github.com/Azure/az-cgpu-onboarding/releases/tag/V3.2.4)
 
 -------------------------------------------
 

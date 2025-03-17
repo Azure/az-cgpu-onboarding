@@ -1,0 +1,5 @@
+# Go executables and build artifacts
+go.mod
+go.sum
+bin/
+build/

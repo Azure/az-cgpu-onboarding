@@ -169,13 +169,7 @@ def main():
     args = parser.parse_args()
     arguments_as_dictionary = vars(args)
 
-    # nonce is generated / set if cc_admin is run as a standalone-tool
-    if arguments_as_dictionary["test_no_gpu"]:
-        nonce = BaseSettings.NONCE
-    else:
-        info_log.info("Generating nonce in the local GPU Verifier ..")
-        nonce = CcAdminUtils.generate_nonce(BaseSettings.SIZE_OF_NONCE_IN_BYTES).hex()
-
+    nonce = get_user_nonce(arguments_as_dictionary)
     evidence_list = collect_gpu_evidence(nonce, arguments_as_dictionary["test_no_gpu"])
     result, jwt_token = attest(arguments_as_dictionary, nonce, evidence_list)
     info_log.info("\nEntity Attestation Token:")
@@ -183,6 +177,30 @@ def main():
 
     if not result:
         sys.exit(1)
+
+
+def get_user_nonce(arguments_as_dictionary: dict) -> str:
+    """Method to get nonce from the input arguments or generate a random nonce"""
+    nonce = ""
+
+    if arguments_as_dictionary["test_no_gpu"]:
+        nonce = BaseSettings.NONCE
+
+    elif arguments_as_dictionary["nonce"]:
+        nonce_from_args = arguments_as_dictionary["nonce"]
+        info_log.info("Use the provided nonce for attestation: " + nonce_from_args)
+        try:
+            _ = CcAdminUtils.validate_and_extract_nonce(nonce_from_args)
+            nonce = nonce_from_args
+        except Error as e:
+            info_log.error(e)
+            nonce = ""
+
+    if nonce == "":
+        info_log.info("Generating random nonce in the local GPU Verifier ..")
+        nonce = CcAdminUtils.generate_nonce(BaseSettings.SIZE_OF_NONCE_IN_BYTES).hex()
+
+    return nonce
 
 
 def collect_gpu_evidence(nonce: str, no_gpu_mode=False, standalone_mode=True):

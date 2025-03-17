@@ -26,9 +26,23 @@ enable_ubuntu_snapshot_service() {
     sudo sed -i "/^deb /s/deb /deb [snapshot=$TIMESTAMP_UBUNTU_SNAPSHOT_SERVICE] /" "$sources_list"
 }
 
+enable_ubuntu_proposed_pocket() {
+    sudo sh -c "echo 'deb http://archive.ubuntu.com/ubuntu/ $(lsb_release -cs)-proposed restricted main multiverse universe' > /etc/apt/sources.list.d/ubuntu-$(lsb_release -cs)-proposed.list"
+
+    # Set APT pinning for Ubuntu 24.04 to prioritize proposed packages
+    if [ "$(lsb_release -rs)" = "24.04" ]; then
+        echo "Setting APT pinning for Ubuntu 24.04 to prioritize proposed packages..."
+        sudo tee /etc/apt/preferences.d/proposed-priority <<EOF
+Package: *
+Pin: release a=noble-proposed
+Pin-Priority: 1001
+EOF
+    fi
+}
+
 # Enable Ubuntu proposed source list if ENABLE_UBUNTU_PROPOSED_SOURCE_LIST is set to 1
 if [ "$ENABLE_UBUNTU_PROPOSED_SOURCE_LIST" = "1" ]; then
-    sudo sh -c "echo 'deb http://archive.ubuntu.com/ubuntu/ $(lsb_release -cs)-proposed restricted main multiverse universe' > /etc/apt/sources.list.d/ubuntu-$(lsb_release -cs)-proposed.list"
+    enable_ubuntu_proposed_pocket
 fi
 
 # Enable Ubuntu snapshot service if ENABLE_UBUNTU_SNAPSHOT_SERVICE is set to 1

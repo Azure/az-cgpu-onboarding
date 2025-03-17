@@ -30,6 +30,7 @@
 #	 osdistribution [Ubuntu22.04, Ubuntu24.04]: the OS distribution of the VM (if not specified, the default is Ubuntu22.04)
 #	 skipazlogin: skip az login if you have already logged in
 #	 installgpuverifier: install gpu verifier to /usr/local/lib/local_gpu_verifier
+#    enablegpuverifierservice: enable gpu verifier service
 #
 # EG:
 # CGPU-H100-Onboarding `
@@ -64,10 +65,11 @@ function CGPU-H100-Onboarding{
 		[ValidateSet("Ubuntu22.04", "Ubuntu24.04", ErrorMessage="Unsupported OS Distribution. Please choose either Ubuntu22.04 or Ubuntu24.04.")]
 		[string]$osdistribution="Ubuntu22.04",
 		[bool]$skipazlogin=$false,
-		[bool]$installgpuverifier=$false
+		[bool]$installgpuverifier=$false,
+		[bool]$enablegpuverifierservice=$false
 		)
 
-		$ONBOARDING_PACKAGE_VERSION="V3.2.3"
+		$ONBOARDING_PACKAGE_VERSION="V3.2.4"
 		Write-Host "Confidential GPU H100 Onboarding Package Version: $ONBOARDING_PACKAGE_VERSION"
 
 		$logpath=$(Get-Date -Format "MM-dd-yyyy_HH-mm-ss")
@@ -344,6 +346,17 @@ function Auto-Onboard-CGPU-Single-VM {
 		return
 	}
 
+	# Optionally enable GPU verifier service
+	if ($enablegpuverifierservice) {
+		if (-not $installgpuverifier) {
+			Write-Host "WARNING: The GPU verifier is not installed. If you want to enable the GPU verifier service, please set '-installgpuverifier' to '$true'."
+		} else {
+			Enable-GPU-Verifier-Service -vmsshinfo $vmsshinfo -privatekeypath $privatekeypath
+			if ($global:issuccess -eq "failed") {
+				Write-Host "Failed to enable GPU verifier HTTP service. Continuing..."
+			}
+		}
+	}
 
 	# Validation
 	Validation -vmsshinfo $vmsshinfo `
@@ -506,7 +519,7 @@ function Install-GPU-Driver {
 	} 
 	Write-Host "VM connection success."
 
- 	Start-sleep -Seconds 15
+	Start-sleep -Seconds 15
 
 	Write-Host "Start GPU Driver install."
 	ssh  -i ${privatekeypath} ${vmsshinfo} "cd cgpu-onboarding-package; bash step-1-install-gpu-driver.sh;"
@@ -566,6 +579,28 @@ function Install-GPU-Tools {
 	$global:issuccess = "succeeded"
 }
 
+# Enable GPU verifier service
+function Enable-GPU-Verifier-Service {
+	param($vmsshinfo,
+		$privatekeypath)
+
+	# Test VM connnection.
+ 	$isConnected=Try-Connect -vmsshinfo $vmsshinfo `
+		-privatekeypath $privatekeypath 
+
+	if ($isConnected -eq $false) {
+		Write-Host "VM connection failed after 50 retries."
+		$global:issuccess = "failed"
+		return
+	} 
+	Write-Host "VM connection success."
+
+	Write-Host "Start enabling local GPU attestation verifier HTTP service."
+	$enablegpuverifierservicecommand = "cd cgpu-onboarding-package; sudo bash utilities-install-local-gpu-verfier-service.sh;"
+	echo $(ssh  -i ${privatekeypath} ${vmsshinfo} ${enablegpuverifierservicecommand}) 2>&1 | Out-File -filepath -Append ".\logs\$logpath\attestation.log"
+	Write-Host "Finished enabling local GPU attestation verifier HTTP service."
+	$global:issuccess = "succeeded"
+}
 
 # Try to connect to VM with given SSH info with maximum retry of 50 times.
 function Try-Connect {
@@ -583,7 +618,7 @@ function Try-Connect {
 	while ($connectionoutput -ne "connected" -and $currentRetry -lt $maxretrycount)
 	{
 		Write-Host "Trying to connect";
-		$connectionoutput=ssh -i ${privatekeypath} -o "StrictHostKeyChecking no" ${vmsshinfo} "bash -c 'echo \"connected\"'"
+		$connectionoutput=ssh -i ${privatekeypath} -o "StrictHostKeyChecking no" ${vmsshinfo} "bash -c 'echo \"connected\"'"		
 		echo $connectionoutput
 		if ($connectionoutput -eq "connected") {
 			$global:issuccess = "succeeded"
