@@ -70,7 +70,7 @@ cgpu_h100_onboarding() {
 	    esac
 	done
 	
-	ONBOARDING_PACKAGE_VERSION="V3.2.4"
+	ONBOARDING_PACKAGE_VERSION="V3.3.1"
 	echo "Confidential GPU H100 Onboarding Package Version: $ONBOARDING_PACKAGE_VERSION"
 
 	if [ "$(az --version | grep azure-cli)" == "" ]; then
@@ -101,7 +101,7 @@ cgpu_h100_onboarding() {
 	if [[ -z "${location}" ]]; then
 		echo "Location was not specified, setting to eastus2 region"
 		location="eastus2"
-	elif [[ "$location" == "eastus2" ]] || [[ "$location" == "westeurope" ]]; then
+	elif [[ "$location" == "eastus2" ]] || [[ "$location" == "westeurope" ]] || [[ "$location" == "centralus" ]] ; then
 		echo "Allowed location selected"
 	else
 		echo "The selected location is not currently supported."
@@ -223,7 +223,7 @@ cgpu_h100_onboarding() {
 	echo "Please execute the below command to try attestation:"
 	echo "cd cgpu-onboarding-package; sudo bash step-2-attestation.sh";
 	echo "Please execute the below command to try a sample workload:"
-	echo "sudo docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/${adminuser_name}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:24.05-tf2-py3 python /home/mnist-sample-workload.py";
+	echo "sudo docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/${adminuser_name}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:25.02-tf2-py3 python /home/mnist-sample-workload.py";
 	echo "******************************************************************************************"
 
 	if [[ -z "${skip_az_login}" ]]; then

@@ -1,5 +1,5 @@
 # OpenSSL
-H100 CGPU system comes with OpenSSL version 3.0.2 installed by default. The sections below demonstrate the bandwidth improvement that come with upgrading the system to OpenSSL version 3.3.1.
+H100 CGPU system comes with OpenSSL version 3.0.2 installed by default. The sections below demonstrate the bandwidth improvement that come with upgrading the system to OpenSSL version 3.4.1.
 
 Check your system's default OpenSSL version by running the following:
 ```
@@ -7,14 +7,14 @@ $ openssl version
 ```
 You should see: `OpenSSL 3.0.2 15 Mar 2022 (Library: OpenSSL 3.0.2 15 Mar 2022)`.
 
-To use the newly installed OpenSSL 3.3.1, specify the `LD_LIBRARY_PATH` path:
+To use the newly installed OpenSSL 3.4.1, specify the `LD_LIBRARY_PATH` path:
 ```
 $ LD_LIBRARY_PATH=/opt/openssl/lib64/ /opt/openssl/bin/openssl version
 ```
-Here you should see: `OpenSSL 3.3.1 4 Jun 2024 (Library: OpenSSL 3.3.1 4 Jun 2024)`.
+Here you should see: `OpenSSL 3.4.1 11 Feb 2025 (Library: OpenSSL 3.4.1 11 Feb 2025)`.
 
 ### CUDA application
-Using the [bandwidth test](https://github.com/NVIDIA/cuda-samples/tree/master/Samples/1_Utilities/bandwidthTest) from NVIDIA's CUDA samples, we see the following improvements with upgrading from OpenSSL 3.0.2 to OpenSSL 3.3.1:
+Using the [bandwidth test](https://github.com/NVIDIA/cuda-samples/tree/master/Samples/1_Utilities/bandwidthTest) from NVIDIA's CUDA samples, we see the following improvements with upgrading from OpenSSL 3.0.2 to OpenSSL 3.4.1:
 
 
 With system default OpenSSL 3.0.2:
@@ -44,7 +44,7 @@ Running on...
 Result = PASS
 ```
 
-With OpenSSL 3.3.1:
+With OpenSSL 3.4.1:
 ```
 $ LD_LIBRARY_PATH=/opt/openssl/lib64/ ./bandwidthTest
 [CUDA Bandwidth Test] - Starting...
@@ -109,7 +109,7 @@ Host to Device Bandwidth: 4.27 GB/s
 Device to Host Bandwidth: 4.45 GB/s
 ```
 
-With OpenSSL 3.3.1:
+With OpenSSL 3.4.1:
 ```
 $ LD_LIBRARY_PATH=/opt/openssl/lib64/ python3 benchmark_pytorch.py
 Host to Device Bandwidth: 8.57 GB/s
@@ -118,11 +118,11 @@ Device to Host Bandwidth: 10.01 GB/s
 
 ### Docker
 
-There are seval options to install OpenSSL 3.3.1 inside docker containers:
-1. Run `utilities-install-openssl.sh` to build and install OpenSSL 3.3.1 inside the container.
-2. Mount the OpenSSL 3.3.1 from the host if it's already installed by adding the argument `-v /opt/openssl:/opt/openssl` to `docker run`.
+There are seval options to install OpenSSL 3.4.1 inside docker containers:
+1. Run `utilities-install-openssl.sh` to build and install OpenSSL 3.4.1 inside the container.
+2. Mount the OpenSSL 3.4.1 from the host if it's already installed by adding the argument `-v /opt/openssl:/opt/openssl` to `docker run`.
 
-The usage of OpenSSL 3.3.1 inside the container is the same as above by specifying the linked OpenSSL 3.3.1 library path.
+The usage of OpenSSL 3.4.1 inside the container is the same as above by specifying the linked OpenSSL 3.4.1 library path.
 
 ```
 $ sudo docker run \
@@ -131,14 +131,14 @@ $ sudo docker run \
     -v ~:/home \
     -v /opt/openssl:/opt/openssl \
     -it --rm \
-    nvcr.io/nvidia/pytorch:24.05-py3 \
+    nvcr.io/nvidia/pytorch:25.02-py3 \
     /bin/bash -c "LD_LIBRARY_PATH=/opt/openssl/lib64/ python3 /home/benchmark_pytorch.py"
 
 Host to Device Bandwidth: 8.29 GB/s
 Device to Host Bandwidth: 10.02 GB/s
 ```
 
-Another approach is to set OpenSSL 3.3.1 as the default link inside the container to avoid explictly setting `LD_LIBRARY_PATH` every time.
+Another approach is to set OpenSSL 3.4.1 as the default link inside the container to avoid explictly setting `LD_LIBRARY_PATH` every time.
 
 ```
 echo '/opt/openssl/lib64' >> /etc/ld.so.conf.d/openssl.conf
@@ -152,7 +152,7 @@ $ sudo docker run \
     -v ~:/home \
     -v /opt/openssl:/opt/openssl \
     -it --rm \
-    nvcr.io/nvidia/pytorch:24.05-py3 \
+    nvcr.io/nvidia/pytorch:25.02-py3 \
     /bin/bash -c "echo '/opt/openssl/lib64' >> /etc/ld.so.conf.d/openssl.conf && ldconfig && python3 /home/benchmark_pytorch.py"
 
 Host to Device Bandwidth: 8.43 GB/s

@@ -129,7 +129,7 @@ def main():
         help="If the user wants to override the RIM service base url and provide their own url, then can do so by passing it as a command line argument.",
     )
     parser.add_argument(
-        "--ocsp_service_url",
+        "--ocsp_url",
         help="If the user wants to override the OCSP service url and provide their own url, then can do so by passing it as a command line argument.",
     )
     parser.add_argument(
@@ -352,8 +352,8 @@ def attest(arguments_as_dictionary, nonce, gpu_evidence_list):
         info_log.debug(f"RIM service url: {BaseSettings.RIM_SERVICE_BASE_URL}")
 
         # Set OCSP service url
-        if not arguments_as_dictionary["ocsp_service_url"] is None:
-            BaseSettings.set_ocsp_service_url(arguments_as_dictionary["ocsp_service_url"])
+        if not arguments_as_dictionary["ocsp_url"] is None:
+            BaseSettings.set_ocsp_url(arguments_as_dictionary["ocsp_url"])
             BaseSettings.OCSP_NONCE_ENABLED = arguments_as_dictionary.get("ocsp_nonce_enabled", False)
         else:
             BaseSettings.set_thim_ocsp_service_url()

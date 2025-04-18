@@ -69,7 +69,7 @@ function CGPU-H100-Onboarding{
 		[bool]$enablegpuverifierservice=$false
 		)
 
-		$ONBOARDING_PACKAGE_VERSION="V3.2.4"
+		$ONBOARDING_PACKAGE_VERSION="V3.3.1"
 		Write-Host "Confidential GPU H100 Onboarding Package Version: $ONBOARDING_PACKAGE_VERSION"
 
 		$logpath=$(Get-Date -Format "MM-dd-yyyy_HH-mm-ss")
@@ -115,7 +115,7 @@ function Auto-Onboard-CGPU-Multi-VM {
 		$location = "eastus2"
 		Write-Host "Location not specified, defaulting to eastus2 region."
 	}
-	elseif ($location -eq "eastus2" -Or $location -eq "westeurope") {
+	elseif ($location -eq "eastus2" -Or $location -eq "westeurope" -Or $location -eq "centralus") {
 		Write-Host "Allowed location selected."
 	}
 	else {
@@ -227,7 +227,7 @@ function Auto-Onboard-CGPU-Multi-VM {
 	Write-Host "Please execute the below command to try attestation:"
 	Write-Host "cd cgpu-onboarding-package; sudo bash step-2-attestation.sh";
 	Write-Host "Please execute the below command to try a sample workload:"
-	Write-Host "sudo docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/${adminusername}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:24.05-tf2-py3 python /home/mnist-sample-workload.py";
+	Write-Host "sudo docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/${adminusername}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:25.02-tf2-py3 python /home/mnist-sample-workload.py";
 	Write-Host "******************************************************************************************"
 
 	Write-Host "Total VM to onboard: ${totalvmnumber}, total Success: ${successcount}."

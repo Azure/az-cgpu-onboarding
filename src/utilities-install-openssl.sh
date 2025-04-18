@@ -1,5 +1,5 @@
 #!/bin/bash
-OPENSSL_VER=${1:-"3.3.1"}
+OPENSSL_VER=${1:-"3.4.1"}
 
 sudo apt-get -o DPkg::Lock::Timeout=300 update
 sudo apt-get -o DPkg::Lock::Timeout=300 install -y wget tar build-essential

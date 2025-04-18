@@ -1,14 +1,14 @@
 ## This module helps install associate dependency and do attestation against CGPU driver.
 ##
 ## Requirements:
-##      Minimum Nvidia driver:      v550.54.14
+##      Minimum Nvidia driver:      v570.86.15
 ##      Minimum kernel version:     6.5.0-1017-azure
 ##
 ## Example:
 ##      sudo bash step-2-attestation.sh [--install-to-usr-local]
 ##
 
-REQUIRED_DRIVER_INTERFACE_VERSION="550.54.14"
+REQUIRED_DRIVER_INTERFACE_VERSION="570.86.15"
 INSTALL_TO_USR_LOCAL=0
 
 # Parse command-line arguments
