@@ -53,8 +53,8 @@ attestation() {
 
         # Install to current folder
         else
-            mkdir local_gpu_verifier
-            tar -xvf local_gpu_verifier.tar -C local_gpu_verifier
+            sudo mkdir -p local_gpu_verifier
+            sudo tar -xvf local_gpu_verifier.tar -C local_gpu_verifier
             pushd ./local_gpu_verifier >/dev/null
         fi
         echo "Open verifier folder successfully!"
