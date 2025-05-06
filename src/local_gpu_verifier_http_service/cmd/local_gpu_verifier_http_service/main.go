@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"flag"
@@ -350,8 +351,8 @@ func executeAttestationCommand(reqLogger *slog.Logger, verifierRoot string, nonc
 	attestationMutex.Unlock()
 
 	combinedOutput := outBuf.String() + errBuf.String()
-	reqLogger.Info("GPU Attestation Command output", "output", combinedOutput)
-
+	combinedOutputBase64 := base64.StdEncoding.EncodeToString([]byte(combinedOutput))
+	reqLogger.Info("GPU Attestation Command output", "output", combinedOutputBase64)
 	return combinedOutput, runErr
 }
 

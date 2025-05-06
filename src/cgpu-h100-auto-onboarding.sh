@@ -70,7 +70,7 @@ cgpu_h100_onboarding() {
 	    esac
 	done
 	
-	ONBOARDING_PACKAGE_VERSION="V3.3.1"
+	ONBOARDING_PACKAGE_VERSION="V3.2.4"
 	echo "Confidential GPU H100 Onboarding Package Version: $ONBOARDING_PACKAGE_VERSION"
 
 	if [ "$(az --version | grep azure-cli)" == "" ]; then
@@ -358,11 +358,15 @@ attestation() {
 	try_connect
 	echo "Start verifier installation and attestation. Please wait, this process can take up to 2 minutes."
 	if [[ -n "${install_gpu_verifier_to_usr_local}" ]]; then
-		ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh --install-to-usr-local 2>&1;"
+		attestation_command="cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh --install-to-usr-local 2>&1;"
 	else
-		ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh 2>&1;"
+		attestation_command="cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh 2>&1;"
 	fi
-	#ssh -i $private_key_path $vm_ssh_info 'cd cgpu-onboarding-package/$(ls -1 cgpu-onboarding-package | grep verifier | head -1); sudo python3 cc_admin.py'
+
+	echo "Start installing attestation package - this may take up to 5 minutes."
+	ssh -i "$private_key_path" "$vm_ssh_info" "$attestation_command" 2>&1 | tee "$log_dir/attestation-output.log"
+	attestation_message=$(tail -n 20 "$log_dir/attestation-output.log")
+	echo "$attestation_message"
 	echo "Finished attestation."
 }
 
@@ -501,6 +505,15 @@ validation() {
 	else 
 		echo "Passed: Confidential Compute environment validation. Current Confidential Compute environment: ${cc_environment}"
 
+	fi
+	
+	attestation_success_str="GPU Attestation is Successful."
+	attestation_success=$(ssh -i "$private_key_path" "$vm_ssh_info" "grep $attestation_success_str $log_dir/all-operation.log")
+	if [ $? -eq 0 ];
+	then
+		echo "Passed: Attestation validation passed."
+	else 
+		echo "Failed: Attestation validation failed."
 	fi
 }
 

@@ -19,6 +19,10 @@ install_gpu_driver() {
     else
         echo "Current kernel version: $current_kernel"
 
+        # install neccessary kernel update.
+        sudo apt-get update
+        sudo apt-get -y install initramfs-tools
+
         # Apply change to modprobe.d and run update-initramfs
         sudo cp nvidia-lkca.conf /etc/modprobe.d/nvidia-lkca.conf
         sudo update-initramfs -u -k $current_kernel
@@ -26,10 +30,6 @@ install_gpu_driver() {
         # verify secure boot
         secure_boot_status=$(mokutil --sb)
         echo "SecureBoot Status: $secure_boot_status"
-
-        # install neccessary kernel update.
-        sudo apt-get update
-        sudo apt-get -y install
 
         echo "kernel verified successfully, start driver installation."
         echo "start gpu driver log."
