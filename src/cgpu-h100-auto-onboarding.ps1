@@ -670,5 +670,15 @@ function Validation {
 		Write-Host "Passed: Confidential Compute environment validation. Current Confidential Compute environment: ${ccenvironment}"
 	}
 
+	$attestationsuccessstr="GPU Attestation is Successful."
+	if (Select-String -Path ".\logs\$logpath\attestation.log" -Pattern $attestationsuccessstr)
+	{
+		echo "Passed: Attestation validation passed."
+	}
+	else
+	{
+		echo "Failed: Attestation validation failed."
+	}
+
 	Write-Host "Finished C-GPU capable validation."
 }
