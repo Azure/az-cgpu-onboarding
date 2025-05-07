@@ -390,9 +390,9 @@ try_connect() {
    MAX_RETRY=50
    retries=0
    connectionoutput=""
-   while [[ "$connectionoutput" != "Connected to VM" ]] && [[ $retries -lt $MAX_RETRY ]];
+   while [[ "$connectionoutput" != "connected" ]] && [[ $retries -lt $MAX_RETRY ]];
    do
-	   connectionoutput=$(ssh -i "${private_key_path}" -o "StrictHostKeyChecking=no" "${vm_ssh_info}" "bash -c \"echo 'Connected to VM'\"")        
+	   connectionoutput=$(ssh -i "${private_key_path}" -o "StrictHostKeyChecking=no" "${vm_ssh_info}" "bash -c \"echo 'connected'\"")        
 	   echo $connectionoutput
 	   sleep 1
        retries=$((retries+1))
@@ -508,7 +508,7 @@ validation() {
 	fi
 	
 	attestation_success_str="GPU Attestation is Successful."
-	attestation_success=$(ssh -i "$private_key_path" "$vm_ssh_info" "grep $attestation_success_str $log_dir/all-operation.log")
+	attestation_success=$(grep "$attestation_success_str" $log_dir/attestation-output.log)
 	if [ $? -eq 0 ];
 	then
 		echo "Passed: Attestation validation passed."

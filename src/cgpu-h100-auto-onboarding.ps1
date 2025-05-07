@@ -69,7 +69,7 @@ function CGPU-H100-Onboarding{
 	[bool]$enablegpuverifierservice=$false
 	)
 
-	$ONBOARDING_PACKAGE_VERSION="V3.2.4"
+	$ONBOARDING_PACKAGE_VERSION="V3.3.1"
 	Write-Host "Confidential GPU H100 Onboarding Package Version: $ONBOARDING_PACKAGE_VERSION"
 
 	$logpath=$(Get-Date -Format "MM-dd-yyyy_HH-mm-ss")
@@ -522,7 +522,7 @@ Write-Host "VM connection success."
 Start-sleep -Seconds 15
 
 Write-Host "Start GPU Driver install."
-ssh  -i ${privatekeypath} ${vmsshinfo} "cd cgpu-onboarding-package; bash step-1-install-gpu-driver.sh;"
+ssh  -i ${privatekeypath} ${vmsshinfo} "cd cgpu-onboarding-package; bash step-1-install-gpu-driver.sh 2>&1;"
 Write-Host "Finished install driver."
 $global:issuccess = "succeeded"
 }
@@ -552,7 +552,7 @@ Write-Host "Start installing attestation package - this may take up to 5 minutes
 echo $(ssh  -i ${privatekeypath} ${vmsshinfo} ${attstationcommand}) 2>&1 | Out-File -filepath ".\logs\$logpath\attestation.log"
 
 $attestationmessage=(Get-content -tail 20 .\logs\$logpath\attestation.log)
-echo $attestationmessage
+Write-Host $attestationmessage
 Write-Host "Finished attestation."
 $global:issuccess = "succeeded"
 }
@@ -610,16 +610,16 @@ param($vmsshinfo,
 $connectionoutput="notconnected"
 $maxretrycount=50
 Write-Host "VM SSH info: ${vmsshinfo}"
-echo $vmsshinfo
+Write-Host $vmsshinfo
 Write-Host "Private key path: ${privatekeypath}"
-echo $privatekeypath
+Write-Host $privatekeypath
 
 $currentRetry=0
 while ($connectionoutput -ne "connected" -and $currentRetry -lt $maxretrycount)
 {
 	Write-Host "Trying to connect";
-	$connectionoutput=ssh -i ${privatekeypath} -o "StrictHostKeyChecking no" ${vmsshinfo} "bash -c 'echo \"connected\"'"		
-	echo $connectionoutput
+	$connectionoutput=ssh -i ${privatekeypath} -o "StrictHostKeyChecking no" ${vmsshinfo} "bash -c 'echo connected'"		
+	Write-Host $connectionoutput
 	if ($connectionoutput -eq "connected") {
 		$global:issuccess = "succeeded"
 		return
@@ -673,11 +673,11 @@ else
 $attestationsuccessstr="GPU Attestation is Successful."
 if (Select-String -Path ".\logs\$logpath\attestation.log" -Pattern $attestationsuccessstr)
 {
-	echo "Passed: Attestation validation passed."
+	Write-Host "Passed: Attestation validation passed."
 }
 else
 {
-	echo "Failed: Attestation validation failed."
+	Write-Host "Failed: Attestation validation failed."
 }
 
 Write-Host "Finished C-GPU capable validation."
