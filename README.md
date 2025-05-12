@@ -14,6 +14,15 @@ Through this onboarding process, you can:
 ## Updates
 For existing customers, please note the following changes that have been made to the onboarding flow that may impact your VM configurations:
 
+**May 6, 2025:**
+For the following Nvidia drivers, there could be attestation failure. Customers need to update to driver >= r550.127.05 to mitigate. For details check the link [NVIDIA SecureAI Attestation Advisory: HBM3 Resiliency Impact on Driver Versions r550.0-r550.90.12 - NVIDIA Docs](https://docs.nvidia.com/attestation/secureai-advisory-hbm3-resiliency-impact-on-driver-versions-r550-0-r550-90-12/index.html)
+
+- NV_GPU_DRIVER_GH100_550.54.14
+- NV_GPU_DRIVER_GH100_550.54.15
+- NV_GPU_DRIVER_GH100_550.90.07
+- NV_GPU_DRIVER_GH100_550.90.12
+- NV_GPU_DRIVER_GH100_550.113
+
 **Dec. 4, 2024:** 
 Unattended-upgrades package has been removed by default in order to avoid potential runtime service interruptions caused by unattended driver and kernel updates. 
 This means that patches for security CVEs will not be automatically installed so important security updates must be checked for and installed manually. 

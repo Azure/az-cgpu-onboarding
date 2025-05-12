@@ -63,6 +63,7 @@ class BaseSettings:
         "eastus2": "https://useast2.thim.azure.net",
         "centraluseuap": "https://uscentraleuap.thim.azure.net",
         "westeurope": "https://europewest.thim.azure.net",
+        "centralus": "https://uscentral.thim.azure.net",
         "lab": "",
     }
     SIZE_OF_NONCE_IN_BYTES = 32
@@ -141,12 +142,20 @@ class BaseSettings:
     def set_rim_service_base_url(cls, url):
         if not isinstance(url, str):
             raise ValueError("Incorrect data type for the URL.")
+        if not url:
+            raise ValueError("RIM URL is empty")
+        if not url.endswith('/'):
+            url += '/'
         cls.RIM_SERVICE_BASE_URL = url
 
     @classmethod
-    def set_ocsp_service_url(cls, url):
+    def set_ocsp_url(cls, url):
         if not isinstance(url, str):
             raise ValueError("Incorrect data type for the URL.")
+        if not url:
+            raise ValueError("OCSP URL is empty")
+        if not url.endswith('/'):
+            url += '/'
         cls.OCSP_URL = url
 
     @classmethod
@@ -494,8 +503,8 @@ class HopperSettings(BaseSettings):
     DRIVER_RIM_PATH = ""
     TEST_NO_GPU_VBIOS_RIM_PATH = os.path.join(RIM_DIRECTORY_PATH, "1010_0200_882_96005E0001_test_no_gpu.swidtag")
     VBIOS_RIM_PATH = ""
-    ATTESTATION_REPORT_PATH = os.path.join(RIM_DIRECTORY_PATH, "attestationReport.txt")
-    GPU_ATTESTATION_CERTIFICATES_PATH = os.path.join(RIM_DIRECTORY_PATH, "gpuAkCertChain.txt")
+    ATTESTATION_REPORT_PATH = os.path.join(RIM_DIRECTORY_PATH, "hopperAttestationReport.txt")
+    GPU_ATTESTATION_CERTIFICATES_PATH = os.path.join(RIM_DIRECTORY_PATH, "hopperCertChain.txt")
 
     @classmethod
     def set_driver_rim_path(cls, path):

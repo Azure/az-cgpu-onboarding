@@ -69,7 +69,7 @@ function CGPU-H100-Onboarding{
 		[bool]$enablegpuverifierservice=$false
 		)
 
-		$ONBOARDING_PACKAGE_VERSION="V3.2.4"
+		$ONBOARDING_PACKAGE_VERSION="V3.3.2"
 		Write-Host "Confidential GPU H100 Onboarding Package Version: $ONBOARDING_PACKAGE_VERSION"
 
 		$logpath=$(Get-Date -Format "MM-dd-yyyy_HH-mm-ss")
@@ -115,7 +115,7 @@ function Auto-Onboard-CGPU-Multi-VM {
 		$location = "eastus2"
 		Write-Host "Location not specified, defaulting to eastus2 region."
 	}
-	elseif ($location -eq "eastus2" -Or $location -eq "westeurope") {
+	elseif ($location -eq "eastus2" -Or $location -eq "westeurope" -Or $location -eq "centralus") {
 		Write-Host "Allowed location selected."
 	}
 	else {
@@ -227,7 +227,7 @@ function Auto-Onboard-CGPU-Multi-VM {
 	Write-Host "Please execute the below command to try attestation:"
 	Write-Host "cd cgpu-onboarding-package; sudo bash step-2-attestation.sh";
 	Write-Host "Please execute the below command to try a sample workload:"
-	Write-Host "sudo docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/${adminusername}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:24.05-tf2-py3 python /home/mnist-sample-workload.py";
+	Write-Host "sudo docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/${adminusername}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:25.02-tf2-py3 python /home/mnist-sample-workload.py";
 	Write-Host "******************************************************************************************"
 
 	Write-Host "Total VM to onboard: ${totalvmnumber}, total Success: ${successcount}."
@@ -522,7 +522,7 @@ function Install-GPU-Driver {
 	Start-sleep -Seconds 15
 
 	Write-Host "Start GPU Driver install."
-	ssh  -i ${privatekeypath} ${vmsshinfo} "cd cgpu-onboarding-package; bash step-1-install-gpu-driver.sh;"
+	ssh  -i ${privatekeypath} ${vmsshinfo} "cd cgpu-onboarding-package; bash step-1-install-gpu-driver.sh 2>&1;"
 	Write-Host "Finished install driver."
 	$global:issuccess = "succeeded"
 }
@@ -552,7 +552,7 @@ function Attestation {
 	echo $(ssh  -i ${privatekeypath} ${vmsshinfo} ${attstationcommand}) 2>&1 | Out-File -filepath ".\logs\$logpath\attestation.log"
 
 	$attestationmessage=(Get-content -tail 20 .\logs\$logpath\attestation.log)
-	echo $attestationmessage
+	Write-Host $attestationmessage
 	Write-Host "Finished attestation."
 	$global:issuccess = "succeeded"
 }
@@ -610,16 +610,16 @@ function Try-Connect {
 	$connectionoutput="notconnected"
 	$maxretrycount=50
 	Write-Host "VM SSH info: ${vmsshinfo}"
-	echo $vmsshinfo
+	Write-Host $vmsshinfo
 	Write-Host "Private key path: ${privatekeypath}"
-	echo $privatekeypath
+	Write-Host $privatekeypath
 
 	$currentRetry=0
 	while ($connectionoutput -ne "connected" -and $currentRetry -lt $maxretrycount)
 	{
 		Write-Host "Trying to connect";
-		$connectionoutput=ssh -i ${privatekeypath} -o "StrictHostKeyChecking no" ${vmsshinfo} "bash -c 'echo \"connected\"'"		
-		echo $connectionoutput
+		$connectionoutput=ssh -i ${privatekeypath} -o "StrictHostKeyChecking no" ${vmsshinfo} "bash -c 'echo connected'"		
+		Write-Host $connectionoutput
 		if ($connectionoutput -eq "connected") {
 			$global:issuccess = "succeeded"
 			return
@@ -668,6 +668,16 @@ function Validation {
 	else
 	{
 		Write-Host "Passed: Confidential Compute environment validation. Current Confidential Compute environment: ${ccenvironment}"
+	}
+
+	$attestationsuccessstr="GPU Attestation is Successful."
+	if (Select-String -Path ".\logs\$logpath\attestation.log" -Pattern $attestationsuccessstr)
+	{
+		Write-Host "Passed: Attestation validation passed."
+	}
+	else
+	{
+		Write-Host "Failed: Attestation validation failed."
 	}
 
 	Write-Host "Finished C-GPU capable validation."

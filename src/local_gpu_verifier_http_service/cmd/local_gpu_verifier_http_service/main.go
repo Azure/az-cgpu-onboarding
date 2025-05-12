@@ -2,16 +2,19 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"flag"
 	"io"
 	"log/slog"
+	"net"
 	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -22,11 +25,13 @@ import (
 // Default config constants (can be overridden via command-line flags)
 // - LogPath: Path to the log file where service logs are written.
 // - Port: Port on which the HTTP service will listen.
+// - SocketPath: Path to the Unix socket file for the service.
 // - VerifierRoot: Root directory for the GPU verifier, containing the Python script.
 // - SuccessStr: Message indicating successful attestation in command output.
 const (
 	defaultLogPath       = "/usr/local/bin/local_gpu_verifier_http_service/attestation_service.log"
 	defaultPort          = "8123"
+	defaultSocketPath    = "/var/run/gpu-attestation/gpu-attestation.sock"
 	defaultVerifierRoot  = "/usr/local/lib/local_gpu_verifier"
 	defaultSuccessString = "GPU Attestation is Successful"
 	defaultNonceSize     = 32
@@ -36,6 +41,7 @@ const (
 type Config struct {
 	LogPath      string
 	Port         string
+	SocketPath   string
 	VerifierRoot string
 	SuccessStr   string
 }
@@ -48,7 +54,86 @@ var (
 	// To build with debug logging enabled, pass:
 	// -ldflags="-X main.enableDebugLogging=true"
 	enableDebugLogging string = "false"
+
+	// Mutex to protect access to the GPU attestation process
+	// This ensures only one attestation process runs at a time
+	attestationMutex sync.Mutex
 )
+
+// createServer configures and returns a server with common settings
+// This can be used for both HTTP and Unix socket servers
+func createServer(mux *http.ServeMux) *http.Server {
+	return &http.Server{
+		Handler:      mux,
+		ReadTimeout:  30 * time.Second,
+		WriteTimeout: 30 * time.Second,
+	}
+}
+
+// startHTTPServer starts the HTTP server on the specified port
+func startHTTPServer(wg *sync.WaitGroup, port string, mux *http.ServeMux) {
+	defer wg.Done()
+
+	srv := createServer(mux)
+	srv.Addr = ":" + port
+
+	logger.Info("Starting HTTP server", "port", port)
+	if err := srv.ListenAndServe(); err != http.ErrServerClosed {
+		logger.Error("HTTP server failed", "err", err)
+	}
+}
+
+// prepareSocketListener creates and prepares a Unix socket listener
+func prepareSocketListener(socketPath string) (net.Listener, error) {
+	// Remove socket if it already exists
+	if _, err := os.Stat(socketPath); err == nil {
+		if err := os.Remove(socketPath); err != nil {
+			logger.Error("Failed to remove existing socket file", "err", err)
+			return nil, err
+		}
+	}
+
+	// Create the directory for the socket file if it doesn't exist
+	socketDir := filepath.Dir(socketPath)
+	if err := os.MkdirAll(socketDir, 0755); err != nil {
+		logger.Error("Failed to create socket directory", "err", err)
+		return nil, err
+	}
+
+	// Create listener
+	listener, err := net.Listen("unix", socketPath)
+	if err != nil {
+		logger.Error("Failed to create Unix socket", "err", err)
+		return nil, err
+	}
+
+	// Set permissive file permissions for the socket
+	if err := os.Chmod(socketPath, 0666); err != nil {
+		logger.Error("Failed to set socket permissions 0666", "err", err)
+		// Continue even if chmod fails
+		// In this case the user must have permissions to access the socket
+	}
+
+	return listener, nil
+}
+
+// startSocketServer starts the Unix socket server
+func startSocketServer(wg *sync.WaitGroup, socketPath string, mux *http.ServeMux) {
+	defer wg.Done()
+
+	listener, err := prepareSocketListener(socketPath)
+	if err != nil {
+		return
+	}
+	defer listener.Close()
+
+	srv := createServer(mux)
+
+	logger.Info("Starting Unix socket server", "socket", socketPath)
+	if err := srv.Serve(listener); err != http.ErrServerClosed {
+		logger.Error("Socket server failed", "err", err)
+	}
+}
 
 func main() {
 	// Initialize logger to output to stderr while we load configuration
@@ -57,6 +142,7 @@ func main() {
 	// Parse the command-line flags for service configuration
 	logPath := flag.String("logpath", defaultLogPath, "Path to the log file where service logs are written.")
 	port := flag.String("port", defaultPort, "Port on which the HTTP service will listen.")
+	socketPath := flag.String("socket", defaultSocketPath, "Path to the Unix socket file.")
 	verifierRoot := flag.String("verifierroot", defaultVerifierRoot, "Root directory for the GPU verifier, containing the Python script.")
 	successStr := flag.String("successstr", defaultSuccessString, "Message indicating successful attestation in command output.")
 	flag.Parse()
@@ -64,6 +150,7 @@ func main() {
 	logger.Info("Loading service configuration...",
 		"logPath", *logPath,
 		"port", *port,
+		"socketPath", *socketPath,
 		"verifierRoot", *verifierRoot,
 		"successStr", *successStr,
 	)
@@ -71,6 +158,7 @@ func main() {
 	config := Config{
 		LogPath:      *logPath,
 		Port:         *port,
+		SocketPath:   *socketPath,
 		VerifierRoot: *verifierRoot,
 		SuccessStr:   *successStr,
 	}
@@ -79,28 +167,29 @@ func main() {
 	initLogger(config.LogPath)
 
 	// Log service startup details
-	logger.Info("Starting GPU Attestation HTTP Service", "port", config.Port)
+	logger.Info("Starting GPU Attestation Service")
 	logger.Info("Log file", "path", config.LogPath)
 	logger.Info("GPU attestation Verifier root directory", "path", config.VerifierRoot)
 
-	// Setup the HTTP server
+	// Setup the HTTP handler
 	mux := http.NewServeMux()
 	mux.HandleFunc("/gpu_attest", func(w http.ResponseWriter, r *http.Request) {
 		handleGpuAttest(w, r, config)
 	})
 
-	srv := &http.Server{
-		Addr:         ":" + config.Port,
-		Handler:      mux,
-		ReadTimeout:  15 * time.Second,
-		WriteTimeout: 15 * time.Second,
-	}
+	// Start servers in goroutines
+	var wg sync.WaitGroup
 
-	// Start the HTTP server
-	if err := srv.ListenAndServe(); err != nil {
-		logger.Error("GPU Attestation HTTP Service failed to start", "err", err)
-		os.Exit(1)
-	}
+	// Start HTTP server
+	wg.Add(1)
+	go startHTTPServer(&wg, config.Port, mux)
+
+	// Start Unix socket server
+	wg.Add(1)
+	go startSocketServer(&wg, config.SocketPath, mux)
+
+	// Wait for servers to exit
+	wg.Wait()
 }
 
 // (Re)initializes the global logger
@@ -205,30 +294,16 @@ func handleGpuAttest(w http.ResponseWriter, r *http.Request, config Config) {
 		reqLogger.Info("No nonce provided in request")
 	} else {
 		reqLogger.Info("Nonce found in request", "nonce", nonce)
-	}
-
-	// Execute the GPU attestation command
-	pythonPath := filepath.Join(config.VerifierRoot, "prodtest", "bin", "python3")
-	cmd := exec.Command("sudo", pythonPath, "-m", "verifier.cc_admin")
-
-	// Add nonce if provided
-	if nonce != "" {
 		// Check if the nonce is a valid hex string representing 32 bytes
 		if !isValidHex(nonce, defaultNonceSize) {
 			reqLogger.Error("Invalid nonce provided; must be a hex string representing 32 bytes", "nonce", nonce)
 			http.Error(w, "Invalid args: nonce must be a 32-byte hex string", http.StatusBadRequest)
 			return
 		}
-		cmd.Args = append(cmd.Args, "--nonce", nonce)
 	}
 
-	var outBuf, errBuf bytes.Buffer
-	cmd.Stdout = &outBuf
-	cmd.Stderr = &errBuf
-
-	runErr := cmd.Run()
-	combinedOutput := outBuf.String() + errBuf.String()
-	reqLogger.Info("GPU Attestation Command output", "output", combinedOutput)
+	// Execute the GPU attestation command with no concurrent runs
+	combinedOutput, runErr := executeAttestationCommand(reqLogger, config.VerifierRoot, nonce)
 
 	if runErr != nil {
 		reqLogger.Error("Error executing cc_admin", "error", runErr)
@@ -255,6 +330,30 @@ func handleGpuAttest(w http.ResponseWriter, r *http.Request, config Config) {
 		"duration", time.Since(start),
 		"status_code", statusCode,
 	)
+}
+
+// Execute the GPU attestation command
+func executeAttestationCommand(reqLogger *slog.Logger, verifierRoot string, nonce string) (string, error) {
+	pythonPath := filepath.Join(verifierRoot, "prodtest", "bin", "python3")
+	cmd := exec.Command("sudo", pythonPath, "-m", "verifier.cc_admin")
+
+	// Add nonce if provided (nonce is already validated before reaching here)
+	if nonce != "" {
+		cmd.Args = append(cmd.Args, "--nonce", nonce)
+	}
+
+	var outBuf, errBuf bytes.Buffer
+	cmd.Stdout = &outBuf
+	cmd.Stderr = &errBuf
+
+	attestationMutex.Lock()
+	runErr := cmd.Run()
+	attestationMutex.Unlock()
+
+	combinedOutput := outBuf.String() + errBuf.String()
+	combinedOutputBase64 := base64.StdEncoding.EncodeToString([]byte(combinedOutput))
+	reqLogger.Info("GPU Attestation Command output", "output", combinedOutputBase64)
+	return combinedOutput, runErr
 }
 
 // isValidHex checks if s is a valid hex string representing exactly numBytes bytes

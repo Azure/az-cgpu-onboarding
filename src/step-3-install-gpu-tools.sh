@@ -1,7 +1,7 @@
 ## This module helps install gpu nvdia docker image for helping execute machine learning workload.
 ##
 ## Requirements:
-##      Minimum Nvidia driver:       v550.54.14
+##      Minimum Nvidia driver:       v570.86.15
 ##
 ## Example:
 ##      sudo bash step-3-install-gpu-tools.sh
@@ -41,7 +41,7 @@ install_gpu_tools() {
     sudo echo "{ \"exec-opts\": [\"native.cgroupdriver=cgroupfs\"] }" | sudo tee /etc/docker/daemon.json
     sudo systemctl restart docker
 
-    sudo docker run --rm --gpus all nvidia/cuda:12.4.1-base-ubuntu22.04 nvidia-smi
+    sudo docker run --rm --gpus all nvidia/cuda:12.8.1-base-ubuntu22.04 nvidia-smi
 }
 
 if [[ "${#BASH_SOURCE[@]}" -eq 1 ]]; then
