@@ -1,17 +1,17 @@
 ## This module helps install/update kernel to given version. If not given version,
-## It will try to update to default version "6.5.0-1024-azure".
+## It will try to update to default version "6.8.0-1025-azure".
 ##
 ## Requirements:
-##      Minimum Nvidia driver:      v550.90.07
-##      Minimum kernel version:     6.5.0-1024-azure
+##      Minimum Nvidia driver:      v570.86.15
+##      Minimum kernel version:     6.8.0-1025-azure
 ##
 ## Example:
 ##      bash utilities-update-kernel.sh
-##      bash utilities-update-kernel.sh -k "6.5.0-1024-azure"
+##      bash utilities-update-kernel.sh -k "6.8.0-1025-azure"
 ##
 
 # Default Azure kernel version to be update to
-DEFAULT_KERNEL_VERSION="6.5.0-1024-azure"
+DEFAULT_KERNEL_VERSION="6.8.0-1025-azure"
 
 # Compare if two given version is matching or not.
 # Return 0 if equal, 1 if the first version is greater, 2 if the first version is smaller

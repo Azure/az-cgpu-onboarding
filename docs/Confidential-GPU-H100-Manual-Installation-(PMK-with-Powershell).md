@@ -28,7 +28,7 @@ Please make sure you have these requirements before performing the following ste
 - [Azure Tenant ID](https://learn.microsoft.com/en-us/azure/active-directory/fundamentals/active-directory-how-to-find-tenant#find-tenant-id-with-powershell)
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
   - Note: minimum version 2.46.0 is required, run `az --version` to check your version and run `az upgrade` to install the latest version if your version is older
-- Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure/az-cgpu-onboarding/releases/download/V3.2.4/cgpu-onboarding-package.tar.gz) from [az-cgpu-onboarding-V3.2.4](https://github.com/Azure/az-cgpu-onboarding/releases/tag/V3.2.4)
+- Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure/az-cgpu-onboarding/releases/download/V3.3.2/cgpu-onboarding-package.tar.gz) from [az-cgpu-onboarding-V3.3.2](https://github.com/Azure/az-cgpu-onboarding/releases/tag/V3.3.2)
 
 -------------------------------------------
 
@@ -64,7 +64,7 @@ Required Parameters:
 - $publickeypath = the path to your local public key 
 
 Additional optional parameters:
-- $location = the region you would like to deploy to. Currently we support eastus2 and westeurope
+- $location = the region you would like to deploy to. Currently we support eastus2, westeurope, and centralus
 - $osdisksize = the size of your OS disk. The maximum size is 4095 GB and for default, set to 100 GB
 - $osdistribution = the OS distribution for your VM. Currently we support Ubuntu22.04 and Ubuntu24.04
 - $skipazlogin = skip az login
@@ -175,7 +175,7 @@ You should see: "CC Environment: PRODUCTION"
 Once you have finished the validation, you can execute the following commands to try a sample workload:
 
 ```
-sudo docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/${adminusername}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:24.05-tf2-py3 python /home/mnist-sample-workload.py
+sudo docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/${adminusername}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:25.02-tf2-py3 python /home/mnist-sample-workload.py
 ```
 
 If you have reached this point, congratulations! You have offically manually created an NCC40 CGPU VM!

@@ -70,7 +70,7 @@ cgpu_h100_onboarding() {
 	    esac
 	done
 	
-	ONBOARDING_PACKAGE_VERSION="V3.2.4"
+	ONBOARDING_PACKAGE_VERSION="V3.3.2"
 	echo "Confidential GPU H100 Onboarding Package Version: $ONBOARDING_PACKAGE_VERSION"
 
 	if [ "$(az --version | grep azure-cli)" == "" ]; then
@@ -101,7 +101,7 @@ cgpu_h100_onboarding() {
 	if [[ -z "${location}" ]]; then
 		echo "Location was not specified, setting to eastus2 region"
 		location="eastus2"
-	elif [[ "$location" == "eastus2" ]] || [[ "$location" == "westeurope" ]]; then
+	elif [[ "$location" == "eastus2" ]] || [[ "$location" == "westeurope" ]] || [[ "$location" == "centralus" ]] ; then
 		echo "Allowed location selected"
 	else
 		echo "The selected location is not currently supported."
@@ -223,7 +223,7 @@ cgpu_h100_onboarding() {
 	echo "Please execute the below command to try attestation:"
 	echo "cd cgpu-onboarding-package; sudo bash step-2-attestation.sh";
 	echo "Please execute the below command to try a sample workload:"
-	echo "sudo docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/${adminuser_name}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:24.05-tf2-py3 python /home/mnist-sample-workload.py";
+	echo "sudo docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/${adminuser_name}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:25.02-tf2-py3 python /home/mnist-sample-workload.py";
 	echo "******************************************************************************************"
 
 	if [[ -z "${skip_az_login}" ]]; then
@@ -358,11 +358,15 @@ attestation() {
 	try_connect
 	echo "Start verifier installation and attestation. Please wait, this process can take up to 2 minutes."
 	if [[ -n "${install_gpu_verifier_to_usr_local}" ]]; then
-		ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh --install-to-usr-local 2>&1;"
+		attestation_command="cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh --install-to-usr-local 2>&1;"
 	else
-		ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh 2>&1;"
+		attestation_command="cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh 2>&1;"
 	fi
-	#ssh -i $private_key_path $vm_ssh_info 'cd cgpu-onboarding-package/$(ls -1 cgpu-onboarding-package | grep verifier | head -1); sudo python3 cc_admin.py'
+
+	echo "Start installing attestation package - this may take up to 5 minutes."
+	ssh -i "$private_key_path" "$vm_ssh_info" "$attestation_command" 2>&1 | tee "$log_dir/attestation-output.log"
+	attestation_message=$(tail -n 20 "$log_dir/attestation-output.log")
+	echo "$attestation_message"
 	echo "Finished attestation."
 }
 
@@ -386,9 +390,9 @@ try_connect() {
    MAX_RETRY=50
    retries=0
    connectionoutput=""
-   while [[ "$connectionoutput" != "Connected to VM" ]] && [[ $retries -lt $MAX_RETRY ]];
+   while [[ "$connectionoutput" != "connected" ]] && [[ $retries -lt $MAX_RETRY ]];
    do
-	   connectionoutput=$(ssh -i "${private_key_path}" -o "StrictHostKeyChecking=no" "${vm_ssh_info}" "bash -c \"echo 'Connected to VM'\"")        
+	   connectionoutput=$(ssh -i "${private_key_path}" -o "StrictHostKeyChecking=no" "${vm_ssh_info}" "bash -c \"echo 'connected'\"")        
 	   echo $connectionoutput
 	   sleep 1
        retries=$((retries+1))
@@ -501,6 +505,15 @@ validation() {
 	else 
 		echo "Passed: Confidential Compute environment validation. Current Confidential Compute environment: ${cc_environment}"
 
+	fi
+	
+	attestation_success_str="GPU Attestation is Successful."
+	attestation_success=$(grep "$attestation_success_str" $log_dir/attestation-output.log)
+	if [ $? -eq 0 ];
+	then
+		echo "Passed: Attestation validation passed."
+	else 
+		echo "Failed: Attestation validation failed."
 	fi
 }
 

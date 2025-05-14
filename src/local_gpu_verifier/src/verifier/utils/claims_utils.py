@@ -29,8 +29,7 @@
 #
 import hashlib
 from datetime import datetime, timedelta, timezone
-import os
-import secrets
+from typing import List, Any
 import string
 import uuid
 from urllib import request
@@ -100,19 +99,29 @@ class ClaimsUtils:
 
     @staticmethod
     def create_detached_eat_claims(
-        attest_result: bool, gpu_claims_list, nonce, hwmodel, oemid, ueid, driver_warnings, vbios_warnings
+        attest_result: bool,
+        gpu_claims_list: List[Any],
+        nonce: str,
+        hwmodel: str,
+        oemid: str,
+        ueid: str,
+        driver_warnings: List[str],
+        vbios_warnings: List[str],
     ):
-        """Utility method to create detached EAT claims for a specific attestation token
-
+        """Utility method to create detached EAT claims for a specific attestation token.
         Args:
-            attest_result : boolean representing overall attestation result
-            gpu_claims_list: list of GPU claims
-
+            attest_result (bool): Represents overall attestation result.
+            gpu_claims_list (list): List of GPU claims.
+            nonce (str): Nonce represented as string.
+            hwmodel (str): Hardware model.
+            oemid (str): OEM identifier.
+            ueid (str): Unique Entity Identifier
+            driver_warnings (list): List of driver-related warnings captured during Attestation.
+            vbios_warnings (list): List of vBIOS-related warnings captured during Attestation.
         Returns:
-            dict representing the detached EAT claims
+            dict: Dictionary of GPU EAT claims
         """
         gpu_detached_claims = []
-
         overall_encoded_claim_arr = []
         overall_encoded_claim_arr.append("JWT")
         overall_claims = ClaimsUtils.get_overall_claims(nonce)

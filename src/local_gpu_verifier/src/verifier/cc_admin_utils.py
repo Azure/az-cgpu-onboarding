@@ -44,7 +44,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.hashes import SHA384
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.exceptions import InvalidSignature
-from cryptography.x509 import ocsp, OCSPNonce
+from cryptography.x509 import ocsp, OCSPNonce, ExtensionNotFound
 from cryptography import x509
 
 from verifier.attestation import AttestationReport
@@ -181,7 +181,7 @@ class CcAdminUtils:
         Returns:
             [OpenSSL.crypto.X509]: the converted X509 certificate object.
         """
-        return crypto.load_certificate(type=crypto.FILETYPE_ASN1, buffer = cert.public_bytes(serialization.Encoding.DER))
+        return crypto.load_certificate(type=crypto.FILETYPE_ASN1, buffer=cert.public_bytes(serialization.Encoding.DER))
 
     @staticmethod
     def build_ocsp_request(cert, issuer, nonce=None):
@@ -253,8 +253,6 @@ class CcAdminUtils:
             )
             ocsp_request = CcAdminUtils.build_ocsp_request(cert_chain[i], cert_chain[i + 1], nonce)
 
-
-
             try:
                 ocsp_response = function_wrapper_with_timeout(
                     [
@@ -302,12 +300,18 @@ class CcAdminUtils:
                 return False, error_msg
 
             # Verify the Nonce in the OCSP response
-            if nonce is not None and nonce != ocsp_response.extensions.get_extension_for_class(OCSPNonce).value.nonce:
-                error_msg = "The nonce in the OCSP response message is not matching with the one passed in the OCSP request message."
-                info_log.error(f"\t\t{error_msg}")
+            try:
+                if nonce is not None and nonce != ocsp_response.extensions.get_extension_for_class(OCSPNonce).value.nonce:
+                    error_msg = "The nonce in the OCSP response message is not matching with the one passed in the OCSP request message."
+                    info_log.error(f"\t\t{error_msg}")
+                    return False, error_msg
+                elif i == end_index - 1:
+                    info_log.debug("\t\tGPU Certificate OCSP Nonce is matching")
+            except ExtensionNotFound:
+                error_msg = "The OCSP response does not contain a nonce extension."
+                info_log.error(
+                    f"\t\t{error_msg} If OCSP nonce validation is not required in your environment, consider disabling the nonce check.")
                 return False, error_msg
-            elif i == end_index - 1:
-                info_log.debug("\t\tGPU Certificate OCSP Nonce is matching")
 
             # Verify the OCSP response is within the validity period
             timestamp_format = "%Y/%m/%d %H:%M:%S UTC"
