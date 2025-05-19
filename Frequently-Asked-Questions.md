@@ -72,12 +72,16 @@ A: We have detailed out the options to deploy a CGPU VM manually [here](docs/Con
 ## Q: Why does the `dmesg` not display `AMD SEV-SNP`?
 
 A: This is the intended behavior because the AMD SEV-SNP offering on Azure runs in the vTOM (virtual Top of Memory) mode and the SEV-SNP CPUID capability is not exposed to the VM, though SEV-SNP is in use. In such a CVM, the native attestation interface /dev/sev-guest is unsupported; instead, the VM should perform attestation via vTPM.
-To detect such an AMD SEV-SNP VM on Azure, a user should check the CPU leaves below :
+
+To detect such an AMD SEV-SNP VM on Azure, a user can check the CPU leaves below:
 CPUID leaf 0x40000003’s EBX.bit22 is 1 AND
 CPUD leaf 0x4000000C’s EAX.bit0 is 1, and EBX.bit 0~3 is 2.
 (refer to https://elixir.bootlin.com/linux/latest/source/arch/x86/kernel/cpu/mshyperv.c#L445)
 
-NVIDIA is working on implementing SEV-SNP checks for Hyper-V and are planning on will releasing it with the TRD5 release in September 2024.
+Alternatively, to verify the CPU's confidential computing capabilities using nvidia-smi use the following command: `nvidia-smi conf-compute -q`
+
+You should see something similar to the following, showing the `AMD SEV-SNP (vTOM Mode)` enabled in the conf-compute log: ![AMD SEV_SNP Mode](./images/amd_sev_snp_mode.png)
+
 
 
 ## Q: How can I check my CGPU VM's HyperV SEV-SNP status is enabled?
