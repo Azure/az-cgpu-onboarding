@@ -38,6 +38,10 @@ install_gpu_driver() {
         sudo apt -o DPkg::Lock::Timeout=300 install -y gcc g++ make
         sudo apt -o DPkg::Lock::Timeout=300 install -y nvidia-driver-570-server-open linux-modules-nvidia-570-server-open-azure
 
+        # Exclude Nvidia Persistence Daemon from restarting on pacakge update
+        sudo mkdir -p /etc/needrestart/conf.d
+        echo '$nrconf{"override_rc"}{"nvidia-persistenced.service"} = 0;' | sudo tee /etc/needrestart/conf.d/99-skip-nvidia-persistenced.conf
+
         # Enable persistence mode and set GPU ready state on boot
         sudo nvidia-smi -pm 1
         echo "add nvidia persitenced on reboot."

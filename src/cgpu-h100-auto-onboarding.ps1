@@ -69,7 +69,7 @@ function CGPU-H100-Onboarding{
 		[bool]$enablegpuverifierservice=$false
 		)
 
-		$ONBOARDING_PACKAGE_VERSION="V3.3.2"
+		$ONBOARDING_PACKAGE_VERSION="V4.1.0"
 		Write-Host "Confidential GPU H100 Onboarding Package Version: $ONBOARDING_PACKAGE_VERSION"
 
 		$logpath=$(Get-Date -Format "MM-dd-yyyy_HH-mm-ss")
@@ -149,7 +149,7 @@ function Auto-Onboard-CGPU-Multi-VM {
 	} elseif ($encryptiontype -ne "DiskWithVMGuestState" -And $desid) {
 		Write-Host "Encryption type must be DiskWithVMGuestState if Disk Encryption Set ID is provided."
 		return
-	} elseif ($encryptiontype -eq "DiskWithVMGuestState" -Or $encryptiontype -eq "DiskWithCustomerManagedKey") {
+	} elseif ($encryptiontype -eq "DiskWithVMGuestState" -Or $encryptiontype -eq "VMGuestStateOnly") {
 		Write-Host "Allowed encryption type selected."
 	} else {
 		Write-Host "Encryption type must be DiskWithVMGuestState or VMGuestStateOnly."
