@@ -1,6 +1,6 @@
 # Confidential GPU Onboarding 
 
-Welcome! This onboarding document helps to create an Azure Confidential VM (CVM) with NVIDIA H100 Tensor Core GPU in Confidential Computing mode.  
+Welcome! This onboarding document walks through the process of creating an Azure Confidential VM (CVM) with an NVIDIA H100 Tensor Core GPU in Confidential Computing mode.  
 
 Through this onboarding process, you can:
 1. Deploy a secure boot enabled Azure confidential virtual machine. 
@@ -46,18 +46,20 @@ To learn more about this change or re-enable this package, please visit our FAQ 
 
 ## Instructions
 
-The following four major steps are provided to help deploy your first Confidential GPU VM and to run a sample workload. The first step sets up the Confidential GPU environment and create the VM. The second step is optional, only required if you choose the customer managed key option (read more about key management options here: [Azure Key Management](https://learn.microsoft.com/en-us/azure/security/fundamentals/key-management)). The third step performs attestation verification and ensures the CGPU mode has been turned on successfully. The last step helps run a sample workload to verify and complete the setup. These steps are only required the first time you are deploying your VM.
+The onboarding script will compelete 4 major steps that will help deploy your first Confidential GPU VM and successfully run a sample workload.
 
-1. Create CGPU VM
-2. [Optional] Create Customer Managed Key
-4. Attestation Verification
-5. Workload Running
+1. Environment Setup and VM Creation - creates the VM and initializes the Confidential GPU environment
+2. [Optional] Key Configuration - this is only required if you choose the customer-managed key configuration (read more about key management options here: [Azure Key Management](https://learn.microsoft.com/en-us/azure/security/fundamentals/key-management))
+4. Attestation and CC Mode Verification - verifies attestation and ensures the CGPU mode is enabled
+5. Sample Workload Execution - provides a command to run a sample workload that can verify and complete the setup
+
+These steps are only required the first time you are deploying your VM
 
 Please make sure to follow all steps exactly as detailed. If you run into issues, please check the [FAQ page](Frequently-Asked-Questions.md) to check if there is more information or reach out using the contact information at the bottom of this document
 
 ## Choose your Configuration 
 
-We support the options to create confidential GPUs with Windows and Linux hosts, as well as with customer (CMK) and platform (PMK) managed keys. We recommend for first time users to try out the PMK option since it's simpler to onboard. You can chose between the following instruction options depending on your preferred configuration. We have created an easy to use one-step auto-onboarding script for bash and powershell users:
+We support the creation of Linux Confidential GPUs using Powershell and Bash, with encryption enabled through either customer-managed keys (CMK) or platform managed keys (PMK). We recommend for first time users to try out the PMK option since it is simpler to onboard. Please select the single-step auto-onboarding script that best fits your preferred configuration: 
 
 - [PMK flow in Powershell](docs/Confidential-GPU-H100-Onboarding-(PMK-with-Powershell).md)
 
@@ -74,14 +76,17 @@ If you prefer to go through the steps manually, you can follow these instruction
 
 - [Manual GPU Environment Setup](docs/Confidential-GPU-H100-Manual-Installation-(PMK-with-Powershell).md#upload-package)
 
-## Future Capabilities  
+**Preview Features**:
+Provision your CGPU VM using a Community Shared Virtual Machine Image (VMI) that has the NVIDIA GPU driver, CUDA, docker, and a customized local verifier already pre-installed. This image is generated using the same single-step auto-onboarding script that is linked above so the deployed VM will yield similar results, but this method is created to help reduce manual steps and greatly reduce the setup duration.
 
-- NVIDIA certified VMI-based provisioning with the GPU driver, CUDA, ML tools, and a customized local verifier already pre-installed
-- In-guest attestation evidence appraised by Microsoft Azure Attestation Service (MAA)
+- [VMI flow using Azure CLI](docs/Confidential-GPU-H100-VMI-Creation-CLI.md)
+
+Please note that since this feature is in preview there is currently no SLA provided. If you have comments, feedback, or questions about the VM Image experience, please feel free to leave them in the github issues here: [az-cgpu-onboarding/Issues](https://github.com/Azure/az-cgpu-onboarding/issues/new?q=is%3Aissue).
+
 
 ## Availability
 
-This offer is currently available in the East US 2 and West Europe regions. We plan to expand to more regions in a phased manner during upcoming semesters.
+This offer is currently available in the East US 2, Central US, and West Europe regions. We plan to expand to more regions in a phased manner during upcoming semesters.
 
 ## Contact Information
 
