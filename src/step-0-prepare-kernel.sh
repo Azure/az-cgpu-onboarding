@@ -5,9 +5,9 @@
 ##
 
 ENABLE_UBUNTU_PROPOSED_SOURCE_LIST=0
-ENABLE_UBUNTU_SNAPSHOT_SERVICE=0
+ENABLE_UBUNTU_SNAPSHOT_SERVICE=1
 DISABLE_UBUNTU_UNATTENDED_UPGRADES=1
-TIMESTAMP_UBUNTU_SNAPSHOT_SERVICE=20240405T120000Z
+TIMESTAMP_UBUNTU_SNAPSHOT_SERVICE=20250818T120000Z
 
 # Parse command-line arguments
 if [ $# -ne 0 ]; then
@@ -21,9 +21,19 @@ if [ $# -ne 0 ]; then
 fi
 
 enable_ubuntu_snapshot_service() {
-    local sources_list="/etc/apt/sources.list"
-    sudo cp "$sources_list" "$sources_list.backup"
-    sudo sed -i "/^deb /s/deb /deb [snapshot=$TIMESTAMP_UBUNTU_SNAPSHOT_SERVICE] /" "$sources_list"
+    ubuntu_version=$(lsb_release -rs)
+    # Ubuntu 22.04
+    if dpkg --compare-versions "$ubuntu_version" "eq" "22.04"; then
+        local sources_list="/etc/apt/sources.list"
+        sudo cp "$sources_list" "$sources_list.backup"
+        sudo sed -i "/^deb /s/deb /deb [snapshot=$TIMESTAMP_UBUNTU_SNAPSHOT_SERVICE] /" "$sources_list"
+
+    # Ubuntu 24.04
+    elif dpkg --compare-versions "$ubuntu_version" "eq" "24.04"; then
+        local sources_list="/etc/apt/sources.list.d/ubuntu.sources"
+        sudo cp "$sources_list" "$sources_list.backup"
+        sudo sed -i '/^Signed-By: /a Snapshot: '"$TIMESTAMP_UBUNTU_SNAPSHOT_SERVICE" "$sources_list"
+    fi
 }
 
 enable_ubuntu_proposed_pocket() {
