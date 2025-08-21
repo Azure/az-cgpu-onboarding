@@ -70,7 +70,7 @@ cgpu_h100_onboarding() {
 	    esac
 	done
 	
-	ONBOARDING_PACKAGE_VERSION="V4.1.1"
+	ONBOARDING_PACKAGE_VERSION="V4.1.2"
 	echo "Confidential GPU H100 Onboarding Package Version: $ONBOARDING_PACKAGE_VERSION"
 
 	if [ "$(az --version | grep azure-cli)" == "" ]; then
@@ -409,9 +409,11 @@ create_vm() {
 	case "$os_distribution" in
 		"Ubuntu22.04")
 			image_name="Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm"
+			image_version="22.04.202507300"
 			;;
 		"Ubuntu24.04")
 			image_name="Canonical:ubuntu-24_04-lts:cvm"
+			image_version="24.04.202507300"
 			;;
 		*)
 			echo "Unsupported OS distribution. Please choose either Ubuntu22.04 or Ubuntu24.04."
@@ -419,7 +421,6 @@ create_vm() {
 			return
 			;;
 	esac
-	image_version="latest"
 
 	# Check if VM name already exists within given resource group (returns 1 if exists, 0 if not)
 	vm_count=$(az vm list --resource-group $rg --query "[?name=='$vmname'] | length(@)")

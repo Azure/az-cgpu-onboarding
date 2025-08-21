@@ -69,7 +69,7 @@ function CGPU-H100-Onboarding{
 		[bool]$enablegpuverifierservice=$false
 		)
 
-		$ONBOARDING_PACKAGE_VERSION="V4.1.1"
+		$ONBOARDING_PACKAGE_VERSION="V4.1.2"
 		Write-Host "Confidential GPU H100 Onboarding Package Version: $ONBOARDING_PACKAGE_VERSION"
 
 		$logpath=$(Get-Date -Format "MM-dd-yyyy_HH-mm-ss")
@@ -386,11 +386,16 @@ function VM-Creation {
 
 	$publickeypath="@${publickeypath}"
 	switch ($osdistribution) {
-		"Ubuntu22.04" { $imagename = "Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm" }
-		"Ubuntu24.04" { $imagename = "Canonical:ubuntu-24_04-lts:cvm" }
+		"Ubuntu22.04" { 
+			$imagename = "Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm" 
+			$imageversion = "22.04.202507300"
+		}
+		"Ubuntu24.04" { 
+			$imagename = "Canonical:ubuntu-24_04-lts:cvm" 
+			$imageversion = "24.04.202507300"
+		}
 		default { Write-Host "Unsupported OS Distribution"; return }
 	}
-	$imageversion = "latest"
 
 	# Check if VM name already exists within given resource group
 	($exists = az vm show --resource-group $rg --name $vmname) 2>$null
