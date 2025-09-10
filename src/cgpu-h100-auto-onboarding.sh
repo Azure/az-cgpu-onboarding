@@ -23,6 +23,8 @@
 #    --skip-az-login: skip az login
 #    --install-gpu-verifier-to-usr-local: install gpu verifier to /usr/local/lib/local_gpu_verifier
 #    --enable-gpu-verifier-service: enable gpu verifier service
+#	 --enable-snapshot <timestamp>: enable the Ubuntu snapshot with the specified timestamp (default is enabled; value of 0 means it is disabled)
+#    --enable-proposed: enable Ubuntu proposed source list (overrides snapshot)
 # 
 # Example:
 # bash secureboot-enable-onboarding-from-vmi.sh  \
@@ -66,11 +68,13 @@ cgpu_h100_onboarding() {
 				skip-az-login) skip_az_login=true;;
 				install-gpu-verifier-to-usr-local) install_gpu_verifier_to_usr_local=true;;
 				enable-gpu-verifier-service) enable_gpu_verifier_service=true;;
+				enable-snapshot) enable_snapshot=true; snapshot_timestamp="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ));;
+				enable-proposed) enable_proposed=true;;
 			esac;;
 	    esac
 	done
 	
-	ONBOARDING_PACKAGE_VERSION="V4.1.2"
+	ONBOARDING_PACKAGE_VERSION="V4.1.3"
 	echo "Confidential GPU H100 Onboarding Package Version: $ONBOARDING_PACKAGE_VERSION"
 
 	if [ "$(az --version | grep azure-cli)" == "" ]; then
@@ -166,6 +170,21 @@ cgpu_h100_onboarding() {
 		echo "Unsupported OS Distribution. Please choose either Ubuntu22.04 or Ubuntu24.04."
 		return
 	fi
+
+	# Default: snapshot enabled with default timestamp
+	# Checks that only 1 option is enabled at a time
+    additional_params="--enable-snapshot 20250818T120000Z"
+	if [[ -n "${enable_proposed}" && -n "${enable_snapshot}" ]]; then
+		echo "Error: You can only enable one feature at a time: either --enable-proposed or --enable-snapshot, not both."
+		exit 1
+    elif [[ -n "${enable_proposed}" ]]; then
+        additional_params="--enable-proposed"
+    elif [[ -n "${enable_snapshot}" && "${snapshot_timestamp}" == "0" ]]; then
+        additional_params=""
+    elif [[ -n "${enable_snapshot}" && -n "${snapshot_timestamp}" ]]; then
+        additional_params="--enable-snapshot ${snapshot_timestamp}"
+    fi
+	echo "Optional parameters are: $additional_params"
 
 	if [[ -n "${skip_az_login}" ]]; then
 		echo "Skipping az login"
@@ -336,11 +355,11 @@ upload_package() {
 
 # Upload package to VM.
 update_kernel() {
-	try_connect
-	echo "Start update kernel."
-	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; bash step-0-prepare-kernel.sh 2>&1;" 
-	echo "Finished update kernel."
-	echo "Rebooting.."
+    try_connect
+    echo "Start update kernel."
+    ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; bash step-0-prepare-kernel.sh $additional_params 2>&1;"
+    echo "Finished update kernel."
+    echo "Rebooting.."
 }
 
 install_gpu_driver() {
@@ -406,14 +425,23 @@ create_vm() {
 
 	public_key_path_with_at="@$public_key_path"
 
+	# Set image name and version based on OS and flags
 	case "$os_distribution" in
 		"Ubuntu22.04")
 			image_name="Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm"
-			image_version="22.04.202507300"
+			if [[ -n "${enable_proposed}" || ( -n "${enable_snapshot}" && "${snapshot_timestamp}" == "0" ) ]]; then
+				image_version="latest"
+			else
+				image_version="22.04.202507300"
+			fi
 			;;
 		"Ubuntu24.04")
 			image_name="Canonical:ubuntu-24_04-lts:cvm"
-			image_version="24.04.202507300"
+			if [[ -n "${enable_proposed}" || ( -n "${enable_snapshot}" && "${snapshot_timestamp}" == "0" ) ]]; then
+				image_version="latest"
+			else
+				image_version="24.04.202507300"
+			fi
 			;;
 		*)
 			echo "Unsupported OS distribution. Please choose either Ubuntu22.04 or Ubuntu24.04."

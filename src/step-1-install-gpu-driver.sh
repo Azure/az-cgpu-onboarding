@@ -34,9 +34,20 @@ install_gpu_driver() {
         echo "kernel verified successfully, start driver installation."
         echo "start gpu driver log."
 
-        # Install r570 nvidia driver
+        # Install r570 nvidia driver (updated handling for Ubuntu 24.04+ and fde kernel)
         sudo apt -o DPkg::Lock::Timeout=300 install -y gcc g++ make
-        sudo apt -o DPkg::Lock::Timeout=300 install -y nvidia-driver-570-server-open linux-modules-nvidia-570-server-open-azure
+
+        ubuntu_version=$(lsb_release -rs)
+        kernel_version=$(echo "$current_kernel" | cut -d'-' -f1)
+
+        # Check for Ubuntu 24.04 or newer and kernel 6.14 or greater
+        if dpkg --compare-versions "$ubuntu_version" "ge" "24.04" && dpkg --compare-versions "$kernel_version" "ge" "6.14" && [[ "$current_kernel" == *fde ]]; then
+            echo "Current Ubuntu version is $ubuntu_version with kernel $current_kernel (fde), installing FDE driver packages."
+            sudo apt -o DPkg::Lock::Timeout=300 install -y nvidia-driver-570-server-open linux-modules-nvidia-570-server-open-azure-fde
+
+        else
+            sudo apt -o DPkg::Lock::Timeout=300 install -y nvidia-driver-570-server-open linux-modules-nvidia-570-server-open-azure
+        fi
 
         # Exclude Nvidia Persistence Daemon from restarting on pacakge update
         sudo mkdir -p /etc/needrestart/conf.d
