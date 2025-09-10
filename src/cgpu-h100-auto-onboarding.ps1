@@ -31,6 +31,8 @@
 #	 skipazlogin: skip az login if you have already logged in
 #	 installgpuverifier: install gpu verifier to /usr/local/lib/local_gpu_verifier
 #    enablegpuverifierservice: enable gpu verifier service
+#    enablesnapshot <timestamp>: enable Ubuntu snapshot service with the specified timestamp (default is enabled; value of 0 means it is disabled)
+#    enableproposed: enable Ubuntu proposed source list (overrides snapshot)
 #
 # EG:
 # CGPU-H100-Onboarding `
@@ -66,10 +68,12 @@ function CGPU-H100-Onboarding{
 		[string]$osdistribution="Ubuntu22.04",
 		[bool]$skipazlogin=$false,
 		[bool]$installgpuverifier=$false,
-		[bool]$enablegpuverifierservice=$false
+		[bool]$enablegpuverifierservice=$false,
+		[string]$enablesnapshot = "20250818T120000Z",
+		[switch]$enableproposed
 		)
 
-		$ONBOARDING_PACKAGE_VERSION="V4.1.2"
+		$ONBOARDING_PACKAGE_VERSION="V4.1.3"
 		Write-Host "Confidential GPU H100 Onboarding Package Version: $ONBOARDING_PACKAGE_VERSION"
 
 		$logpath=$(Get-Date -Format "MM-dd-yyyy_HH-mm-ss")
@@ -98,7 +102,7 @@ function CGPU-H100-Onboarding{
 		}
 
 		Start-Transcript -Path .\logs\$logpath\current-operation.log -Append
-		Auto-Onboard-CGPU-Multi-VM 
+		Auto-Onboard-CGPU-Multi-VM
 		trap {Stop-Transcript; break}
 		Stop-Transcript
 }
@@ -126,20 +130,20 @@ function Auto-Onboard-CGPU-Multi-VM {
 
 	Write-Host "Public key path:  ${publickeypath}"
 	if (-not(Test-Path -Path $publickeypath -PathType Leaf)) {
-		Write-Host "${public_key_path} does not exist, please verify file path"
-	return
+		Write-Host "${publickeypath} does not exist, please verify file path"
+		return
 	}
 
 	Write-Host "Private key path:  ${privatekeypath}"
 	if (-not(Test-Path -Path $privatekeypath -PathType Leaf)) {
 		Write-Host "${privatekeypath} does not exist, please verify file path"
-	return
+		return
 	}
 
 	Write-Host "C-GPU onboarding package path:  ${cgpupackagepath}"
 	if (-not(Test-Path -Path $cgpupackagepath -PathType Leaf)) {
 		Write-Host "${cgpupackagepath} does not exist, please verify file path"
-	return
+		return
 	}
 
 	# Sets the encryption type to DiskWithVMGuestState if not otherwise specified
@@ -177,6 +181,21 @@ function Auto-Onboard-CGPU-Multi-VM {
 	}
 	Write-Host "OS disk size: ${osdisksize}"
 
+    # Enforce mutual exclusivity between -enableproposed and -enablesnapshot
+    $enableProposedFlag = $enableproposed.IsPresent
+    $enableSnapshotFlag = $enablesnapshot.IsPresent -and $enablesnapshot -ne "0"
+    if ($enableProposedFlag -and $enableSnapshotFlag) {
+        Write-Host "Error: You can only enable one feature at a time: either --enableproposed or --enablesnapshot, not both."
+        exit 1
+    } elseif ($enableProposedFlag) {
+        $additionalParams = "--enableproposed"
+    } elseif ($enablesnapshot -eq "0") {
+        $additionalParams = ""
+    } else {
+        $additionalParams = "--enablesnapshot $enablesnapshot"
+    }
+    Write-Host "Optional parameters are: $additionalParams"
+
 	if ($skipazlogin) {
 		Write-Host "Skipping az login"
 	}
@@ -211,7 +230,7 @@ function Auto-Onboard-CGPU-Multi-VM {
 
 		$result = Auto-Onboard-CGPU-Single-VM `
 		-vmname $vmname
-
+		
 		if ($result -eq "succeeded") {
             		$successCount++
         	}
@@ -266,7 +285,7 @@ function Prepare-Subscription-And-Rg {
 		if ( $(az group exists --name $rg) -eq $false )
 		{
 			Write-Host "Resource group ${rg} creation failed, please check if your subscription is correct."
-			$issuccess="failed"
+			$global:issuccess="failed"
 			return
 		}
 		Write-Host "Resource group ${rg} creation succeeded."
@@ -298,7 +317,10 @@ function Auto-Onboard-CGPU-Single-VM {
 	 -vmname $vmname `
 	 -adminusername $adminusername `
  	 -desid $desid `
-	 -osdisksize $osdisksize
+	 -osdisksize $osdisksize `
+	 -osdistribution $osdistribution `
+	 -enableproposed:$enableproposed `
+	 -enablesnapshot $enablesnapshot
 	if ($global:issuccess -eq "failed") {
 		Write-Host "Failed to create VM."
 		return
@@ -316,7 +338,9 @@ function Auto-Onboard-CGPU-Single-VM {
 
 	# Update kernel
 	Update-Kernel -vmsshinfo $vmsshinfo `
-	 -privatekeypath $privatekeypath
+	-privatekeypath $privatekeypath `
+	-enablesnapshot $enablesnapshot `
+	-enableproposed:$enableproposed
 	if ($global:issuccess -eq "failed") {
 		Write-Host "Failed Update-Kernel."
 		return
@@ -380,19 +404,31 @@ function VM-Creation {
 		$adminusername,
 		$publickeypath,
 		$desid,
-		$osdisksize)
+		$osdisksize,
+		$osdistribution,
+		$enableproposed = $false,
+		[string]$enablesnapshot = "20250818T120000Z")
 
 	$global:issuccess = "failed"
 
 	$publickeypath="@${publickeypath}"
+	# Set image name and version
 	switch ($osdistribution) {
 		"Ubuntu22.04" { 
-			$imagename = "Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm" 
-			$imageversion = "22.04.202507300"
+			$imagename = "Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm"
+			if ($enableproposed.IsPresent -or $enablesnapshot -eq "0") {
+				$imageversion = "latest"
+			} else {
+				$imageversion = "22.04.202507300"
+			}
 		}
 		"Ubuntu24.04" { 
-			$imagename = "Canonical:ubuntu-24_04-lts:cvm" 
-			$imageversion = "24.04.202507300"
+			$imagename = "Canonical:ubuntu-24_04-lts:cvm"
+			if ($enableproposed.IsPresent -or $enablesnapshot -eq "0") {
+				$imageversion = "latest"
+			} else {
+				$imageversion = "24.04.202507300"
+			}
 		}
 		default { Write-Host "Unsupported OS Distribution"; return }
 	}
@@ -486,26 +522,22 @@ function Package-Upload {
 }
 
 function Update-Kernel {
-	param($vmsshinfo,
-		$privatekeypath)
+    param($vmsshinfo, $privatekeypath, [string]$enablesnapshot, [switch]$enableproposed)
 
-	# Test VM connnection.
- 	$isConnected=Try-Connect -vmsshinfo $vmsshinfo `
-		-privatekeypath $privatekeypath 
+    # Test VM connection.
+    $isConnected = Try-Connect -vmsshinfo $vmsshinfo -privatekeypath $privatekeypath
+    if ($isConnected -eq $false) {
+        Write-Host "VM connection failed after 50 retries."
+        $global:issuccess = "failed"
+        return
+    }
+    Write-Host "VM connection success."
+    Write-Host "Start update kernel"
+    ssh -i ${privatekeypath} ${vmsshinfo} "cd cgpu-onboarding-package; bash step-0-prepare-kernel.sh $additionalParams;"
+    Write-Host "Finished update kernel."
+    Write-Host "Rebooting..."
 
-	if ($isConnected -eq $false) {
-		Write-Host "VM connection failed after 50 retries."
-		$global:issuccess = "failed"
-		return
-	} 
-	Write-Host "VM connection success."
-
-	Write-Host "Start update kernel"
-	ssh  -i ${privatekeypath} ${vmsshinfo} "cd cgpu-onboarding-package; bash step-0-prepare-kernel.sh;"
-	Write-Host "Finished update kernel."
-	Write-Host "Rebooting..."
-
-	$global:issuccess = "succeeded"
+    $global:issuccess = "succeeded"
 }
 
 # Install Gpu driver.
