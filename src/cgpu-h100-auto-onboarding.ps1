@@ -73,7 +73,7 @@ function CGPU-H100-Onboarding{
 		[switch]$enableproposed
 		)
 
-		$ONBOARDING_PACKAGE_VERSION="V4.1.3"
+		$ONBOARDING_PACKAGE_VERSION="V4.1.4"
 		Write-Host "Confidential GPU H100 Onboarding Package Version: $ONBOARDING_PACKAGE_VERSION"
 
 		$logpath=$(Get-Date -Format "MM-dd-yyyy_HH-mm-ss")
@@ -185,14 +185,14 @@ function Auto-Onboard-CGPU-Multi-VM {
     $enableProposedFlag = $enableproposed.IsPresent
     $enableSnapshotFlag = $enablesnapshot.IsPresent -and $enablesnapshot -ne "0"
     if ($enableProposedFlag -and $enableSnapshotFlag) {
-        Write-Host "Error: You can only enable one feature at a time: either --enableproposed or --enablesnapshot, not both."
+        Write-Host "Error: You can only enable one feature at a time: either --enable-proposed or --enable-snapshot, not both."
         exit 1
     } elseif ($enableProposedFlag) {
-        $additionalParams = "--enableproposed"
+        $additionalParams = "--enable-proposed"
     } elseif ($enablesnapshot -eq "0") {
         $additionalParams = ""
     } else {
-        $additionalParams = "--enablesnapshot $enablesnapshot"
+        $additionalParams = "--enable-snapshot $enablesnapshot"
     }
     Write-Host "Optional parameters are: $additionalParams"
 
