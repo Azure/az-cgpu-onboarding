@@ -29,7 +29,7 @@ Please make sure you have these requirements before performing the following ste
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
   - Note: minimum version 2.46.0 is required, run `az --version` to check your version and run `az upgrade` to install the latest version if your version is older
 - [Quota for the NCC H100 v5 VM SKU](../Frequently-Asked-Questions.md#q-how-can-i-get-quota-for-creating-an-ncc-cgpu-vm)
-- Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure/az-cgpu-onboarding/releases/download/V4.1.3/cgpu-onboarding-package.tar.gz) from [az-cgpu-onboarding-V4.1.3](https://github.com/Azure/az-cgpu-onboarding/releases/tag/V4.1.3)
+- Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure/az-cgpu-onboarding/releases/download/V4.1.4/cgpu-onboarding-package.tar.gz) from [az-cgpu-onboarding-V4.1.4](https://github.com/Azure/az-cgpu-onboarding/releases/tag/V4.1.4)
 
 -------------------------------------------
 
