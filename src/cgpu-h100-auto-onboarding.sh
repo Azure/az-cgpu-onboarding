@@ -16,7 +16,7 @@
 #	-n <vm number>: number of VMs to be generated
 #
 # Optional Arguments:
-#    -l <region>: the location of your resources (if not specified, the default is eastus2)
+#    -l <region>: the location of your resources (if not specified, the default is centralus)
 #    -o <OS disk size>: the size of your OS disk (if not specified, the default is 100 GB)
 #    -e <encryption type>: the type of CVM encryption for your OS disk (if not specified, the default is DiskWithVMGuestState)
 #    --os-distribution [Ubuntu22.04, Ubuntu24.04]: the OS distribution for your VM (if not specified, the default is Ubuntu22.04)
@@ -31,7 +31,7 @@
 # -t "8af6653d-c9c0-4957-ab01-615c7212a40b" \
 # -s "9269f664-5a68-4aee-9498-40a701230eb2" \
 # -r "confidential-gpu-rg" \
-# -l "eastus2" \
+# -l "centralus" \
 # -p "/home/username/.ssh/id_rsa.pub" \
 # -i "/home/username/.ssh/id_rsa"  \
 # -d "/subscriptions/85c61f94-8912-4e82-900e-6ab44de9bdf8/resourceGroups/CGPU-CMK-KV/providers/Microsoft.Compute/diskEncryptionSets/CMK-Test-Des-03-01"  \
@@ -74,7 +74,7 @@ cgpu_h100_onboarding() {
 	    esac
 	done
 	
-	ONBOARDING_PACKAGE_VERSION="V4.1.4"
+	ONBOARDING_PACKAGE_VERSION="V4.1.5"
 	echo "Confidential GPU H100 Onboarding Package Version: $ONBOARDING_PACKAGE_VERSION"
 
 	if [ "$(az --version | grep azure-cli)" == "" ]; then
@@ -101,10 +101,10 @@ cgpu_h100_onboarding() {
 	echo "subscription id: ${subscription_id}" 
 	echo "Resource group: ${rg}" 
 
-	# Checks region parameter, and sets to eastus2 if not otherwise specified
+	# Checks region parameter, and sets to centralus if not otherwise specified
 	if [[ -z "${location}" ]]; then
-		echo "Location was not specified, setting to eastus2 region"
-		location="eastus2"
+		echo "Location was not specified, setting to centralus region"
+		location="centralus"
 	elif [[ "$location" == "eastus2" ]] || [[ "$location" == "westeurope" ]] || [[ "$location" == "centralus" ]] ; then
 		echo "Allowed location selected"
 	else
@@ -173,7 +173,7 @@ cgpu_h100_onboarding() {
 
 	# Default: snapshot enabled with default timestamp
 	# Checks that only 1 option is enabled at a time
-    additional_params="--enable-snapshot 20250818T120000Z"
+    additional_params="--enable-snapshot 20251015T120000ZTEST"
 	if [[ -n "${enable_proposed}" && -n "${enable_snapshot}" ]]; then
 		echo "Error: You can only enable one feature at a time: either --enable-proposed or --enable-snapshot, not both."
 		exit 1
@@ -242,7 +242,7 @@ cgpu_h100_onboarding() {
 	echo "Please execute the below command to try attestation:"
 	echo "cd cgpu-onboarding-package; sudo bash step-2-attestation.sh";
 	echo "Please execute the below command to try a sample workload:"
-	echo "sudo docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/${adminuser_name}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:25.02-tf2-py3 python /home/mnist-sample-workload.py";
+	echo "sudo docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/${adminuser_name}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/pytorch:25.09-py3 python /home/mnist-sample-workload.py";
 	echo "******************************************************************************************"
 
 	if [[ -z "${skip_az_login}" ]]; then
@@ -432,7 +432,7 @@ create_vm() {
 			if [[ -n "${enable_proposed}" || ( -n "${enable_snapshot}" && "${snapshot_timestamp}" == "0" ) ]]; then
 				image_version="latest"
 			else
-				image_version="22.04.202507300"
+				image_version="22.04.202507300.test"
 			fi
 			;;
 		"Ubuntu24.04")
@@ -440,7 +440,7 @@ create_vm() {
 			if [[ -n "${enable_proposed}" || ( -n "${enable_snapshot}" && "${snapshot_timestamp}" == "0" ) ]]; then
 				image_version="latest"
 			else
-				image_version="24.04.202507300"
+				image_version="24.04.202507300.test"
 			fi
 			;;
 		*)
