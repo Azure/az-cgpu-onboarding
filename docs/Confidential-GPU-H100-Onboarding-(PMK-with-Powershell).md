@@ -23,7 +23,7 @@ This page is using platform managed keys. More information about platform manage
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
    - Note: minimum version 2.42.0 is required, run `az --version` to check your version and run `az upgrade` to install the latest version if your version is older
 - [Quota for the NCC H100 v5 VM SKU](../Frequently-Asked-Questions.md#q-how-can-i-get-quota-for-creating-an-ncc-cgpu-vm)
-- Download [cgpu-h100-auto-onboarding-windows.zip](https://github.com/Azure/az-cgpu-onboarding/releases/download/V4.1.4/cgpu-h100-auto-onboarding-windows.zip) from [az-cgpu-onboarding-V4.1.4](https://github.com/Azure/az-cgpu-onboarding/releases/tag/V4.1.4)
+- Download [cgpu-h100-auto-onboarding-windows.zip](https://github.com/Azure/az-cgpu-onboarding/releases/download/V4.1.5/cgpu-h100-auto-onboarding-windows.zip) from [az-cgpu-onboarding-V4.1.5](https://github.com/Azure/az-cgpu-onboarding/releases/tag/V4.1.5)
 
 ----------------------------------------------------
 
@@ -43,7 +43,7 @@ $ ssh-keygen -t rsa -b 4096 -C <your email here>
 2. Create the VM using a powershell script
 - This will create a Standard_NCC40ads_H100_v5 Confidential VM with a Platform Managed Key (PMK) with secure boot enabled in your specified resource group. If the resource group doesn't exist, it will create it with the specified name under the target subscription.
 
-- Decompress downloaded [cgpu-h100-auto-onboarding-windows.zip](https://github.com/Azure/az-cgpu-onboarding/releases/download/V4.1.4/cgpu-h100-auto-onboarding-windows.zip) and enter the folder through powershell.
+- Decompress downloaded [cgpu-h100-auto-onboarding-windows.zip](https://github.com/Azure/az-cgpu-onboarding/releases/download/V4.1.5/cgpu-h100-auto-onboarding-windows.zip) and enter the folder through powershell.
 ```
 cd cgpu-h100-auto-onboarding-windows
 ```
@@ -62,7 +62,7 @@ cd cgpu-h100-auto-onboarding-windows
 
 # Optional Arguments:
 # location: the region your resources will be created in. Currently supported regions are eastus2, westeurope, and centralus.
-#           If left blank, they will default to eastus2 region
+#           If left blank, they will default to centralus region
 # osdisksize: the size of your OS disk. The current maximum supported size is 4095 GB
 #           If left blank, it will default to 100 GB
 # osdistribution [Ubuntu22.04, Ubuntu24.04]: the OS distribution of the VM
@@ -76,7 +76,7 @@ CGPU-H100-Onboarding `
 -tenantid "<your Tenant ID>" `
 -subscriptionid "<your subscription ID>" `
 -rg "cgpu-test-rg" `
--location "eastus2" `
+-location "centralus" `
 -publickeypath "...\.ssh\id_rsa.pub" `
 -privatekeypath "...\.ssh\id_rsa"  `
 -cgpupackagepath "cgpu-onboarding-package.tar.gz" `
@@ -101,7 +101,7 @@ ssh -i E:\cgpu\.ssh\id_rsa adminusername@20.114.244.82
 Please execute the below command to try attestation:
 cd cgpu-onboarding-package; sudo bash step-2-attestation.sh
 Please execute the below command to try a sample workload:
-sudo docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/<adminusername>/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:25.02-tf2-py3 python /home/mnist-sample-workload.py
+sudo docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/<adminusername>/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/pytorch:25.09-py3 python /home/mnist-sample-workload.py
 ******************************************************************************************
 Total VM to onboard: 1, total Success: 1.
 Detailed logs can be found at: .\logs\01-12-2024_14-42-44
@@ -125,5 +125,5 @@ bash step-2-attestation.sh
 ```
 # In your VM, execute the below command for a tensorflow sample execution.  
 
-sudo docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/<adminusername>/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:25.02-tf2-py3 python /home/mnist-sample-workload.py
+sudo docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/<adminusername>/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/pytorch:25.09-py3 python /home/mnist-sample-workload.py
 ```
