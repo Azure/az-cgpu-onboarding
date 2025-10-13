@@ -41,7 +41,7 @@ install_gpu_tools() {
     sudo echo "{ \"exec-opts\": [\"native.cgroupdriver=cgroupfs\"] }" | sudo tee /etc/docker/daemon.json
     sudo systemctl restart docker
 
-    sudo docker run --rm --gpus all nvidia/cuda:12.8.1-base-ubuntu22.04 nvidia-smi
+    sudo docker run --rm --gpus all nvidia/cuda:13.0.1-base-ubuntu22.04 nvidia-smi
 }
 
 if [[ "${#BASH_SOURCE[@]}" -eq 1 ]]; then
