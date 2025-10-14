@@ -24,7 +24,7 @@
 #	totalvmnumber: the number of retry we want to perform.
 #
 # Optional parameters:
-#    location: the location of your resources (if not specified, the default is eastus2)
+#    location: the location of your resources (if not specified, the default is centralus)
 #    osdisksize: the size of your OS disk (if not specified, the default is 100 GB)
 #    encryptiontype: the type of CVM encryption for the OS disk (if not specified, the default is DiskWithVMGuestState)
 #	 osdistribution [Ubuntu22.04, Ubuntu24.04]: the OS distribution of the VM (if not specified, the default is Ubuntu22.04)
@@ -39,7 +39,7 @@
 # -tenantid "8af6653d-c9c0-4957-ab01-615c7212a40b" `
 # -subscriptionid "9269f664-5a68-4aee-9498-40a701230eb2" `
 # -rg "cgpu-test-rg" `
-# -location "eastus2" `
+# -location "centralus" `
 # -publickeypath "E:\cgpu\.ssh\id_rsa.pub" `
 # -privatekeypath "E:\cgpu\.ssh\id_rsa"  `
 # -desid "/subscriptions/85c61f94-8912-4e82-900e-6ab44de9bdf8/resourceGroups/CGPU-CMK-KV/providers/Microsoft.Compute/diskEncryptionSets/CMK-Test-Des-03-01" `
@@ -69,11 +69,11 @@ function CGPU-H100-Onboarding{
 		[bool]$skipazlogin=$false,
 		[bool]$installgpuverifier=$false,
 		[bool]$enablegpuverifierservice=$false,
-		[string]$enablesnapshot = "20250818T120000Z",
+		[string]$enablesnapshot = "20251007T120000Z",
 		[switch]$enableproposed
 		)
 
-		$ONBOARDING_PACKAGE_VERSION="V4.1.4"
+		$ONBOARDING_PACKAGE_VERSION="V4.1.5"
 		Write-Host "Confidential GPU H100 Onboarding Package Version: $ONBOARDING_PACKAGE_VERSION"
 
 		$logpath=$(Get-Date -Format "MM-dd-yyyy_HH-mm-ss")
@@ -114,10 +114,10 @@ function Auto-Onboard-CGPU-Multi-VM {
 	Write-Host "Subscription ID: ${subscriptionid}"
 	Write-Host "Resource group: ${rg}"
 
-	# Sets the location to eastus2 region if not otherwise specified
+	# Sets the location to centralus region if not otherwise specified
 	if (-not $location) {
-		$location = "eastus2"
-		Write-Host "Location not specified, defaulting to eastus2 region."
+		$location = "centralus"
+		Write-Host "Location not specified, defaulting to centralus region."
 	}
 	elseif ($location -eq "eastus2" -Or $location -eq "westeurope" -Or $location -eq "centralus") {
 		Write-Host "Allowed location selected."
@@ -246,7 +246,7 @@ function Auto-Onboard-CGPU-Multi-VM {
 	Write-Host "Please execute the below command to try attestation:"
 	Write-Host "cd cgpu-onboarding-package; sudo bash step-2-attestation.sh";
 	Write-Host "Please execute the below command to try a sample workload:"
-	Write-Host "sudo docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/${adminusername}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/tensorflow:25.02-tf2-py3 python /home/mnist-sample-workload.py";
+	Write-Host "sudo docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/${adminusername}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/pytorch:25.09-py3 python /home/mnist-sample-workload.py";
 	Write-Host "******************************************************************************************"
 
 	Write-Host "Total VM to onboard: ${totalvmnumber}, total Success: ${successcount}."
@@ -419,7 +419,7 @@ function VM-Creation {
 			if ($enableproposed.IsPresent -or $enablesnapshot -eq "0") {
 				$imageversion = "latest"
 			} else {
-				$imageversion = "22.04.202507300"
+				$imageversion = "22.04.202509110"
 			}
 		}
 		"Ubuntu24.04" { 
@@ -427,7 +427,7 @@ function VM-Creation {
 			if ($enableproposed.IsPresent -or $enablesnapshot -eq "0") {
 				$imageversion = "latest"
 			} else {
-				$imageversion = "24.04.202507300"
+				$imageversion = "24.04.202509250"
 			}
 		}
 		default { Write-Host "Unsupported OS Distribution"; return }
