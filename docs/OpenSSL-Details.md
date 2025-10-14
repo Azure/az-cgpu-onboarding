@@ -131,7 +131,7 @@ $ sudo docker run \
     -v ~:/home \
     -v /opt/openssl:/opt/openssl \
     -it --rm \
-    nvcr.io/nvidia/pytorch:25.02-py3 \
+    nvcr.io/nvidia/pytorch:25.09-py3 \
     /bin/bash -c "LD_LIBRARY_PATH=/opt/openssl/lib64/ python3 /home/benchmark_pytorch.py"
 
 Host to Device Bandwidth: 8.29 GB/s
@@ -152,7 +152,7 @@ $ sudo docker run \
     -v ~:/home \
     -v /opt/openssl:/opt/openssl \
     -it --rm \
-    nvcr.io/nvidia/pytorch:25.02-py3 \
+    nvcr.io/nvidia/pytorch:25.09-py3 \
     /bin/bash -c "echo '/opt/openssl/lib64' >> /etc/ld.so.conf.d/openssl.conf && ldconfig && python3 /home/benchmark_pytorch.py"
 
 Host to Device Bandwidth: 8.43 GB/s
