@@ -62,6 +62,7 @@ from verifier.exceptions import (
     AttestationReportVerificationError,
     RIMVerificationFailureError,
     UnknownGpuArchitectureError,
+    InvalidClaimsVersionError,
 )
 from verifier.exceptions.utils import is_non_fatal_issue
 from verifier.cc_admin_utils import CcAdminUtils
@@ -164,6 +165,12 @@ def main():
         help="""The OCSP attestation settings to be used for the attestation.
                 The default settings are to allow hold cert, validity extension and cert revocation extension of 7 days.
                 The strict settings are to not allow hold cert, validity extension and cert revocation extension of 0 days.""",
+    )
+    parser.add_argument(
+        "--claims_version",
+        help="The version of the claims(Can be 2.0 or 3.0)",
+        type=str,
+        default="2.0",
     )
 
     args = parser.parse_args()
@@ -336,6 +343,12 @@ def attest(arguments_as_dictionary, nonce, gpu_evidence_list):
     att_report_nonce_hex = CcAdminUtils.validate_and_extract_nonce(nonce)
 
     try:
+        # Set claims version and validate
+        BaseSettings.CLAIMS_VERSION = arguments_as_dictionary.get("claims_version") or "2.0"
+
+        if BaseSettings.CLAIMS_VERSION != "2.0" and BaseSettings.CLAIMS_VERSION != "3.0":
+            raise InvalidClaimsVersionError(f'Claims version is not supported: {BaseSettings.CLAIMS_VERSION}')
+
         # Set log level to DEBUG if verbose flag is set
         if arguments_as_dictionary["verbose"]:
             info_log.setLevel(logging.DEBUG)

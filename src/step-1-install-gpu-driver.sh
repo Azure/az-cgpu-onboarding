@@ -20,8 +20,8 @@ install_gpu_driver() {
         echo "Current kernel version: $current_kernel"
 
         # install neccessary kernel update.
-        sudo apt-get update
-        sudo apt-get -y install initramfs-tools
+        sudo apt-get -o DPkg::Lock::Timeout=300 update
+        sudo apt-get -o DPkg::Lock::Timeout=300 install -y initramfs-tools
 
         # Apply change to modprobe.d and run update-initramfs
         sudo cp nvidia-lkca.conf /etc/modprobe.d/nvidia-lkca.conf
@@ -35,7 +35,7 @@ install_gpu_driver() {
         echo "start gpu driver log."
 
         # Install r580 nvidia driver (updated handling for Ubuntu 24.04+ and fde kernel)
-        sudo apt -o DPkg::Lock::Timeout=300 install -y gcc g++ make
+        sudo apt-get -o DPkg::Lock::Timeout=300 install -y gcc g++ make
 
         ubuntu_version=$(lsb_release -rs)
         kernel_version=$(echo "$current_kernel" | cut -d'-' -f1)
@@ -43,10 +43,10 @@ install_gpu_driver() {
         # Check for Ubuntu 22.04 or newer and kernel 6.8 or greater
         if dpkg --compare-versions "$ubuntu_version" "ge" "22.04" && dpkg --compare-versions "$kernel_version" "ge" "6.8" && [[ "$current_kernel" == *fde ]]; then
             echo "Current Ubuntu version is $ubuntu_version with kernel $current_kernel (fde), installing FDE driver packages."
-            sudo apt -o DPkg::Lock::Timeout=300 install -y nvidia-driver-580-server-open linux-modules-nvidia-580-server-open-azure-fde
+            sudo apt-get -o APT::Get::Always-Include-Phased-Updates=true -o DPkg::Lock::Timeout=300 install -y nvidia-driver-580-server-open linux-modules-nvidia-580-server-open-azure-fde
 
         else
-            sudo apt -o DPkg::Lock::Timeout=300 install -y nvidia-driver-580-server-open linux-modules-nvidia-580-server-open-azure
+            sudo apt-get -o APT::Get::Always-Include-Phased-Updates=true -o DPkg::Lock::Timeout=300 install -y nvidia-driver-580-server-open linux-modules-nvidia-580-server-open-azure
         fi
 
         # Exclude Nvidia Persistence Daemon from restarting on pacakge update

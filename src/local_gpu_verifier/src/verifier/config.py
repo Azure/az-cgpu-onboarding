@@ -82,6 +82,7 @@ class BaseSettings:
     OCSP_URL = ""
     OCSP_URL_NVIDIA = os.getenv("NV_OCSP_URL", "https://ocsp.ndis.nvidia.com/")
     OCSP_NONCE_ENABLED = False
+    CLAIMS_VERSION = "2.0"
     OCSP_HASH_FUNCTION = sha384
     OCSP_RETRY_COUNT = 3
     OCSP_RETRY_DELAY = 0.1

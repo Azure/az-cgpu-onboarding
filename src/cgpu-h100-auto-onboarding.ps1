@@ -69,11 +69,11 @@ function CGPU-H100-Onboarding{
 		[bool]$skipazlogin=$false,
 		[bool]$installgpuverifier=$false,
 		[bool]$enablegpuverifierservice=$false,
-		[string]$enablesnapshot = "20251014T120000Z",
+		[string]$enablesnapshot = "20251219T120000Z",
 		[switch]$enableproposed
 		)
 
-		$ONBOARDING_PACKAGE_VERSION="V4.1.5"
+		$ONBOARDING_PACKAGE_VERSION="V4.1.6"
 		Write-Host "Confidential GPU H100 Onboarding Package Version: $ONBOARDING_PACKAGE_VERSION"
 
 		$logpath=$(Get-Date -Format "MM-dd-yyyy_HH-mm-ss")
@@ -407,7 +407,7 @@ function VM-Creation {
 		$osdisksize,
 		$osdistribution,
 		$enableproposed = $false,
-		[string]$enablesnapshot = "20251014T120000Z")
+		[string]$enablesnapshot = "20251219T120000Z")
 
 	$global:issuccess = "failed"
 
@@ -419,7 +419,7 @@ function VM-Creation {
 			if ($enableproposed.IsPresent -or $enablesnapshot -eq "0") {
 				$imageversion = "latest"
 			} else {
-				$imageversion = "22.04.202509110"
+				$imageversion = "24.04.202512181"
 			}
 		}
 		"Ubuntu24.04" { 
@@ -427,7 +427,7 @@ function VM-Creation {
 			if ($enableproposed.IsPresent -or $enablesnapshot -eq "0") {
 				$imageversion = "latest"
 			} else {
-				$imageversion = "24.04.202509250"
+				$imageversion = "24.04.202512181"
 			}
 		}
 		default { Write-Host "Unsupported OS Distribution"; return }
