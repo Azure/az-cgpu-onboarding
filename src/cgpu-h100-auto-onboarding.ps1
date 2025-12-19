@@ -419,7 +419,7 @@ function VM-Creation {
 			if ($enableproposed.IsPresent -or $enablesnapshot -eq "0") {
 				$imageversion = "latest"
 			} else {
-				$imageversion = "24.04.202512181"
+				$imageversion = "22.04.202512181"
 			}
 		}
 		"Ubuntu24.04" { 
