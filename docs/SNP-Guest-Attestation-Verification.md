@@ -86,8 +86,8 @@ Below are the detailed steps that you can follow in order to retrieve the SNP re
     git clone https://github.com/Azure/confidential-computing-cvm-guest-attestation.git
     cd confidential-computing-cvm-guest-attestation/cvm-attestation-sample-app
     sudo apt update && sudo apt install -y build-essential libcurl4-openssl-dev libjsoncpp-dev libboost-all-dev cmake nlohmann-json3-dev
-    wget https://packages.microsoft.com/repos/azurecore/pool/main/a/azguestattestation1/azguestattestation1_1.0.5_amd64.deb
-    sudo dpkg -i azguestattestation1_1.0.5_amd64.deb
+    wget https://packages.microsoft.com/repos/azurecore/pool/main/a/azguestattestation1/azguestattestation1_1.1.2_amd64.deb
+    sudo dpkg -i azguestattestation1_1.1.2_amd64.deb
     cmake . && make
     ```
 

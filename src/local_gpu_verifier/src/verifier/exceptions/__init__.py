@@ -285,6 +285,12 @@ class InvalidNonceError(Error):
     pass
 
 
+class InvalidClaimsVersionError(Error):
+    """ It is raised when the claims version is not supported.
+    """
+    pass
+
+
 class OCSPFetchError(VerifierError):
     """ It is raised in case of any issues in fetching the OCSP response.
     """

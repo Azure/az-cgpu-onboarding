@@ -34,8 +34,8 @@ attestation() {
         echo "Current driver version: $current_driver_interface_version"
 
         # Install Python3 pip and venv
-        sudo apt -o DPkg::Lock::Timeout=300 update
-        sudo apt -o DPkg::Lock::Timeout=300 install -y python3-pip python3-venv
+        sudo apt-get -o DPkg::Lock::Timeout=300 update
+        sudo apt-get -o DPkg::Lock::Timeout=300 install -y python3-pip python3-venv
 
         # Install to /usr/local/lib
         if [ "$INSTALL_TO_USR_LOCAL" = "1" ]; then
