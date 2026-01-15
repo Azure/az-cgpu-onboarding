@@ -77,11 +77,15 @@ If you prefer to go through the steps manually, you can follow these instruction
 - [Manual GPU Environment Setup](docs/Confidential-GPU-H100-Manual-Installation-(PMK-with-Powershell).md#upload-package)
 
 **Preview Features**:
+1. [VMI flow using Azure CLI](docs/Confidential-GPU-H100-VMI-Creation-CLI.md)
+
 Provision your CGPU VM using a Community Shared Virtual Machine Image (VMI) that has the NVIDIA GPU driver, CUDA, docker, and a customized local verifier already pre-installed. This image is generated using the same single-step auto-onboarding script that is linked above so the deployed VM will yield similar results, but this method is created to help reduce manual steps and greatly reduce the setup duration.
 
-- [VMI flow using Azure CLI](docs/Confidential-GPU-H100-VMI-Creation-CLI.md)
+2. [Confidential GPU AKS Onboarding](docs/Confidential-GPU-H100-AKS-Onboarding.md)
 
-Please note that since this feature is in preview there is currently no SLA provided. If you have comments, feedback, or questions about the VM Image experience, please feel free to leave them in the github issues here: [az-cgpu-onboarding/Issues](https://github.com/Azure/az-cgpu-onboarding/issues/new?q=is%3Aissue).
+This onboarding document walks through the process of creating an Azure Kubernetes Service (AKS) cluster configured for confidential single GPU capable workloads using bash
+
+Please note that since these features are in preview there is currently no SLA provided. If you have comments, feedback, or questions please feel free to leave them in the github issues here: [az-cgpu-onboarding/Issues](https://github.com/Azure/az-cgpu-onboarding/issues/new?q=is%3Aissue).
 
 
 ## Availability
