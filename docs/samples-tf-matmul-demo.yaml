@@ -1,0 +1,34 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: tf-matmul-demo
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: tf-matmul-demo
+        image: tensorflow/tensorflow:2.15.0-gpu
+        command: ["python", "-c"]
+        args:
+        - |
+          import tensorflow as tf
+          import time
+          print("TensorFlow version:", tf.__version__)
+          print("GPU Available:", tf.config.list_physical_devices('GPU'))
+          a = tf.random.normal([2000, 2000])
+          b = tf.random.normal([2000, 2000])
+          print("Running GPU matmul...")
+          start = time.time()
+          c = tf.matmul(a, b)
+          tf.experimental.numpy.sum(c).numpy()
+          print("Elapsed:", time.time() - start, "sec")
+          print("Done ✅")
+        resources:
+          limits:
+            nvidia.com/gpu: 1
+      tolerations:
+      - key: "sku"
+        operator: "Equal"
+        value: "gpu"
+        effect: "NoSchedule"

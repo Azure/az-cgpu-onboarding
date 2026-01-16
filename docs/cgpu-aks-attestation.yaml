@@ -1,0 +1,63 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: attest
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: local-gpu-attestation
+  namespace: attest
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      restartPolicy: Never
+      runtimeClassName: nvidia
+
+      containers:
+      - name: attest
+        image: ubuntu:24.04
+        resources:
+          limits:
+            nvidia.com/gpu: 1
+        command: ["/bin/bash","-lc"]
+        args:
+          - |
+            set -euo pipefail
+
+            echo "== GPU device files =="; ls -l /dev/nvidia* || true
+
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update
+            apt-get install -y --no-install-recommends \
+              ca-certificates curl tar \
+              python3 python3-venv python3-pip build-essential
+            update-ca-certificates || true
+
+            work=/work
+            rm -rf "$work"
+            mkdir -p "$work"
+            cd "$work"
+
+            echo "== Download latest CGPU onboarding package =="
+            curl -fL \
+              "https://github.com/Azure/az-cgpu-onboarding/releases/latest/download/cgpu-onboarding-package.tar.gz" \
+              -o cgpu-onboarding-package.tar.gz
+
+            echo "== Extract Local GPU Verifier =="
+            tar -xzf cgpu-onboarding-package.tar.gz
+            rm -rf "$work/lgv"
+            mkdir -p "$work/lgv"
+            tar -xf cgpu-onboarding-package/local_gpu_verifier.tar -C "$work/lgv"
+
+            echo "== Create venv & install package =="
+            cd "$work/lgv"
+            python3 -m venv ./prodtest
+            ./prodtest/bin/python3 -m pip install --upgrade pip setuptools wheel
+            ./prodtest/bin/python3 -m pip install .
+
+            echo "== Run attestation =="
+            ./prodtest/bin/python3 -m verifier.cc_admin
+
