@@ -154,7 +154,7 @@ nvidia-smi
 Once you have finished the validation, you can execute the following commands to try a sample workload:
 
 ```
-sudo docker run --rm --gpus all nvidia/cuda:12.8.1-base-ubuntu22.04 nvidia-smi
+sudo docker run --runtime=nvidia --rm --gpus all nvidia/cuda:12.8.1-base-ubuntu22.04 nvidia-smi
 ```
 
 If you would like to run a more complex sample, you can download this repo within your CGPU VM and run the mnist workload:
@@ -163,7 +163,8 @@ git clone https://github.com/Azure/az-cgpu-onboarding.git
 
 # Please replace <adminusername> with your username below:
 
-sudo docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/<adminusername>/az-cgpu-onboarding:/home -it --rm nvcr.io/nvidia/tensorflow:24.05-tf2-py3 python /home/src/mnist-sample-workload.py
+sudo docker run --runtime=nvidia --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/<adminusername>/az-cgpu-onboarding:/home -it --rm nvcr.io/nvidia/pytorch:26.02-py3 python /home/src/mnist-sample-workload.py
 ```
+
 
 If you have reached this point, congratulations! You have offically created an NCC40 CGPU VM!

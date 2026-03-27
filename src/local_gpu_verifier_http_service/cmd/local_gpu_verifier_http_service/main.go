@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"io"
 	"log/slog"
 	"net"
@@ -29,21 +30,25 @@ import (
 // - VerifierRoot: Root directory for the GPU verifier, containing the Python script.
 // - SuccessStr: Message indicating successful attestation in command output.
 const (
-	defaultLogPath       = "/usr/local/bin/local_gpu_verifier_http_service/attestation_service.log"
-	defaultPort          = "8123"
-	defaultSocketPath    = "/var/run/gpu-attestation/gpu-attestation.sock"
-	defaultVerifierRoot  = "/usr/local/lib/local_gpu_verifier"
-	defaultSuccessString = "GPU Attestation is Successful"
-	defaultNonceSize     = 32
+	defaultLogPath                = "/usr/local/bin/local_gpu_verifier_http_service/attestation_service.log"
+	defaultPort                   = "8123"
+	defaultSocketPath             = "/var/run/gpu-attestation/gpu-attestation.sock"
+	defaultVerifierRoot           = "/usr/local/lib/local_gpu_verifier"
+	defaultSuccessString          = "GPU Attestation is Successful"
+	defaultNonceSize              = 32
+	defaultHeartbeatReportEnabled = true
+	defaultHeartbeatIntervalMin   = 15
 )
 
 // Config holds runtime configuration for the GPU Attestation HTTP Service
 type Config struct {
-	LogPath      string
-	Port         string
-	SocketPath   string
-	VerifierRoot string
-	SuccessStr   string
+	LogPath                string
+	Port                   string
+	SocketPath             string
+	VerifierRoot           string
+	SuccessStr             string
+	HeartbeatReportEnabled bool
+	HeartbeatIntervalMin   int
 }
 
 var (
@@ -135,6 +140,77 @@ func startSocketServer(wg *sync.WaitGroup, socketPath string, mux *http.ServeMux
 	}
 }
 
+// HeartbeatStatus represents the health state of the service
+type HeartbeatStatus string
+
+const (
+	HeartbeatRunning    HeartbeatStatus = "Running"
+	HeartbeatNotRunning HeartbeatStatus = "NotRunning"
+	HeartbeatError      HeartbeatStatus = "Error"
+)
+
+// probeHeartbeat sends a GET request to the /heartbeat endpoint and returns true if the service is healthy
+func probeHeartbeat(client *http.Client, url string) bool {
+	const heartbeatMsg = "Local GPU Attestation Service Heartbeat"
+
+	resp, err := client.Get(url)
+	if err != nil {
+		logger.Warn(heartbeatMsg, "status", HeartbeatNotRunning, "err", err)
+		return false
+	}
+	defer func() {
+		io.Copy(io.Discard, resp.Body)
+		resp.Body.Close()
+	}()
+
+	if resp.StatusCode != http.StatusOK {
+		logger.Warn(heartbeatMsg, "status", HeartbeatError, "http_status", resp.StatusCode)
+		return false
+	}
+
+	logger.Info(heartbeatMsg, "status", HeartbeatRunning)
+	return true
+}
+
+// waitForServerReady probes the /heartbeat endpoint to confirm the service is running
+// It retries up to maxRetries times (1s apart) and exits the process if the server is not reachable
+func waitForServerReady(port string) {
+	client := &http.Client{Timeout: 5 * time.Second}
+	url := fmt.Sprintf("http://localhost:%s/heartbeat", port)
+
+	maxRetries := 30
+	for i := 0; i < maxRetries; i++ {
+		if probeHeartbeat(client, url) {
+			return
+		}
+		time.Sleep(1 * time.Second)
+	}
+
+	logger.Error("Failed to get heartbeat from Local GPU Attestation Service, exiting", "retries", maxRetries, "port", port)
+	os.Exit(1)
+}
+
+// startHeartbeatReport periodically probes the /heartbeat endpoint and logs the service status
+func startHeartbeatReport(intervalMinutes int, port string) {
+	if intervalMinutes <= 0 {
+		logger.Error("Invalid heartbeat interval, must be greater than 0", "interval_minutes", intervalMinutes)
+		return
+	}
+
+	interval := time.Duration(intervalMinutes) * time.Minute
+	logger.Info("Heartbeat reporting enabled", "interval_minutes", intervalMinutes)
+
+	client := &http.Client{Timeout: 5 * time.Second}
+	url := fmt.Sprintf("http://localhost:%s/heartbeat", port)
+
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+
+	for range ticker.C {
+		probeHeartbeat(client, url)
+	}
+}
+
 func main() {
 	// Initialize logger to output to stderr while we load configuration
 	initLogger("")
@@ -145,6 +221,8 @@ func main() {
 	socketPath := flag.String("socket", defaultSocketPath, "Path to the Unix socket file.")
 	verifierRoot := flag.String("verifierroot", defaultVerifierRoot, "Root directory for the GPU verifier, containing the Python script.")
 	successStr := flag.String("successstr", defaultSuccessString, "Message indicating successful attestation in command output.")
+	heartbeatReportEnabled := flag.Bool("heartbeatreport", defaultHeartbeatReportEnabled, "Enable periodic heartbeat reporting.")
+	heartbeatIntervalMin := flag.Int("heartbeatinterval", defaultHeartbeatIntervalMin, "Heartbeat interval in minutes.")
 	flag.Parse()
 
 	logger.Info("Loading service configuration...",
@@ -153,21 +231,25 @@ func main() {
 		"socketPath", *socketPath,
 		"verifierRoot", *verifierRoot,
 		"successStr", *successStr,
+		"heartbeatReportEnabled", *heartbeatReportEnabled,
+		"heartbeatIntervalMinutes", *heartbeatIntervalMin,
 	)
 
 	config := Config{
-		LogPath:      *logPath,
-		Port:         *port,
-		SocketPath:   *socketPath,
-		VerifierRoot: *verifierRoot,
-		SuccessStr:   *successStr,
+		LogPath:                *logPath,
+		Port:                   *port,
+		SocketPath:             *socketPath,
+		VerifierRoot:           *verifierRoot,
+		SuccessStr:             *successStr,
+		HeartbeatReportEnabled: *heartbeatReportEnabled,
+		HeartbeatIntervalMin:   *heartbeatIntervalMin,
 	}
 
 	// Re-initialize the logger with file + console handlers
 	initLogger(config.LogPath)
 
 	// Log service startup details
-	logger.Info("Starting GPU Attestation Service")
+	logger.Info("Starting Local GPU Attestation Service")
 	logger.Info("Log file", "path", config.LogPath)
 	logger.Info("GPU attestation Verifier root directory", "path", config.VerifierRoot)
 
@@ -176,6 +258,7 @@ func main() {
 	mux.HandleFunc("/gpu_attest", func(w http.ResponseWriter, r *http.Request) {
 		handleGpuAttest(w, r, config)
 	})
+	mux.HandleFunc("/heartbeat", handleHeartbeat)
 
 	// Start servers in goroutines
 	var wg sync.WaitGroup
@@ -188,8 +271,24 @@ func main() {
 	wg.Add(1)
 	go startSocketServer(&wg, config.SocketPath, mux)
 
+	// Wait for the server to be ready before proceeding
+	go func() {
+		waitForServerReady(config.Port)
+
+		// Start periodic heartbeat reporting if enabled
+		if config.HeartbeatReportEnabled {
+			startHeartbeatReport(config.HeartbeatIntervalMin, config.Port)
+		}
+	}()
+
 	// Wait for servers to exit
 	wg.Wait()
+}
+
+// handleHeartbeat responds with HTTP 200 to indicate the service is alive
+func handleHeartbeat(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("OK"))
 }
 
 // (Re)initializes the global logger

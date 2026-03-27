@@ -2,3 +2,6 @@
 packages/
 drops/
 src/logs/
+
+# VS Code settings
+.vscode/

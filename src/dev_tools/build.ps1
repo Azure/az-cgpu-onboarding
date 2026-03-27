@@ -84,7 +84,9 @@ function Make-Cgpu-Onboarding-Package {
 		"$PSScriptRoot\..\utilities-uninstall-r535-driver.sh",
 		"$PSScriptRoot\..\utilities-install-openssl.sh",
 		"$PSScriptRoot\..\utilities-install-local-gpu-verfier-service.sh",
-		"$PSScriptRoot\..\nvidia-lkca.conf",
+		"$PSScriptRoot\..\utilities-enable-snapshot.sh",
+		"$PSScriptRoot\..\nvidia-persistenced.override.conf",
+		"$PSScriptRoot\..\nvidia-persistenced-dependency.conf",
 		"$PSScriptRoot\..\mnist-sample-workload.py", 
 		"$PSScriptRoot\..\version.txt"
 	$files += $tarFiles

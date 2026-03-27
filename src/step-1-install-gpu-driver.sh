@@ -1,4 +1,6 @@
-## This module helps install gpu driver to the lastest r580 Nvidia driver version.
+#!/usr/bin/env bash
+
+## This module helps install gpu driver to the lastest r590 Nvidia driver version.
 ##
 ## Requirements:
 ##      Minimum Nvidia driver:       v570.86.15
@@ -8,58 +10,103 @@
 ##      sudo bash step-1-install-gpu-driver.sh
 ##
 
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 MINIMUM_KERNEL_VERSION="6.8.0-1025-azure"
 
-## Install gpu driver required dependency and driver itself. It will reboot the system at the end.
+# Common apt-get options: lock timeout, retry limit, and network timeouts
+APT_OPTS="-o DPkg::Lock::Timeout=300 -o Acquire::Retries=3 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30"
+
+# Install gpu driver required dependency and driver itself.
 install_gpu_driver() {
+    # Verify current kernel version meets minimum requirement
+    local current_kernel
     current_kernel=$(uname -r)
+    echo "Current kernel version: $current_kernel"
     echo -e "$MINIMUM_KERNEL_VERSION\n$current_kernel" | sort --check=quiet --version-sort
     if [ "$?" -ne "0" ]; then
-        echo "Current kernel version: ($current_kernel), expected: (>= $MINIMUM_KERNEL_VERSION)."
+        echo "ERROR: Current kernel version: ($current_kernel), expected: (>= $MINIMUM_KERNEL_VERSION)."
+        return 1
+    fi
+
+    # Verify secure boot
+    secure_boot_status=$(mokutil --sb)
+    echo "SecureBoot Status: $secure_boot_status"
+
+    echo "Kernel and SecureBoot verified successfully, start driver installation."
+    echo "Start gpu driver log."
+
+    # Add NVIDIA CUDA repository keyring
+    curl -fsSL https://developer.download.nvidia.com/compute/cuda/repos/ubuntu$(lsb_release -rs | tr -d '.')/x86_64/cuda-keyring_1.1-1_all.deb -o /tmp/cuda-keyring.deb
+    sudo dpkg -i /tmp/cuda-keyring.deb
+    rm -f /tmp/cuda-keyring.deb
+
+    # Install dependencies
+    sudo apt-get $APT_OPTS update
+    sudo apt-get $APT_OPTS install -y initramfs-tools gcc g++ make
+
+    # Apply change to modprobe.d and run update-initramfs
+    echo 'install nvidia /sbin/modprobe ecdsa_generic ecdh; /sbin/modprobe --ignore-install nvidia' \
+        | sudo tee /etc/modprobe.d/nvidia-lkca.conf >/dev/null
+    sudo update-initramfs -u -k $current_kernel
+
+    # Config Nvidia persistence daemon
+    sudo mkdir -p /etc/needrestart/conf.d
+    echo '$nrconf{"override_rc"}{"nvidia-persistenced.service"} = 0;' \
+        | sudo tee /etc/needrestart/conf.d/99-skip-nvidia-persistenced.conf
+    sudo install -d -m 0755 /etc/systemd/system/nvidia-persistenced.service.d
+    sudo install -m 0644 "$SCRIPT_DIR/nvidia-persistenced.override.conf" /etc/systemd/system/nvidia-persistenced.service.d/override.conf
+    sudo systemctl daemon-reload
+
+    # Install r590 nvidia driver
+    sudo apt-get -o APT::Get::Always-Include-Phased-Updates=true $APT_OPTS install -y \
+        nvidia-modprobe \
+        nvidia-driver-590-server-open \
+        linux-modules-nvidia-590-server-open-azure-fde
+
+    # Add check user nvidia-persistenced, fail if not exist
+    id nvidia-persistenced
+
+    # Load nvidia modules and start Nvidia persistence daemon
+    load_nvidia_modules
+    sudo usermod -aG root nvidia-persistenced
+    if systemctl is-active --quiet nvidia-persistenced.service; then
+        echo "nvidia-persistenced already running; skip start."
     else
-        echo "Current kernel version: $current_kernel"
+        sudo systemctl start nvidia-persistenced.service
+    fi
+    sudo systemctl status nvidia-persistenced.service --no-pager -l || true
 
-        # install neccessary kernel update.
-        sudo apt-get -o DPkg::Lock::Timeout=300 update
-        sudo apt-get -o DPkg::Lock::Timeout=300 install -y initramfs-tools
+    # Print nvidia-smi info
+    echo "Nvidia driver installation completed. nvidia-smi output:"
+    nvidia-smi
+    nvidia-smi conf-compute -q
+}
 
-        # Apply change to modprobe.d and run update-initramfs
-        sudo cp nvidia-lkca.conf /etc/modprobe.d/nvidia-lkca.conf
-        sudo update-initramfs -u -k $current_kernel
+load_nvidia_modules() {
+    # Require nvidia-modprobe
+    if ! command -v nvidia-modprobe >/dev/null 2>&1; then
+        echo "ERROR: nvidia-modprobe not found" >&2
+        exit 1
+    fi
 
-        # verify secure boot
-        secure_boot_status=$(mokutil --sb)
-        echo "SecureBoot Status: $secure_boot_status"
+    # Load Nvidia kernel modules
+    sudo modprobe nvidia
+    sudo modprobe nvidia_uvm
+    sudo modprobe nvidia_modeset
 
-        echo "kernel verified successfully, start driver installation."
-        echo "start gpu driver log."
+    # Create Nvidia device nodes
+    sudo nvidia-modprobe -c 0          # /dev/nvidia0
+    sudo nvidia-modprobe -c 255        # /dev/nvidiactl
+    sudo nvidia-modprobe -m            # /dev/nvidia-modeset
+    sudo nvidia-modprobe -u -c 0 -c 1  # /dev/nvidia-uvm + /dev/nvidia-uvm-tools
 
-        # Install r580 nvidia driver (updated handling for Ubuntu 24.04+ and fde kernel)
-        sudo apt-get -o DPkg::Lock::Timeout=300 install -y gcc g++ make
-
-        ubuntu_version=$(lsb_release -rs)
-        kernel_version=$(echo "$current_kernel" | cut -d'-' -f1)
-
-        # Check for Ubuntu 22.04 or newer and kernel 6.8 or greater
-        if dpkg --compare-versions "$ubuntu_version" "ge" "22.04" && dpkg --compare-versions "$kernel_version" "ge" "6.8" && [[ "$current_kernel" == *fde ]]; then
-            echo "Current Ubuntu version is $ubuntu_version with kernel $current_kernel (fde), installing FDE driver packages."
-            sudo apt-get -o APT::Get::Always-Include-Phased-Updates=true -o DPkg::Lock::Timeout=300 install -y nvidia-driver-580-server-open linux-modules-nvidia-580-server-open-azure-fde
-
-        else
-            sudo apt-get -o APT::Get::Always-Include-Phased-Updates=true -o DPkg::Lock::Timeout=300 install -y nvidia-driver-580-server-open linux-modules-nvidia-580-server-open-azure
-        fi
-
-        # Exclude Nvidia Persistence Daemon from restarting on pacakge update
-        sudo mkdir -p /etc/needrestart/conf.d
-        echo '$nrconf{"override_rc"}{"nvidia-persistenced.service"} = 0;' | sudo tee /etc/needrestart/conf.d/99-skip-nvidia-persistenced.conf
-
-        # Enable persistence mode and set GPU ready state on boot
-        sudo nvidia-smi -pm 1
-        echo "add nvidia persitenced on reboot."
-        sudo bash -c 'echo "#!/bin/bash" > /etc/rc.local; echo "nvidia-smi -pm 1" >>/etc/rc.local; echo "nvidia-smi conf-compute -srs 1" >> /etc/rc.local;'
-        sudo chmod +x /etc/rc.local
-        echo "not reboot"
-
+    # Post-check for /dev/nvidia0 and /dev/nvidiactl
+    if [ ! -e /dev/nvidia0 ] || [ ! -e /dev/nvidiactl ]; then
+        echo "ERROR: Nvidia device nodes not created" >&2
+        exit 1
     fi
 }
 
@@ -70,5 +117,6 @@ if [[ "${#BASH_SOURCE[@]}" -eq 1 ]]; then
     if [ ! -d "logs" ]; then
         mkdir logs
     fi
-    install_gpu_driver "$@" 2>&1 | tee logs/current-operation.log | tee -a logs/all-operation.log
+    echo -e "\n===== [step-1-install-gpu-driver.sh] $(date) =====" | tee logs/current-operation.log | tee -a logs/all-operation.log
+    install_gpu_driver "$@" 2>&1 | tee -a logs/current-operation.log | tee -a logs/all-operation.log
 fi
