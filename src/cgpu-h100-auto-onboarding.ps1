@@ -29,7 +29,6 @@
 #    encryptiontype: the type of CVM encryption for the OS disk (if not specified, the default is DiskWithVMGuestState)
 #	 osdistribution [Ubuntu22.04, Ubuntu24.04]: the OS distribution of the VM (if not specified, the default is Ubuntu22.04)
 #	 skipazlogin: skip az login if you have already logged in
-#	 installgpuverifier: install gpu verifier to /usr/local/lib/local_gpu_verifier
 #    enablegpuverifierservice: enable gpu verifier service
 #    enablesnapshot <timestamp>: enable Ubuntu snapshot service with the specified timestamp (default is enabled; value of 0 means it is disabled)
 #    enableproposed: enable Ubuntu proposed source list (overrides snapshot)
@@ -67,13 +66,12 @@ function CGPU-H100-Onboarding{
 		[ValidateSet("Ubuntu22.04", "Ubuntu24.04", ErrorMessage="Unsupported OS Distribution. Please choose either Ubuntu22.04 or Ubuntu24.04.")]
 		[string]$osdistribution="Ubuntu22.04",
 		[bool]$skipazlogin=$false,
-		[bool]$installgpuverifier=$false,
-		[bool]$enablegpuverifierservice=$false,
-		[string]$enablesnapshot = "20251219T120000Z",
+		[switch]$enablegpuverifierservice,
+		[string]$enablesnapshot = "20260315T120000Z",
 		[switch]$enableproposed
 		)
 
-		$ONBOARDING_PACKAGE_VERSION="V4.1.7"
+		$ONBOARDING_PACKAGE_VERSION="V4.3.0"
 		Write-Host "Confidential GPU H100 Onboarding Package Version: $ONBOARDING_PACKAGE_VERSION"
 
 		$logpath=$(Get-Date -Format "MM-dd-yyyy_HH-mm-ss")
@@ -243,10 +241,11 @@ function Auto-Onboard-CGPU-Multi-VM {
 	for($i=1; $i -le $totalvmnumber; $i++) {
 		Write-Host $vmlogincommands[$i]
 	}
-	Write-Host "Please execute the below command to try attestation:"
-	Write-Host "cd cgpu-onboarding-package; sudo bash step-2-attestation.sh";
+	Write-Host "Please execute the below commands to try attestation:"
+	Write-Host "sudo gpu-attestation"
+	Write-Host "sudo cpu-attestation";
 	Write-Host "Please execute the below command to try a sample workload:"
-	Write-Host "sudo docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/${adminusername}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/pytorch:25.09-py3 python /home/mnist-sample-workload.py";
+	Write-Host "sudo docker run --runtime=nvidia --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/${adminusername}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/pytorch:26.02-py3 python /home/mnist-sample-workload.py";
 	Write-Host "******************************************************************************************"
 
 	Write-Host "Total VM to onboard: ${totalvmnumber}, total Success: ${successcount}."
@@ -372,13 +371,9 @@ function Auto-Onboard-CGPU-Single-VM {
 
 	# Optionally enable GPU verifier service
 	if ($enablegpuverifierservice) {
-		if (-not $installgpuverifier) {
-			Write-Host "WARNING: The GPU verifier is not installed. If you want to enable the GPU verifier service, please set '-installgpuverifier' to '$true'."
-		} else {
-			Enable-GPU-Verifier-Service -vmsshinfo $vmsshinfo -privatekeypath $privatekeypath
-			if ($global:issuccess -eq "failed") {
-				Write-Host "Failed to enable GPU verifier HTTP service. Continuing..."
-			}
+		Enable-GPU-Verifier-Service -vmsshinfo $vmsshinfo -privatekeypath $privatekeypath
+		if ($global:issuccess -eq "failed") {
+			Write-Host "Failed to enable GPU verifier HTTP service. Continuing..."
 		}
 	}
 
@@ -407,7 +402,7 @@ function VM-Creation {
 		$osdisksize,
 		$osdistribution,
 		$enableproposed = $false,
-		[string]$enablesnapshot = "20251219T120000Z")
+		[string]$enablesnapshot = "20260315T120000Z")
 
 	$global:issuccess = "failed"
 
@@ -419,7 +414,7 @@ function VM-Creation {
 			if ($enableproposed.IsPresent -or $enablesnapshot -eq "0") {
 				$imageversion = "latest"
 			} else {
-				$imageversion = "22.04.202512181"
+				$imageversion = "22.04.202601280"
 			}
 		}
 		"Ubuntu24.04" { 
@@ -427,7 +422,7 @@ function VM-Creation {
 			if ($enableproposed.IsPresent -or $enablesnapshot -eq "0") {
 				$imageversion = "latest"
 			} else {
-				$imageversion = "24.04.202512181"
+				$imageversion = "24.04.202601290"
 			}
 		}
 		default { Write-Host "Unsupported OS Distribution"; return }
@@ -516,7 +511,9 @@ function Package-Upload {
 	scp -i $privatekeypath $cgpupackagepath ${vmsshinfo}:/home/${adminusername}
 	Write-Host "Finished Package-Upload."
 	Write-Host "Starting extracting package."
-	ssh -i ${privatekeypath} ${vmsshinfo} "tar -zxvf cgpu-onboarding-package.tar.gz;"
+	Run-SSH-Command -privatekeypath $privatekeypath `
+		-vmsshinfo $vmsshinfo `
+		-command "tar -zxvf cgpu-onboarding-package.tar.gz 2>&1;" | Out-Host
 	Write-Host "Finished extracting package."
 	$global:issuccess = "succeeded"
 }
@@ -533,9 +530,12 @@ function Update-Kernel {
     }
     Write-Host "VM connection success."
     Write-Host "Start update kernel"
-    ssh -i ${privatekeypath} ${vmsshinfo} "cd cgpu-onboarding-package; bash step-0-prepare-kernel.sh $additionalParams;"
+    Run-SSH-Command -privatekeypath $privatekeypath `
+        -vmsshinfo $vmsshinfo `
+        -command "cd cgpu-onboarding-package; sudo bash step-0-prepare-kernel.sh $additionalParams 2>&1;" | Out-Host
     Write-Host "Finished update kernel."
     Write-Host "Rebooting..."
+    Start-Sleep -Seconds 120
 
     $global:issuccess = "succeeded"
 }
@@ -559,7 +559,9 @@ function Install-GPU-Driver {
 	Start-sleep -Seconds 15
 
 	Write-Host "Start GPU Driver install."
-	ssh  -i ${privatekeypath} ${vmsshinfo} "cd cgpu-onboarding-package; bash step-1-install-gpu-driver.sh 2>&1;"
+	Run-SSH-Command -privatekeypath $privatekeypath `
+		-vmsshinfo $vmsshinfo `
+		-command "cd cgpu-onboarding-package; sudo bash step-1-install-gpu-driver.sh 2>&1;" | Out-Host
 	Write-Host "Finished install driver."
 	$global:issuccess = "succeeded"
 }
@@ -580,16 +582,13 @@ function Attestation {
 	}
 	Write-Host "VM connection success."
 
-	if ($installgpuverifier) {
-		$attstationcommand = "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh --install-to-usr-local;"
-	} else {
-		$attstationcommand = "cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh;"
-	}
 	Write-Host "Start installing attestation package - this may take up to 5 minutes."
-	echo $(ssh  -i ${privatekeypath} ${vmsshinfo} ${attstationcommand}) 2>&1 | Out-File -filepath ".\logs\$logpath\attestation.log"
+	"" | Set-Content -Path ".\logs\$logpath\attestation.log"
+	Run-SSH-Command -privatekeypath $privatekeypath `
+		-vmsshinfo $vmsshinfo `
+		-command "cd cgpu-onboarding-package; sudo bash step-2-attestation.sh 2>&1;" `
+		-logfile ".\logs\$logpath\attestation.log" | Out-Host
 
-	$attestationmessage=(Get-content -tail 20 .\logs\$logpath\attestation.log)
-	Write-Host $attestationmessage
 	Write-Host "Finished attestation."
 	$global:issuccess = "succeeded"
 }
@@ -611,7 +610,9 @@ function Install-GPU-Tools {
 	Write-Host "VM connection success."
 
 	Write-Host "Start install gpu tools."
-	ssh  -i ${privatekeypath} ${vmsshinfo} "cd cgpu-onboarding-package; echo Y | bash step-3-install-gpu-tools.sh;"
+	Run-SSH-Command -privatekeypath $privatekeypath `
+		-vmsshinfo $vmsshinfo `
+		-command "cd cgpu-onboarding-package; sudo bash step-3-install-gpu-tools.sh 2>&1;" | Out-Host
 	Write-Host "Finish install gpu tools."
 	$global:issuccess = "succeeded"
 }
@@ -633,10 +634,36 @@ function Enable-GPU-Verifier-Service {
 	Write-Host "VM connection success."
 
 	Write-Host "Start enabling local GPU attestation verifier HTTP service."
-	$enablegpuverifierservicecommand = "cd cgpu-onboarding-package; sudo bash utilities-install-local-gpu-verfier-service.sh;"
-	echo $(ssh  -i ${privatekeypath} ${vmsshinfo} ${enablegpuverifierservicecommand}) 2>&1 | Out-File -filepath -Append ".\logs\$logpath\attestation.log"
+	Run-SSH-Command -privatekeypath $privatekeypath `
+		-vmsshinfo $vmsshinfo `
+		-command "cd cgpu-onboarding-package; sudo bash utilities-install-local-gpu-verfier-service.sh 2>&1;" `
+		-logfile ".\logs\$logpath\attestation.log" | Out-Host
 	Write-Host "Finished enabling local GPU attestation verifier HTTP service."
 	$global:issuccess = "succeeded"
+}
+
+# Run a command on the VM over SSH with keepalive options.
+function Run-SSH-Command {
+	param(
+		$privatekeypath,
+		$vmsshinfo,
+		$command,
+		$logfile
+	)
+
+	if ($logfile) {
+		ssh -i $privatekeypath `
+			-o "ServerAliveInterval 60" `
+			-o "ServerAliveCountMax 10" `
+			$vmsshinfo `
+			$command 2>&1 | Tee-Object -FilePath $logfile -Append
+	} else {
+		ssh -i $privatekeypath `
+			-o "ServerAliveInterval 60" `
+			-o "ServerAliveCountMax 10" `
+			$vmsshinfo `
+			$command 2>&1
+	}
 }
 
 # Try to connect to VM with given SSH info with maximum retry of 50 times.
@@ -655,7 +682,11 @@ function Try-Connect {
 	while ($connectionoutput -ne "connected" -and $currentRetry -lt $maxretrycount)
 	{
 		Write-Host "Trying to connect";
-		$connectionoutput=ssh -i ${privatekeypath} -o "StrictHostKeyChecking no" ${vmsshinfo} "bash -c 'echo connected'"		
+		$connectionoutput=ssh -n -i ${privatekeypath} `
+			-o "StrictHostKeyChecking no" `
+			-o "BatchMode yes" `
+			-o "ConnectTimeout 10" `
+			${vmsshinfo} "bash -c 'echo connected'"		
 		Write-Host $connectionoutput
 		if ($connectionoutput -eq "connected") {
 			$global:issuccess = "succeeded"
@@ -674,7 +705,9 @@ function Validation {
 	$global:issuccess = "succeeded"
 	Write-Host "Started C-GPU capable validation."
 
-	$securebootstate=$(ssh -i $privatekeypath $vmsshinfo "mokutil --sb-state;")
+	$securebootstate=$(Run-SSH-Command -privatekeypath $privatekeypath `
+		-vmsshinfo $vmsshinfo `
+		-command "mokutil --sb-state;")
 	if ($securebootstate -ne "SecureBoot enabled")
 	{
 		$global:issuccess="failed"
@@ -685,7 +718,9 @@ function Validation {
 		Write-Host "Passed: secure boot state validation. Current secure boot state: ${securebootstate}"
 	}
 
-	$ccretrieve=$(ssh -i $privatekeypath $vmsshinfo "nvidia-smi conf-compute -f;")
+	$ccretrieve=$(Run-SSH-Command -privatekeypath $privatekeypath `
+		-vmsshinfo $vmsshinfo `
+		-command "nvidia-smi conf-compute -f;")
 	if ($ccretrieve -ne "CC status: ON")
 	{
 		$global:issuccess="failed"
@@ -696,7 +731,9 @@ function Validation {
 		Write-Host "Passed: Confidential Compute mode validation passed. Current Confidential Compute retrieve state: ${ccretrieve}"
 	}
 
-	$ccenvironment=$(ssh -i $privatekeypath $vmsshinfo "nvidia-smi conf-compute -e;")
+	$ccenvironment=$(Run-SSH-Command -privatekeypath $privatekeypath `
+		-vmsshinfo $vmsshinfo `
+		-command "nvidia-smi conf-compute -e;")
 	if ($ccenvironment -ne "CC Environment: PRODUCTION")
 	{
 		$global:issuccess="failed"

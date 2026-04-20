@@ -21,7 +21,6 @@
 #    -e <encryption type>: the type of CVM encryption for your OS disk (if not specified, the default is DiskWithVMGuestState)
 #    --os-distribution [Ubuntu22.04, Ubuntu24.04]: the OS distribution for your VM (if not specified, the default is Ubuntu22.04)
 #    --skip-az-login: skip az login
-#    --install-gpu-verifier-to-usr-local: install gpu verifier to /usr/local/lib/local_gpu_verifier
 #    --enable-gpu-verifier-service: enable gpu verifier service
 #	 --enable-snapshot <timestamp>: enable the Ubuntu snapshot with the specified timestamp (default is enabled; value of 0 means it is disabled)
 #    --enable-proposed: enable Ubuntu proposed source list (overrides snapshot)
@@ -66,7 +65,6 @@ cgpu_h100_onboarding() {
 			-) case "${OPTARG}" in
 				os-distribution) os_distribution="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ));;
 				skip-az-login) skip_az_login=true;;
-				install-gpu-verifier-to-usr-local) install_gpu_verifier_to_usr_local=true;;
 				enable-gpu-verifier-service) enable_gpu_verifier_service=true;;
 				enable-snapshot) enable_snapshot=true; snapshot_timestamp="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ));;
 				enable-proposed) enable_proposed=true;;
@@ -74,7 +72,7 @@ cgpu_h100_onboarding() {
 	    esac
 	done
 	
-	ONBOARDING_PACKAGE_VERSION="V4.1.7"
+	ONBOARDING_PACKAGE_VERSION="V4.3.0"
 	echo "Confidential GPU H100 Onboarding Package Version: $ONBOARDING_PACKAGE_VERSION"
 
 	if [ "$(az --version | grep azure-cli)" == "" ]; then
@@ -173,7 +171,7 @@ cgpu_h100_onboarding() {
 
 	# Default: snapshot enabled with default timestamp
 	# Checks that only 1 option is enabled at a time
-    additional_params="--enable-snapshot 20251219T120000Z"
+    additional_params="--enable-snapshot 20260315T120000Z"
 	if [[ -n "${enable_proposed}" && -n "${enable_snapshot}" ]]; then
 		echo "Error: You can only enable one feature at a time: either --enable-proposed or --enable-snapshot, not both."
 		exit 1
@@ -239,10 +237,11 @@ cgpu_h100_onboarding() {
 		echo "ssh -i $private_key_path ${vm_ssh_info_arr[i]}" 
 	done
 
-	echo "Please execute the below command to try attestation:"
-	echo "cd cgpu-onboarding-package; sudo bash step-2-attestation.sh";
+	echo "Please execute the below commands to try attestation:"
+	echo "sudo gpu-attestation"
+	echo "sudo cpu-attestation";
 	echo "Please execute the below command to try a sample workload:"
-	echo "sudo docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/${adminuser_name}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/pytorch:25.09-py3 python /home/mnist-sample-workload.py";
+	echo "sudo docker run --runtime=nvidia --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/${adminuser_name}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/pytorch:26.02-py3 python /home/mnist-sample-workload.py";
 	echo "******************************************************************************************"
 
 	if [[ -z "${skip_az_login}" ]]; then
@@ -330,13 +329,9 @@ auto_onboard_cgpu_single_vm() {
 
 	# Enable gpu verifier service
 	if [[ -n "${enable_gpu_verifier_service}" ]]; then
-		if [[ -z "${install_gpu_verifier_to_usr_local}" ]]; then
-			echo "WARNING: The GPU verifier is not installed. If you want to enable the GPU verifier service, pass '--install-gpu-verifier-to-usr-local'."
-		else
-			enable_gpu_verifier_service
-		fi
+		enable_gpu_verifier_service
 	fi
-	
+
 	vm_ssh_info_arr[$current_vm_count]=$vm_ssh_info
 }
 
@@ -349,7 +344,8 @@ upload_package() {
 	echo "Finished uploading package."
 
 	echo "Start extracting package..."
-	ssh -i $private_key_path $vm_ssh_info "tar -zxvf cgpu-onboarding-package.tar.gz;"
+	run_ssh_command "$private_key_path" "$vm_ssh_info" \
+		"tar -zxvf cgpu-onboarding-package.tar.gz 2>&1;"
 	echo "Finished extracting package."
 }
 
@@ -357,50 +353,64 @@ upload_package() {
 update_kernel() {
     try_connect
     echo "Start update kernel."
-    ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; bash step-0-prepare-kernel.sh $additional_params 2>&1;"
+    run_ssh_command "$private_key_path" "$vm_ssh_info" \
+        "cd cgpu-onboarding-package; sudo bash step-0-prepare-kernel.sh $additional_params 2>&1;"
     echo "Finished update kernel."
-    echo "Rebooting.."
+    echo "Rebooting..."
+    sleep 120
 }
 
 install_gpu_driver() {
 	try_connect
-
 	sleep 15
-
 	echo "Start install gpu driver"
-	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; bash step-1-install-gpu-driver.sh 2>&1;" 
+	run_ssh_command "$private_key_path" "$vm_ssh_info" \
+		"cd cgpu-onboarding-package; sudo bash step-1-install-gpu-driver.sh 2>&1;"
 	echo "Finished install gpu driver"
 }
 
 # Do attestation in the created VMs.
 attestation() {
 	try_connect
-	echo "Start verifier installation and attestation. Please wait, this process can take up to 2 minutes."
-	if [[ -n "${install_gpu_verifier_to_usr_local}" ]]; then
-		attestation_command="cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh --install-to-usr-local 2>&1;"
-	else
-		attestation_command="cd cgpu-onboarding-package; echo Y | bash step-2-attestation.sh 2>&1;"
-	fi
 
 	echo "Start installing attestation package - this may take up to 5 minutes."
-	ssh -i "$private_key_path" "$vm_ssh_info" "$attestation_command" 2>&1 | tee "$log_dir/attestation-output.log"
-	attestation_message=$(tail -n 20 "$log_dir/attestation-output.log")
-	echo "$attestation_message"
+	> "$log_dir/attestation-output.log"
+	run_ssh_command "$private_key_path" "$vm_ssh_info" \
+		"cd cgpu-onboarding-package; sudo bash step-2-attestation.sh 2>&1;" \
+		"$log_dir/attestation-output.log"
 	echo "Finished attestation."
 }
 
 install_gpu_tool() {
 	try_connect
 	echo "Start install gpu tool."
-	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; echo Y | bash step-3-install-gpu-tools.sh 2>&1;" 
+	run_ssh_command "$private_key_path" "$vm_ssh_info" \
+		"cd cgpu-onboarding-package; sudo bash step-3-install-gpu-tools.sh 2>&1;"
 	echo "Finished install gpu tool."
 }
 
 enable_gpu_verifier_service() {
 	try_connect
 	echo "Start enable gpu verifier service."
-	ssh -i $private_key_path $vm_ssh_info "cd cgpu-onboarding-package; sudo bash utilities-install-local-gpu-verfier-service.sh;" 
+	run_ssh_command "$private_key_path" "$vm_ssh_info" \
+		"cd cgpu-onboarding-package; sudo bash utilities-install-local-gpu-verfier-service.sh 2>&1;" \
+		"$log_dir/attestation-output.log"
 	echo "Finished enable gpu verifier service."
+}
+
+# Run a command on the VM over SSH with keepalive options.
+# Args: <private_key> <vm_ssh> <command> [log_file]
+run_ssh_command() {
+	local key_path="$1"
+	local ssh_info="$2"
+	local cmd="$3"
+	local log_file="${4:-/dev/null}"
+
+	ssh -i "$key_path" \
+		-o "ServerAliveInterval 60" \
+		-o "ServerAliveCountMax 10" \
+		"$ssh_info" \
+		"$cmd" 2>&1 | tee -a "$log_file"
 }
 
 # Try to connect to VM with 50 maximum retry.
@@ -411,7 +421,11 @@ try_connect() {
    connectionoutput=""
    while [[ "$connectionoutput" != "connected" ]] && [[ $retries -lt $MAX_RETRY ]];
    do
-	   connectionoutput=$(ssh -i "${private_key_path}" -o "StrictHostKeyChecking=no" "${vm_ssh_info}" "bash -c \"echo 'connected'\"")        
+	   connectionoutput=$(ssh -n -i "${private_key_path}" \
+		   -o "StrictHostKeyChecking=no" \
+		   -o "BatchMode=yes" \
+		   -o "ConnectTimeout=10" \
+		   "${vm_ssh_info}" "bash -c \"echo 'connected'\"")        
 	   echo $connectionoutput
 	   sleep 1
        retries=$((retries+1))
@@ -432,7 +446,7 @@ create_vm() {
 			if [[ -n "${enable_proposed}" || ( -n "${enable_snapshot}" && "${snapshot_timestamp}" == "0" ) ]]; then
 				image_version="latest"
 			else
-				image_version="22.04.202512181"
+				image_version="22.04.202601280"
 			fi
 			;;
 		"Ubuntu24.04")
@@ -440,7 +454,7 @@ create_vm() {
 			if [[ -n "${enable_proposed}" || ( -n "${enable_snapshot}" && "${snapshot_timestamp}" == "0" ) ]]; then
 				image_version="latest"
 			else
-				image_version="24.04.202512181"
+				image_version="24.04.202601290"
 			fi
 			;;
 		*)
@@ -508,7 +522,7 @@ validation() {
 	echo "Validate Confidential GPU capability."
 	try_connect
 	
-	secure_boot_state=$(ssh -i $private_key_path $vm_ssh_info "mokutil --sb-state;")
+	secure_boot_state=$(run_ssh_command "$private_key_path" "$vm_ssh_info" "mokutil --sb-state;")
 	if [ "$secure_boot_state" != "SecureBoot enabled" ];
 	then
 		is_success="failed"
@@ -517,7 +531,7 @@ validation() {
 		echo "Passed: secure boot state validation. Current secure boot state: ${secure_boot_state}"
 	fi
 
-	cc_retrieve=$(ssh -i $private_key_path $vm_ssh_info "nvidia-smi conf-compute -f;")
+	cc_retrieve=$(run_ssh_command "$private_key_path" "$vm_ssh_info" "nvidia-smi conf-compute -f;")
 	if [ "$cc_retrieve" != "CC status: ON" ];
 	then
 		is_success="failed"
@@ -526,7 +540,7 @@ validation() {
 		echo "Passed: Confidential Compute mode validation passed. Current Confidential Compute retrieve state: ${cc_retrieve}"
 	fi
 
-	cc_environment=$(ssh -i $private_key_path $vm_ssh_info "nvidia-smi conf-compute -e;")
+	cc_environment=$(run_ssh_command "$private_key_path" "$vm_ssh_info" "nvidia-smi conf-compute -e;")
 	if [ "$cc_environment" != "CC Environment: PRODUCTION" ];
 	then
 		is_success="failed"

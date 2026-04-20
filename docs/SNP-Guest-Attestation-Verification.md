@@ -1,6 +1,18 @@
 # Overview
 There are several ways to perform guest attestation for Azure SEV-SNP CVMs.
 
+## Recommended: `cpu-attestation` command
+
+If you have created your VM using the CGPU VMI or the CGPU onboarding package, the `cpu-attestation` command is already installed on your system. This is the simplest and recommended way to perform SNP guest attestation:
+
+```bash
+sudo cpu-attestation
+```
+
+This attestation method uses the [Azure CVM Attestation Tools](https://github.com/Azure/cvm-attestation-tools/tree/main/cvm-attestation) under the hood. The tool is installed to `/usr/local/lib/cvm-attestation` by default.
+
+## Alternative methods
+
 Here are some documentation links that contain more information on how to do so using different tools and services:
 - [Guest Attestation with AMD Sev Tool](https://github.com/Azure/confidential-computing-cvm-guest-attestation/blob/main/cvm-guest-attestation.md#linux)
 - [Guest Attestation with MAA](https://github.com/Azure/confidential-computing-cvm-guest-attestation/tree/main/cvm-attestation-sample-app)

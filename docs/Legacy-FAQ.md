@@ -12,7 +12,7 @@ A: If you have created the VM using previous versions of onboarding packages, yo
 On the host:
 ```
 # Download a clean H100 onboarding package from the latest release
-https://github.com/Azure/az-cgpu-onboarding/releases/download/V4.1.7/cgpu-onboarding-package.tar.gz
+https://github.com/Azure/az-cgpu-onboarding/releases/download/V4.3.0/cgpu-onboarding-package.tar.gz
  
 # Upload it to your VM
 scp -i <private key path> ".\cgpu-onboarding-package.tar.gz" <username>@<IP>:/home/<username>
@@ -36,5 +36,5 @@ cd ~/cgpu-onboarding-package; sudo bash step-1-install-gpu-driver.sh
 sudo bash step-2-attestation.sh
 
 # (Optionally) Run sample workload from Docker
-sudo docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v ~/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/pytorch:25.09-py3 python /home/mnist-sample-workload.py
+sudo docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v ~/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/pytorch:26.01-py3 python /home/mnist-sample-workload.py
 ```

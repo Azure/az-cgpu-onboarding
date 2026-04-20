@@ -22,7 +22,7 @@ This page is using platform managed keys. More information about platform manage
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
   - Note: minimum version 2.42.0 is required, run `az --version` to check your version and run `az upgrade` to install the latest version if your version is older
 - [Quota for the NCC H100 v5 VM SKU](../Frequently-Asked-Questions.md#q-how-can-i-get-quota-for-creating-an-ncc-cgpu-vm)
-- Download [cgpu-h100-auto-onboarding-linux.tar.gz](https://github.com/Azure/az-cgpu-onboarding/releases/download/V4.1.7/cgpu-h100-auto-onboarding-linux.tar.gz) from [az-cgpu-onboarding-V4.1.7](https://github.com/Azure/az-cgpu-onboarding/releases/tag/V4.1.7)
+- Download [cgpu-h100-auto-onboarding-linux.tar.gz](https://github.com/Azure/az-cgpu-onboarding/releases/download/V4.3.0/cgpu-h100-auto-onboarding-linux.tar.gz) from [az-cgpu-onboarding-V4.3.0](https://github.com/Azure/az-cgpu-onboarding/releases/tag/V4.3.0)
 
 ----------------------------------------------------
 
@@ -42,7 +42,7 @@ E:\cgpu\.ssh>ssh-keygen -t rsa -b 4096 -C <your email here>
 2. Create VM using a bash script
 - This will create a Standard_NCC40ads_H100_v5 Confidential VM with a Platform Managed Key (PMK) with secure boot enabled in your specified resource group. If the resource group doesn't exist, it will create it with the specified name under the target subscription.
 
-- Decompress downloaded [cgpu-h100-auto-onboarding-linux.tar.gz](https://github.com/Azure/az-cgpu-onboarding/releases/download/V4.1.7/cgpu-h100-auto-onboarding-linux.tar.gz) and enter the folder through your bash window.
+- Decompress downloaded [cgpu-h100-auto-onboarding-linux.tar.gz](https://github.com/Azure/az-cgpu-onboarding/releases/download/V4.3.0/cgpu-h100-auto-onboarding-linux.tar.gz) and enter the folder through your bash window.
 ```
 cd cgpu-h100-auto-onboarding-linux
 ```
@@ -69,7 +69,9 @@ cd cgpu-h100-auto-onboarding-linux
 # --os-distribution [Ubuntu22.04, Ubuntu24.04]: the OS distribution for your VM 
                  If left blank, the default is Ubuntu22.04
 # --skip-az-login: skip az login
-# --install-gpu-verifier-to-usr-local: install gpu verifier to /usr/local/lib/local_gpu_verifier
+# --enable-gpu-verifier-service: enable the GPU verifier HTTP service
+# --enable-snapshot <timestamp>: enable Ubuntu snapshot with a specified timestamp (default: 20260315T120000Z; set to 0 to disable)
+# --enable-proposed: enable Ubuntu proposed source list (overrides snapshot)
 
 bash cgpu-h100-auto-onboarding.sh  \
 -t "<your Tenant ID>" \
@@ -97,10 +99,11 @@ Finished creating VM: cgpu-01-12-7-1
 ******************************************************************************************
 Please execute below commands to login to your VM(s):
 ssh -i E:\cgpu\.ssh\id_rsa adminusername@20.114.244.82
-Please execute the below command to try attestation:
-cd cgpu-onboarding-package; sudo bash step-2-attestation.sh
+Please execute the below commands to try attestation:
+sudo gpu-attestation
+sudo cpu-attestation
 Please execute the below command to try a sample workload:
-sudo docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/<adminusername>/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/pytorch:25.09-py3 python /home/mnist-sample-workload.py
+sudo docker run --runtime=nvidia --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/<adminusername>/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/pytorch:26.02-py3 python /home/mnist-sample-workload.py
 ******************************************************************************************
 Total VM to onboard: 1, total Success: 1.
 Detailed logs can be found at: .\logs\01-12-2024_14-42-44
@@ -111,17 +114,18 @@ Transcript stopped, output file is D:\repo\az-cgpu-onboarding\drops\cgpu-h100-on
 ### Attestation
 Please run this command every time after rebooting your machine.
 ```
-# In your VM, execute the attestation scripts in cgpu-onboarding-package.
-# You should see: GPU 0 verified successfully.
+# In your VM, run GPU and CPU attestation.
+# For GPU attestation, you should see: GPU Attestation is Successful.
+# For CPU attestation, you should see: Attested Platform Successfully!!
 
-cd cgpu-onboarding-package 
-bash step-2-attestation.sh
+sudo gpu-attestation
+sudo cpu-attestation
 ```
 
 ### Workload-Running
 
 ```
-# In your VM, execute the below command for a tensorflow sample execution.
+# In your VM, execute the below command for a PyTorch sample execution.
 
-sudo docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/<adminusername>/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/pytorch:25.09-py3 python /home/mnist-sample-workload.py
+sudo docker run --runtime=nvidia --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/<adminusername>/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/pytorch:26.02-py3 python /home/mnist-sample-workload.py
 ```

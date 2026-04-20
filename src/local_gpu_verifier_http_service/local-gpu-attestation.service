@@ -1,7 +1,8 @@
 [Unit]
 Description=Local GPU Attestation Service on HTTP and Socket
-After=network.target
+After=network.target nvidia-persistenced.service
 Wants=network-online.target
+Requires=nvidia-persistenced.service
 
 [Service]
 Type=simple
@@ -17,13 +18,15 @@ ExecStartPre=/bin/chmod 755 /var/run/gpu-attestation
 # Ensure the binary exists before starting
 ExecStartPre=/bin/bash -c 'if [ ! -x /usr/local/bin/local_gpu_verifier_http_service/local-gpu-attestation-http-service ]; then echo "Binary missing: /usr/local/bin/local_gpu_verifier_http_service/local-gpu-attestation-http-service" >&2; exit 1; fi'
 
-# Execute GPU Attestation Service binary
+# Execute Local GPU Attestation Service binary
 ExecStart=/usr/local/bin/local_gpu_verifier_http_service/local-gpu-attestation-http-service \
-  -verifierroot /usr/local/lib/local_gpu_verifier \
-  -logpath /var/log/local_gpu_verifier/local-gpu-attestation-http-service.log \
-  -port 8123 \
-  -socket /var/run/gpu-attestation/gpu-attestation.sock \
-  -successstr "GPU Attestation is Successful"
+  -verifierroot=/usr/local/lib/local_gpu_verifier \
+  -logpath=/var/log/local_gpu_verifier/local-gpu-attestation-http-service.log \
+  -port=8123 \
+  -socket=/var/run/gpu-attestation/gpu-attestation.sock \
+  -successstr="GPU Attestation is Successful" \
+  -heartbeatreport=true \
+  -heartbeatinterval=15
 
 # Set file descriptor limits
 LimitNOFILE=65536

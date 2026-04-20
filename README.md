@@ -11,24 +11,6 @@ Through this onboarding process, you can:
 6. Give us feedback and request features to help shape this VM SKU. 
 
 
-## Updates
-For existing customers, please note the following changes that have been made to the onboarding flow that may impact your VM configurations:
-
-**May 6, 2025:**
-For the following Nvidia drivers, there could be attestation failure. Customers need to update to driver >= r550.127.05 to mitigate. For details check the link [NVIDIA SecureAI Attestation Advisory: HBM3 Resiliency Impact on Driver Versions r550.0-r550.90.12 - NVIDIA Docs](https://docs.nvidia.com/attestation/secureai-advisory-hbm3-resiliency-impact-on-driver-versions-r550-0-r550-90-12/index.html)
-
-- NV_GPU_DRIVER_GH100_550.54.14
-- NV_GPU_DRIVER_GH100_550.54.15
-- NV_GPU_DRIVER_GH100_550.90.07
-- NV_GPU_DRIVER_GH100_550.90.12
-- NV_GPU_DRIVER_GH100_550.113
-
-**Dec. 4, 2024:** 
-Unattended-upgrades package has been removed by default in order to avoid potential runtime service interruptions caused by unattended driver and kernel updates. 
-This means that patches for security CVEs will not be automatically installed so important security updates must be checked for and installed manually. 
-To learn more about this change or re-enable this package, please visit our FAQ page here: [Unattended-Upgrates](Frequently-Asked-Questions.md#q-howccan-i-re-enable-unattended-upgrades?)
-
-
 ## Virtual Machine Features 
 
 - Next-generation CPUs: AMD 4th Gen EPYC processors with SEV-SNP technology to meet CPU performance for AI training/inference.
@@ -59,7 +41,14 @@ Please make sure to follow all steps exactly as detailed. If you run into issues
 
 ## Choose your Configuration 
 
-We support the creation of Linux Confidential GPUs using Powershell and Bash, with encryption enabled through either customer-managed keys (CMK) or platform managed keys (PMK). We recommend for first time users to try out the PMK option since it is simpler to onboard. Please select the single-step auto-onboarding script that best fits your preferred configuration: 
+**Recommended: ** 
+We recommend provisioning your Confidential GPU using a Virtual Machine Image (VMI) published in the Azure community gallery. This VMI has the NVIDIA GPU driver, CUDA, docker, and a customized local verifier already pre-installed. This image is generated using the same single-step auto-onboarding script that is linked above so the deployed VM will yield similar results, but this method is created to help reduce manual steps and greatly reduce the setup duration.
+- [VMI flow using Azure CLI](docs/Confidential-GPU-H100-VMI-Creation-CLI.md)
+
+- [VMI flow using Azure Portal](docs/Confidential-GPU-H100-VMI-Creation-Portal.md)
+
+
+We also support the creation of Linux Confidential GPUs using Powershell and Bash, with encryption enabled through either customer-managed keys (CMK) or platform managed keys (PMK). We recommend for first time users to try out the PMK option since it is simpler to onboard. Please select the single-step auto-onboarding script that best fits your preferred configuration: 
 
 - [PMK flow in Powershell](docs/Confidential-GPU-H100-Onboarding-(PMK-with-Powershell).md)
 
@@ -77,11 +66,8 @@ If you prefer to go through the steps manually, you can follow these instruction
 - [Manual GPU Environment Setup](docs/Confidential-GPU-H100-Manual-Installation-(PMK-with-Powershell).md#upload-package)
 
 **Preview Features**:
-1. [VMI flow using Azure CLI](docs/Confidential-GPU-H100-VMI-Creation-CLI.md)
 
-Provision your CGPU VM using a Community Shared Virtual Machine Image (VMI) that has the NVIDIA GPU driver, CUDA, docker, and a customized local verifier already pre-installed. This image is generated using the same single-step auto-onboarding script that is linked above so the deployed VM will yield similar results, but this method is created to help reduce manual steps and greatly reduce the setup duration.
-
-2. [Confidential GPU AKS Onboarding](docs/Confidential-GPU-H100-AKS-Onboarding.md)
+1. [Confidential GPU AKS Onboarding](docs/Confidential-GPU-H100-AKS-Onboarding.md)
 
 This onboarding document walks through the process of creating an Azure Kubernetes Service (AKS) cluster configured for confidential single GPU capable workloads using bash
 
@@ -91,6 +77,11 @@ Please note that since these features are in preview there is currently no SLA p
 ## Availability
 
 This offer is currently available in the East US 2, Central US, and West Europe regions. We plan to expand to more regions in a phased manner during upcoming semesters.
+
+## Updates
+
+For existing customers, please note the following changes that have been made to the onboarding flow that may impact your VM configurations. More information can be found in the [FAQ page](Frequently-Asked-Questions.md).
+
 
 ## Contact Information
 
