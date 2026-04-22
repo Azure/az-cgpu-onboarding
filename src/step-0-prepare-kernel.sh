@@ -8,8 +8,11 @@ ENABLE_UBUNTU_PROPOSED_SOURCE_LIST=0
 ENABLE_UBUNTU_PROPOSED2_KERNEL_PPA=0
 ENABLE_UBUNTU_SNAPSHOT_SERVICE=0
 DISABLE_UBUNTU_UNATTENDED_UPGRADES=1
-TIMESTAMP_UBUNTU_SNAPSHOT_SERVICE=20250818T120000Z
+TIMESTAMP_UBUNTU_SNAPSHOT_SERVICE=20260315T120000Z
 OPTION_ALREADY_SET=0
+
+# Common apt-get options: lock timeout, retry limit, and network timeouts
+APT_OPTS="-o DPkg::Lock::Timeout=300 -o Acquire::Retries=3 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30"
 
 # Parse command-line arguments
 while [[ $# -gt 0 ]]; do
@@ -48,19 +51,10 @@ if [ "$enabled_count" -gt 1 ]; then
     exit 1
 fi
 
-enable_ubuntu_snapshot_service() {
-    echo "Enabling Ubuntu snapshot service with timestamp: $TIMESTAMP_UBUNTU_SNAPSHOT_SERVICE"
-    
-    # Ubuntu 22.04 needs to enable snapshot in sources.list
-    ubuntu_version=$(lsb_release -rs)
-    if dpkg --compare-versions "$ubuntu_version" "eq" "22.04"; then
-        local sources_list="/etc/apt/sources.list"
-        sudo cp "$sources_list" "$sources_list.backup"
-        sudo sed -i "/^deb /s/deb /deb [snapshot=yes] /" "$sources_list"
-    fi  
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-    echo "APT::Snapshot \"$TIMESTAMP_UBUNTU_SNAPSHOT_SERVICE\";" | sudo tee /etc/apt/apt.conf.d/50snapshot
-    sudo apt-get -o DPkg::Lock::Timeout=300 update
+enable_ubuntu_snapshot_service() {
+    sudo bash "$SCRIPT_DIR/utilities-enable-snapshot.sh" "$TIMESTAMP_UBUNTU_SNAPSHOT_SERVICE"
 }
 
 enable_ubuntu_proposed_pocket() {
@@ -78,38 +72,51 @@ EOF
     fi
 }
 
-# Add delay due to inconsistency upgrade from VM just booting up
-sleep 10
-
-# Disable Ubuntu unattended upgrades
-if [ "$DISABLE_UBUNTU_UNATTENDED_UPGRADES" = "1" ]; then
-    sudo systemctl stop unattended-upgrades
-    sudo apt-get -o DPkg::Lock::Timeout=300 purge -y unattended-upgrades
+prepare_kernel() {
+    # Add delay due to inconsistency upgrade from VM just booting up
     sleep 10
+
+    # Disable Ubuntu unattended upgrades
+    if [ "$DISABLE_UBUNTU_UNATTENDED_UPGRADES" = "1" ]; then
+        sudo systemctl stop unattended-upgrades
+        sudo apt-get $APT_OPTS purge -y unattended-upgrades
+        sleep 10
+    fi
+
+    # Enable Ubuntu proposed source list if ENABLE_UBUNTU_PROPOSED_SOURCE_LIST is set to 1
+    if [ "$ENABLE_UBUNTU_PROPOSED_SOURCE_LIST" = "1" ]; then
+        enable_ubuntu_proposed_pocket
+        sleep 10
+    fi
+
+    # Enable Ubuntu Proposed 2 kernel PPA if ENABLE_UBUNTU_PROPOSED2_KERNEL_PPA is set to 1
+    if [ "$ENABLE_UBUNTU_PROPOSED2_KERNEL_PPA" = "1" ]; then
+        echo "Enabling Ubuntu Proposed 2 kernel PPA"
+        sudo add-apt-repository -y ppa:canonical-kernel-team/proposed2
+        sleep 10
+    fi
+
+    # Enable Ubuntu snapshot service if ENABLE_UBUNTU_SNAPSHOT_SERVICE is set to 1
+    if [ "$ENABLE_UBUNTU_SNAPSHOT_SERVICE" = "1" ]; then
+        enable_ubuntu_snapshot_service
+        sleep 10
+    fi
+
+    sudo apt-get $APT_OPTS update
+    sudo sed -i 's/#$nrconf{restart} = '"'"'i'"'"';/$nrconf{restart} = '"'"'a'"'"';/g' /etc/needrestart/needrestart.conf
+    sudo apt-get $APT_OPTS \
+        -o APT::Get::Always-Include-Phased-Updates=true \
+        -o Debug::pkgProblemResolver=true \
+        dist-upgrade -y --allow-downgrades
+
+    echo "Kernel updates applied. System will reboot."
+}
+
+if [[ "${#BASH_SOURCE[@]}" -eq 1 ]]; then
+    if [ ! -d "logs" ]; then
+        mkdir logs
+    fi
+    echo -e "\n===== [step-0-prepare-kernel.sh] $(date) =====" | tee logs/current-operation.log | tee -a logs/all-operation.log
+    prepare_kernel "$@" 2>&1 | tee -a logs/current-operation.log | tee -a logs/all-operation.log
+    sudo reboot
 fi
-
-# Enable Ubuntu proposed source list if ENABLE_UBUNTU_PROPOSED_SOURCE_LIST is set to 1
-if [ "$ENABLE_UBUNTU_PROPOSED_SOURCE_LIST" = "1" ]; then
-    enable_ubuntu_proposed_pocket
-    sleep 10
-fi
-
-# Enable Ubuntu Proposed 2 kernel PPA if ENABLE_UBUNTU_PROPOSED2_KERNEL_PPA is set to 1
-if [ "$ENABLE_UBUNTU_PROPOSED2_KERNEL_PPA" = "1" ]; then
-    echo "Enabling Ubuntu Proposed 2 kernel PPA"
-    sudo add-apt-repository -y ppa:canonical-kernel-team/proposed2
-    sleep 10
-fi
-
-# Enable Ubuntu snapshot service if ENABLE_UBUNTU_SNAPSHOT_SERVICE is set to 1
-if [ "$ENABLE_UBUNTU_SNAPSHOT_SERVICE" = "1" ]; then
-    enable_ubuntu_snapshot_service
-    sleep 10
-fi
-
-sudo apt-get -o DPkg::Lock::Timeout=300 update
-sudo sed -i 's/#$nrconf{restart} = '"'"'i'"'"';/$nrconf{restart} = '"'"'a'"'"';/g' /etc/needrestart/needrestart.conf
-sudo apt-get -o DPkg::Lock::Timeout=300 -o APT::Get::Always-Include-Phased-Updates=true -o Debug::pkgProblemResolver=true dist-upgrade -y
-
-echo "Rebooting system to apply kernel updates..."
-sudo reboot

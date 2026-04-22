@@ -29,7 +29,7 @@ Please make sure you have these requirements before performing the following ste
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
   - Note: minimum version 2.46.0 is required, run `az --version` to check your version and run `az upgrade` to install the latest version if your version is older
 - [Quota for the NCC H100 v5 VM SKU](../Frequently-Asked-Questions.md#q-how-can-i-get-quota-for-creating-an-ncc-cgpu-vm)
-- Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure/az-cgpu-onboarding/releases/download/V4.1.7/cgpu-onboarding-package.tar.gz) from [az-cgpu-onboarding-V4.1.7](https://github.com/Azure/az-cgpu-onboarding/releases/tag/V4.1.7)
+- Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure/az-cgpu-onboarding/releases/download/V4.2.1/cgpu-onboarding-package.tar.gz) from [az-cgpu-onboarding-V4.2.1](https://github.com/Azure/az-cgpu-onboarding/releases/tag/V4.2.1)
 
 -------------------------------------------
 
@@ -69,7 +69,9 @@ Additional optional parameters:
 - $osdisksize = the size of your OS disk. The maximum size is 4095 GB and for default, set to 100 GB
 - $osdistribution = the OS distribution for your VM. Currently we support Ubuntu22.04 and Ubuntu24.04
 - $skipazlogin = skip az login
-- $installgpuverifier = install gpu verifier to /usr/local/lib/local_gpu_verifier
+- $enablegpuverifierservice = enable the GPU verifier HTTP service
+- $enablesnapshot = enable Ubuntu snapshot with a specified timestamp (default: 20260315T120000Z; set to 0 to disable)
+- $enableproposed = enable Ubuntu proposed source list (overrides snapshot)
 
 Please note that this step may take a few minutes to complete. You can track your deployment in the portal under your resource group.
 ```
@@ -143,7 +145,8 @@ sudo bash step-1-install-gpu-driver.sh
 
 3. Now we are finally able to run attestation - you will be able to see the attestation message printed at the bottom
 ```
-sudo bash step-2-attestation.sh
+sudo gpu-attestation
+sudo cpu-attestation
 ```
 
 4. Finally, run the last step to install the GPU tools. These are tools and packages that will allow you to run various workloads
@@ -173,10 +176,10 @@ nvidia-smi conf-compute -e
 You should see: "CC Environment: PRODUCTION"
 
 ### Workload-Running
-Once you have finished the validation, you can execute the following commands to try a sample workload:
+Once you have finished the validation, you can execute the following commands to try a PyTorch sample workload:
 
 ```
-sudo docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/${adminusername}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/pytorch:25.09-py3 python /home/mnist-sample-workload.py
+sudo docker run --runtime=nvidia --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/${adminusername}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/pytorch:26.02-py3 python /home/mnist-sample-workload.py
 ```
 
 If you have reached this point, congratulations! You have offically manually created an NCC40 CGPU VM!
