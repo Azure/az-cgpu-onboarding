@@ -43,6 +43,12 @@ install_gpu_driver() {
     sudo dpkg -i /tmp/cuda-keyring.deb
     rm -f /tmp/cuda-keyring.deb
 
+    # Pin nvidia-modprobe to the 590 branch so `apt upgrade` never bumps it to
+    # 595+. Priority 1001 also blocks auto-upgrades pulled in as dependencies.
+    # 590.x patch updates are still allowed.
+    printf 'Package: nvidia-modprobe\nPin: version 590.*\nPin-Priority: 1001\n' \
+        | sudo tee /etc/apt/preferences.d/nvidia-pin-590.pref >/dev/null
+
     # Install dependencies
     sudo apt-get $APT_OPTS update
     sudo apt-get $APT_OPTS install -y initramfs-tools gcc g++ make
@@ -62,7 +68,7 @@ install_gpu_driver() {
 
     # Install r590 nvidia driver
     sudo apt-get -o APT::Get::Always-Include-Phased-Updates=true $APT_OPTS install -y \
-        nvidia-modprobe \
+        'nvidia-modprobe=590.*' \
         nvidia-driver-590-server-open \
         linux-modules-nvidia-590-server-open-azure-fde
 
