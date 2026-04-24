@@ -29,7 +29,7 @@ Please make sure you have these requirements before performing the following ste
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
   - Note: minimum version 2.46.0 is required, run `az --version` to check your version and run `az upgrade` to install the latest version if your version is older
 - [Quota for the NCC H100 v5 VM SKU](../Frequently-Asked-Questions.md#q-how-can-i-get-quota-for-creating-an-ncc-cgpu-vm)
-- Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure/az-cgpu-onboarding/releases/download/V4.2.1/cgpu-onboarding-package.tar.gz) from [az-cgpu-onboarding-V4.2.1](https://github.com/Azure/az-cgpu-onboarding/releases/tag/V4.2.1)
+- Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure/az-cgpu-onboarding/releases/download/V4.3.1/cgpu-onboarding-package.tar.gz) from [az-cgpu-onboarding-V4.3.1](https://github.com/Azure/az-cgpu-onboarding/releases/tag/V4.3.1)
 
 -------------------------------------------
 
@@ -143,8 +143,9 @@ cd cgpu-onboarding-package
 sudo bash step-1-install-gpu-driver.sh
 ```
 
-3. Now we are finally able to run attestation - you will be able to see the attestation message printed at the bottom
+3. Now we are finally able to run attestation - you will be able to see the attestation message printed at the bottom. The 'gpu-attestation' and 'cpu-attestation' act as command aliases for easy attestation verification at any time.
 ```
+sudo bash step-2-attestation.sh
 sudo gpu-attestation
 sudo cpu-attestation
 ```

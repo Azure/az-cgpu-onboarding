@@ -71,7 +71,7 @@ function CGPU-H100-Onboarding{
 		[switch]$enableproposed
 		)
 
-		$ONBOARDING_PACKAGE_VERSION="V4.2.1"
+		$ONBOARDING_PACKAGE_VERSION="V4.3.1"
 		Write-Host "Confidential GPU H100 Onboarding Package Version: $ONBOARDING_PACKAGE_VERSION"
 
 		$logpath=$(Get-Date -Format "MM-dd-yyyy_HH-mm-ss")

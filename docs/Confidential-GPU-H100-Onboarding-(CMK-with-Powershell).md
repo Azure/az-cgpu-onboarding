@@ -24,7 +24,7 @@ This page is using a customer managed keys. More information about customer mana
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
    - Note: minimum version 2.42.0 is required, run `az --version` to check your version and run `az upgrade` to install the latest version if your version is older
 - [Quota for the NCC H100 v5 VM SKU](../Frequently-Asked-Questions.md#q-how-can-i-get-quota-for-creating-an-ncc-cgpu-vm)
-- Download [cgpu-h100-auto-onboarding-windows.zip](https://github.com/Azure/az-cgpu-onboarding/releases/download/V4.2.1/cgpu-h100-auto-onboarding-windows.zip) from [az-cgpu-onboarding-V4.2.1](https://github.com/Azure/az-cgpu-onboarding/releases/tag/V4.2.1)
+- Download [cgpu-h100-auto-onboarding-windows.zip](https://github.com/Azure/az-cgpu-onboarding/releases/download/V4.3.1/cgpu-h100-auto-onboarding-windows.zip) from [az-cgpu-onboarding-V4.3.1](https://github.com/Azure/az-cgpu-onboarding/releases/tag/V4.3.1)
 
 -------------------------------------------
 
@@ -39,7 +39,7 @@ This page is using a customer managed keys. More information about customer mana
 ```
 cd <Repo Path>/src/cmk_module
 ```
-Then follow the instructions in [src/cmk_module/README.md](src/cmk_module/README.md) to create a new CMK
+Then follow the instructions in [src/cmk_module/README.md](../src/cmk_module/README.md) to create a new CMK
 
 
 ----------------------------------------------------
@@ -61,7 +61,7 @@ E:\cgpu\.ssh>ssh-keygen -t rsa -b 4096 -C <your email here>
 2. Create VM using powershell script
 - This will create a Standard_NCC40ads_H100_v5 Confidential VM with a Customer Managed Key (CMK) with secure boot enabled in your specified resource group. If the resource group doesn't exist, it will create it with the specified name under the target subscription.
 
-- Decompress downloaded [cgpu-h100-auto-onboarding-windows.zip](https://github.com/Azure/az-cgpu-onboarding/releases/download/V4.2.1/cgpu-h100-auto-onboarding-windows.zip) and enter the folder through powershell.
+- Decompress downloaded [cgpu-h100-auto-onboarding-windows.zip](https://github.com/Azure/az-cgpu-onboarding/releases/download/V4.3.1/cgpu-h100-auto-onboarding-windows.zip) and enter the folder through powershell.
 ```
 cd cgpu-h100-auto-onboarding-windows
 ```
