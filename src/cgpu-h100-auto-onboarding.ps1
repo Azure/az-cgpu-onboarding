@@ -71,7 +71,7 @@ function CGPU-H100-Onboarding{
 		[switch]$enableproposed
 		)
 
-		$ONBOARDING_PACKAGE_VERSION="V4.3.1"
+		$ONBOARDING_PACKAGE_VERSION="V4.3.2"
 		Write-Host "Confidential GPU H100 Onboarding Package Version: $ONBOARDING_PACKAGE_VERSION"
 
 		$logpath=$(Get-Date -Format "MM-dd-yyyy_HH-mm-ss")
@@ -245,7 +245,7 @@ function Auto-Onboard-CGPU-Multi-VM {
 	Write-Host "sudo gpu-attestation"
 	Write-Host "sudo cpu-attestation";
 	Write-Host "Please execute the below command to try a sample workload:"
-	Write-Host "sudo docker run --runtime=nvidia --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/${adminusername}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/pytorch:26.02-py3 python /home/mnist-sample-workload.py";
+	Write-Host "sudo docker run --runtime=nvidia --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/${adminusername}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/pytorch:26.04-py3 python /home/mnist-sample-workload.py";
 	Write-Host "******************************************************************************************"
 
 	Write-Host "Total VM to onboard: ${totalvmnumber}, total Success: ${successcount}."

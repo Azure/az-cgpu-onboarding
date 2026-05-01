@@ -72,7 +72,7 @@ cgpu_h100_onboarding() {
 	    esac
 	done
 	
-	ONBOARDING_PACKAGE_VERSION="V4.3.1"
+	ONBOARDING_PACKAGE_VERSION="V4.3.2"
 	echo "Confidential GPU H100 Onboarding Package Version: $ONBOARDING_PACKAGE_VERSION"
 
 	if [ "$(az --version | grep azure-cli)" == "" ]; then
@@ -241,7 +241,7 @@ cgpu_h100_onboarding() {
 	echo "sudo gpu-attestation"
 	echo "sudo cpu-attestation";
 	echo "Please execute the below command to try a sample workload:"
-	echo "sudo docker run --runtime=nvidia --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/${adminuser_name}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/pytorch:26.02-py3 python /home/mnist-sample-workload.py";
+	echo "sudo docker run --runtime=nvidia --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/${adminuser_name}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/pytorch:26.04-py3 python /home/mnist-sample-workload.py";
 	echo "******************************************************************************************"
 
 	if [[ -z "${skip_az_login}" ]]; then

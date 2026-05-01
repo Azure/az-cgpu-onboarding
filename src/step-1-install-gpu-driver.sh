@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-## This module helps install gpu driver to the lastest r590 Nvidia driver version.
+## This module helps install gpu driver to the lastest r595 Nvidia driver version.
 ##
 ## Requirements:
 ##      Minimum Nvidia driver:       v570.86.15
@@ -40,14 +40,20 @@ install_gpu_driver() {
 
     # Add NVIDIA CUDA repository keyring
     curl -fsSL https://developer.download.nvidia.com/compute/cuda/repos/ubuntu$(lsb_release -rs | tr -d '.')/x86_64/cuda-keyring_1.1-1_all.deb -o /tmp/cuda-keyring.deb
+    while sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1 || \
+        sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do
+        echo "Waiting for dpkg lock to be released..."
+        sleep 2
+    done
     sudo dpkg -i /tmp/cuda-keyring.deb
     rm -f /tmp/cuda-keyring.deb
 
-    # Pin nvidia-modprobe to the 590 branch so `apt upgrade` never bumps it to
-    # 595+. Priority 1001 also blocks auto-upgrades pulled in as dependencies.
-    # 590.x patch updates are still allowed.
-    printf 'Package: nvidia-modprobe\nPin: version 590.*\nPin-Priority: 1001\n' \
-        | sudo tee /etc/apt/preferences.d/nvidia-pin-590.pref >/dev/null
+    # Pin CUDA-repo branch-versioned packages (nvidia-modprobe, nvidia-settings,
+    # libxnvctrl0) to the 595 branch so `apt upgrade` never bumps them to 600+.
+    # Priority 1001 also blocks auto-upgrades pulled in as dependencies.
+    # 595.x patch updates are still allowed.
+    printf 'Package: nvidia-modprobe nvidia-settings libxnvctrl0\nPin: version 595.*\nPin-Priority: 1001\n' \
+        | sudo tee /etc/apt/preferences.d/nvidia-pin-595.pref >/dev/null
 
     # Install dependencies
     sudo apt-get $APT_OPTS update
@@ -66,11 +72,11 @@ install_gpu_driver() {
     sudo install -m 0644 "$SCRIPT_DIR/nvidia-persistenced.override.conf" /etc/systemd/system/nvidia-persistenced.service.d/override.conf
     sudo systemctl daemon-reload
 
-    # Install r590 nvidia driver
+    # Install r595 nvidia driver
     sudo apt-get -o APT::Get::Always-Include-Phased-Updates=true $APT_OPTS install -y \
-        'nvidia-modprobe=590.*' \
-        nvidia-driver-590-server-open \
-        linux-modules-nvidia-590-server-open-azure-fde
+        'nvidia-modprobe=595.*' \
+        nvidia-driver-595-server-open \
+        linux-modules-nvidia-595-server-open-azure-fde
 
     # Add check user nvidia-persistenced, fail if not exist
     id nvidia-persistenced

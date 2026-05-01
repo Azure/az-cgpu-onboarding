@@ -80,9 +80,15 @@ gpu_attestation() {
     echo "  GPU Attestation"
     echo "============================================================"
 
-    # Install Python3 pip and venv
+    # Ensure curl + ca-certificates are available for uv installer
     sudo apt-get $APT_OPTS update
-    sudo apt-get $APT_OPTS install -y python3-pip python3-venv
+    sudo apt-get $APT_OPTS install -y curl ca-certificates
+
+    # Check & install uv
+    if ! command -v uv >/dev/null 2>&1; then
+        echo "Installing uv ..."
+        curl -LsSf https://astral.sh/uv/install.sh | sudo env UV_INSTALL_DIR=/usr/local/bin sh
+    fi
 
     if [ "$INSTALL_TO_USR_LOCAL" = "1" ]; then
         echo "Installing local_gpu_verifier in /usr/local/lib"
@@ -103,9 +109,9 @@ gpu_attestation() {
     pushd "$install_dir" >/dev/null
 
     echo "Open verifier folder successfully!"
-    sudo rm -rf ./prodtest
-    sudo python3 -m venv ./prodtest
-    sudo ./prodtest/bin/python3 -m pip install .
+    sudo rm -rf ./.venv
+    sudo uv venv ./.venv
+    sudo uv pip install --python ./.venv/bin/python .
 
     # Create gpu-attestation command alias for easier usage
     if [ "$INSTALL_TO_USR_LOCAL" = "1" ] && [ "$CREATE_GPU_ATTESTATION_ALIAS" = "1" ]; then
@@ -115,7 +121,7 @@ gpu_attestation() {
          declare -f gpu_preflight_checks
          echo 'gpu_preflight_checks || exit 1'
          echo "cd $install_dir"
-         echo "./prodtest/bin/python3 -m verifier.cc_admin \"\$@\""
+         echo "./.venv/bin/python -m verifier.cc_admin \"\$@\""
         ) | sudo tee $GPU_ATTESTATION_CMD >/dev/null
         sudo chmod +x $GPU_ATTESTATION_CMD
         echo "gpu-attestation command installed. Run 'sudo gpu-attestation' from anywhere."
@@ -128,7 +134,7 @@ gpu_attestation() {
     else
         gpu_preflight_checks || return 1
         pushd "$install_dir" >/dev/null
-        sudo ./prodtest/bin/python3 -m verifier.cc_admin
+        sudo ./.venv/bin/python -m verifier.cc_admin
         popd >/dev/null
     fi
 
