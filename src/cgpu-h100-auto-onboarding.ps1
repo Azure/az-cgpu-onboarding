@@ -67,11 +67,11 @@ function CGPU-H100-Onboarding{
 		[string]$osdistribution="Ubuntu22.04",
 		[bool]$skipazlogin=$false,
 		[switch]$enablegpuverifierservice,
-		[string]$enablesnapshot = "20260325T120000Z",
+		[string]$enablesnapshot = "20260504T120000Z",
 		[switch]$enableproposed
 		)
 
-		$ONBOARDING_PACKAGE_VERSION="V4.3.1"
+		$ONBOARDING_PACKAGE_VERSION="V4.3.2"
 		Write-Host "Confidential GPU H100 Onboarding Package Version: $ONBOARDING_PACKAGE_VERSION"
 
 		$logpath=$(Get-Date -Format "MM-dd-yyyy_HH-mm-ss")
@@ -245,7 +245,7 @@ function Auto-Onboard-CGPU-Multi-VM {
 	Write-Host "sudo gpu-attestation"
 	Write-Host "sudo cpu-attestation";
 	Write-Host "Please execute the below command to try a sample workload:"
-	Write-Host "sudo docker run --runtime=nvidia --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/${adminusername}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/pytorch:26.02-py3 python /home/mnist-sample-workload.py";
+	Write-Host "sudo docker run --runtime=nvidia --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/${adminusername}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/pytorch:26.04-py3 python /home/mnist-sample-workload.py";
 	Write-Host "******************************************************************************************"
 
 	Write-Host "Total VM to onboard: ${totalvmnumber}, total Success: ${successcount}."
@@ -402,7 +402,7 @@ function VM-Creation {
 		$osdisksize,
 		$osdistribution,
 		$enableproposed = $false,
-		[string]$enablesnapshot = "20260325T120000Z")
+		[string]$enablesnapshot = "20260504T120000Z")
 
 	$global:issuccess = "failed"
 
@@ -414,7 +414,7 @@ function VM-Creation {
 			if ($enableproposed.IsPresent -or $enablesnapshot -eq "0") {
 				$imageversion = "latest"
 			} else {
-				$imageversion = "22.04.202601280"
+				$imageversion = "22.04.202605030"
 			}
 		}
 		"Ubuntu24.04" { 
@@ -422,7 +422,7 @@ function VM-Creation {
 			if ($enableproposed.IsPresent -or $enablesnapshot -eq "0") {
 				$imageversion = "latest"
 			} else {
-				$imageversion = "24.04.202601290"
+				$imageversion = "24.04.202605030'"
 			}
 		}
 		default { Write-Host "Unsupported OS Distribution"; return }

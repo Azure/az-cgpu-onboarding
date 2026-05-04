@@ -69,7 +69,7 @@ install_nvidia_container_toolkit() {
     sudo systemctl start nvidia-cdi-refresh.service
     sudo systemctl status nvidia-cdi-refresh.service --no-pager -l || true
 
-    sudo docker run --rm --runtime=nvidia --gpus all nvidia/cuda:13.1.1-base-ubuntu$(lsb_release -rs) nvidia-smi
+    sudo docker run --rm --runtime=nvidia --gpus all nvidia/cuda:13.2.1-base-ubuntu$(lsb_release -rs) nvidia-smi
 }
 
 ## Install NVIDIA Data Center GPU Manager (DCGM) for GPU monitoring and diagnostics.

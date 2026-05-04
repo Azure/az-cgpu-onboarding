@@ -29,7 +29,7 @@ Please make sure you have these requirements before performing the following ste
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
   - Note: minimum version 2.46.0 is required, run `az --version` to check your version and run `az upgrade` to install the latest version if your version is older
 - [Quota for the NCC H100 v5 VM SKU](../Frequently-Asked-Questions.md#q-how-can-i-get-quota-for-creating-an-ncc-cgpu-vm)
-- Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure/az-cgpu-onboarding/releases/download/V4.3.1/cgpu-onboarding-package.tar.gz) from [az-cgpu-onboarding-V4.3.1](https://github.com/Azure/az-cgpu-onboarding/releases/tag/V4.3.1)
+- Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure/az-cgpu-onboarding/releases/download/V4.3.2/cgpu-onboarding-package.tar.gz) from [az-cgpu-onboarding-V4.3.2](https://github.com/Azure/az-cgpu-onboarding/releases/tag/V4.3.2)
 
 -------------------------------------------
 
@@ -180,7 +180,7 @@ You should see: "CC Environment: PRODUCTION"
 Once you have finished the validation, you can execute the following commands to try a PyTorch sample workload:
 
 ```
-sudo docker run --runtime=nvidia --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/${adminusername}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/pytorch:26.02-py3 python /home/mnist-sample-workload.py
+sudo docker run --runtime=nvidia --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/${adminusername}/cgpu-onboarding-package:/home -it --rm nvcr.io/nvidia/pytorch:26.04-py3 python /home/mnist-sample-workload.py
 ```
 
 If you have reached this point, congratulations! You have offically manually created an NCC40 CGPU VM!
