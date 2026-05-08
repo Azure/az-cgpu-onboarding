@@ -454,7 +454,7 @@ create_vm() {
 			if [[ -n "${enable_proposed}" || ( -n "${enable_snapshot}" && "${snapshot_timestamp}" == "0" ) ]]; then
 				image_version="latest"
 			else
-				image_version="24.04.202605030"
+				image_version="24.04.202604160"
 			fi
 			;;
 		*)

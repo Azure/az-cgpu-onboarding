@@ -422,7 +422,7 @@ function VM-Creation {
 			if ($enableproposed.IsPresent -or $enablesnapshot -eq "0") {
 				$imageversion = "latest"
 			} else {
-				$imageversion = "24.04.202605030"
+				$imageversion = "24.04.202604160"
 			}
 		}
 		default { Write-Host "Unsupported OS Distribution"; return }
