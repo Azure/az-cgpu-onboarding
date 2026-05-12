@@ -170,7 +170,7 @@ git clone https://github.com/Azure/az-cgpu-onboarding.git
 
 # Please replace <adminusername> with your username below:
 
-sudo docker run --runtime=nvidia --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/<adminusername>/az-cgpu-onboarding:/workspace -it --rm nvcr.io/nvidia/pytorch:26.02-py3 python /workspace/src/mnist-sample-workload.py
+sudo docker run --runtime=nvidia --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -v /home/<adminusername>/az-cgpu-onboarding:/workspace -it --rm nvcr.io/nvidia/pytorch:26.04-py3 python /workspace/src/mnist-sample-workload.py
 ```
 
 
