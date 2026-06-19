@@ -118,6 +118,10 @@ def main():
         action="store_true",
     )
     parser.add_argument(
+        "--service_key",
+        help="Service key which is used to auth remote service calls to attestation services",
+    )
+    parser.add_argument(
         "--nonce",
         help="Nonce (32 Bytes) represented in Hex String format used for Attestation Report",
     )
@@ -546,7 +550,8 @@ def attest(arguments_as_dictionary, nonce, gpu_evidence_list):
             else:
                 info_log.info("\t\t\tFetching the driver RIM from the RIM service.")
                 try:
-                    driver_rim_file_id = CcAdminUtils.get_driver_rim_file_id(driver_version)
+                    chip = "GH100"
+                    driver_rim_file_id = CcAdminUtils.get_driver_rim_file_id(driver_version, settings, chip)
                     driver_rim_content = CcAdminUtils.fetch_rim_file(
                         driver_rim_file_id, BaseSettings.RIM_SERVICE_RETRY_COUNT
                     )
@@ -634,6 +639,15 @@ def attest(arguments_as_dictionary, nonce, gpu_evidence_list):
             else:
                 event_log.error("\t\tVBIOS RIM verification failed.")
                 raise RIMVerificationFailureError("\t\tVBIOS RIM verification failed.\n\tQuitting now.")
+            
+            # OPAQUE_DATA_VERSION 1 indicates the first version of the Feature Flag present in the OpaqueData field.
+            if BaseSettings.CURRENT_OPAQUE_DATA_VERSION >= BaseSettings.MIN_OPAQUE_DATA_VERSION_TO_SUPPORT_FEATURE_FLAG:
+                feature_flag = attestation_report_obj.get_response_message().get_opaque_data().get_data(
+                    "OPAQUE_FIELD_ID_FEATURE_FLAG")
+                if feature_flag == "MPT":
+                    any_gpu_in_MPT_mode = True
+                elif feature_flag == "SPT":
+                    any_gpu_in_SPT_mode = True
 
             verifier_obj = Verifier(attestation_report_obj, driver_rim, vbios_rim, settings=settings)
             verifier_obj.verify(settings)
@@ -653,6 +667,11 @@ def attest(arguments_as_dictionary, nonce, gpu_evidence_list):
             current_gpu_uuid = gpu_info_obj.get_uuid()
             current_gpu_claims = ClaimsUtils.get_current_gpu_claims(settings, current_gpu_uuid)
             gpu_claims_list.append((i, current_gpu_uuid, current_gpu_claims))
+
+            # If any GPU is in MPT mode, then all GPUs should be in MPT mode.
+            if any_gpu_in_MPT_mode and any_gpu_in_SPT_mode:
+                overall_status = False
+                event_log.error("Detected GPUs in both MPT and SPT modes. This configuration is not allowed.")
 
     except Exception as error:
         info_log.error(error)

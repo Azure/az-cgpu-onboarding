@@ -1,5 +1,5 @@
 #
-# SPDX-FileCopyrightText: Copyright (c) 2021-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2021-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Redistribution and use in source and binary forms, with or without
@@ -55,6 +55,43 @@ event_log.addHandler(fhandler)
 
 event_log.debug("----------STARTING----------")
 
+EXECUTION_SEQUENCE_INDEX = {
+    'GPU_AVAILABILITY'                       : 0,
+    'ATTESTATION_REPORT_AVAILABILITY'        : 1,
+    'GPU_INFO_FETCH'                         : 2,
+    'CORRECT_GPU_ARCH'                       : 3,
+    'ATTESTATION_REPORT_MSR_AVAILABILITY'    : 4,
+    'ATTESTATION_REPORT_PARSED'              : 5,
+    'ROOT_CERT_AVAILABILITY'                 : 6,
+    'GPU_CERT_CHAIN_VERIFIED'                : 7,
+    'GPU_CERT_OCSP_CERT_CHAIN_VERIFICATION'  : 8,
+    'GPU_CERT_OCSP_SIGNATURE_VERIFICATION'   : 9,
+    'GPU_CERT_OCSP_NONCE_MATCH'              : 10,
+    'GPU_CERT_CHECK_COMPLETE'                : 11,
+    'NONCE_MATCH'                            : 12,
+    'ATTESTATION_REPORT_DRV_VERSION_MATCH'   : 13,
+    'ATTESTATION_REPORT_VBIOS_VERSION_MATCH' : 14,
+    'ATTESTATION_REPORT_VERIFICATION'        : 15,
+    'DRIVER_RIM_FETCH'                       : 16,
+    'DRIVER_RIM_MEASUREMENT_AVAILABILITY'    : 17,
+    'DRIVER_RIM_SCHEMA_VALIDATION'           : 18,
+    'DRIVER_RIM_VERSION_MATCH'               : 19,
+    'DRIVER_RIM_CERT_EXTRACT'                : 20,
+    'DRIVER_RIM_SIGNATURE_VERIFICATION'      : 21,
+    'VBIOS_RIM_FETCH'                        : 22,
+    'VBIOS_RIM_MEASUREMENT_AVAILABILITY'     : 23,
+    'VBIOS_RIM_SCHEMA_VALIDATION'            : 24,
+    'VBIOS_RIM_VERSION_MATCH'                : 25,
+    'VBIOS_RIM_CERT_EXTRACT'                 : 26,
+    'VBIOS_RIM_SIGNATURE_VERIFICATION'       : 27,
+    'DRV_VBIOS_MSR_INDEX_CONFLICT'           : 28,
+    'MEASUREMENT_MATCH'                      : 29,
+}
+
+CURRENT_OPAQUE_DATA_VERSION = 0
+LATEST_OPAQUE_DATA_VERSION = 1
+MIN_OPAQUE_DATA_VERSION_TO_SUPPORT_FEATURE_FLAG = 1
+MIN_OPAQUE_DATA_VERSION_TO_SUPPORT_CHIP_INFO = 1
 
 class BaseSettings:
     AZURE_VM_REGION = ""

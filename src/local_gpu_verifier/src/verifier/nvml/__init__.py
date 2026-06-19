@@ -149,7 +149,7 @@ class NvmlHandler:
         settings = NvmlSystemConfComputeSettings()
         state = function_wrapper_with_timeout([nvmlSystemGetConfComputeSettings, ctypes.byref(settings),
                                                "nvmlSystemGetConfComputeSettings"], BaseSettings.MAX_NVML_TIME_DELAY)
-        return settings.multiGpuMode != 0
+        return settings.multiGpuMode == 1
 
     @staticmethod
     def is_cc_dev_mode():

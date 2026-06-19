@@ -67,7 +67,7 @@ function CGPU-H100-Onboarding{
 		[string]$osdistribution="Ubuntu22.04",
 		[bool]$skipazlogin=$false,
 		[switch]$enablegpuverifierservice,
-		[string]$enablesnapshot = "20260504T120000Z",
+		[string]$enablesnapshot = "20260615T120000Z",
 		[switch]$enableproposed
 		)
 
@@ -402,7 +402,7 @@ function VM-Creation {
 		$osdisksize,
 		$osdistribution,
 		$enableproposed = $false,
-		[string]$enablesnapshot = "20260504T120000Z")
+		[string]$enablesnapshot = "20260615T120000Z")
 
 	$global:issuccess = "failed"
 
@@ -414,7 +414,7 @@ function VM-Creation {
 			if ($enableproposed.IsPresent -or $enablesnapshot -eq "0") {
 				$imageversion = "latest"
 			} else {
-				$imageversion = "22.04.202605030"
+				$imageversion = "22.04.202606120"
 			}
 		}
 		"Ubuntu24.04" { 
@@ -422,7 +422,7 @@ function VM-Creation {
 			if ($enableproposed.IsPresent -or $enablesnapshot -eq "0") {
 				$imageversion = "latest"
 			} else {
-				$imageversion = "24.04.202604160"
+				$imageversion = "24.04.202606070"
 			}
 		}
 		default { Write-Host "Unsupported OS Distribution"; return }
