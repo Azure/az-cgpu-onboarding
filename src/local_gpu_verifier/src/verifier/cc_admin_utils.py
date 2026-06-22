@@ -614,7 +614,7 @@ class CcAdminUtils:
         return base_str + project + "_" + project_sku + "_" + chip_sku + "_" + vbios_version
 
     @staticmethod
-    def get_driver_rim_file_id(driver_version, settings, chip):
+    def get_driver_rim_file_id(driver_version):
         """ A static method to generate the driver RIM file id to be fetched from the RIM service corresponding to
             the driver installed onto the system.
 
@@ -625,7 +625,6 @@ class CcAdminUtils:
             [str]: the driver RIM file id.
         """
         base_str = 'NV_GPU_DRIVER_GH100_'
-        settings.mark_driver_rim_fetched()
         return base_str + driver_version
 
     @staticmethod
