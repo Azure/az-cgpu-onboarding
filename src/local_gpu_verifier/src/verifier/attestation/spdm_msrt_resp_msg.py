@@ -34,7 +34,7 @@ from verifier.exceptions import (
     MeasurementSpecificationError,
     ParsingError,
 )
-from verifier.config import BaseSettings
+
 
 class DmtfMeasurement:
     """ The class to represent the DMTF Measurement.
@@ -361,30 +361,6 @@ class OpaqueData:
             self.OpaqueDataField["OPAQUE_FIELD_ID_SWITCH_PDI"].append(pdi)
             byte_index = byte_index + self.FieldSize['PdiDataSize']
     
-    def parse_feature_flag(self, binary_data):
-        """ Parses the raw feature flag data and maps it to appropriate feature
-
-        Args:
-            binary_data (bytes): the raw feature flag data
-        """
-        feature_flag_map = {
-            0 : "SPT",
-            1 : "MPT",
-            2 : "PPCIE"
-        }
-        value = int(read_field_as_little_endian(binary_data), 16)
-        self.OpaqueDataField["OPAQUE_FIELD_ID_FEATURE_FLAG"] = feature_flag_map[value]
-
-    def parse_opaque_data_version(self, binary_data):
-        """ Parses the raw opaque data version data and extract the version number
-        Args:
-            binary_data (bytes): the raw opaque data version data
-        """
-
-        value = int(read_field_as_little_endian(binary_data), 16)
-        BaseSettings.CURRENT_OPAQUE_DATA_VERSION = value
-        self.OpaqueDataField["OPAQUE_FIELD_ID_OPAQUE_DATA_VERSION"] = value
-
     def parse_chip_info(self, binary_data):
         """ Parses the raw chip info data and extract the underlying chip name
         Args:
@@ -403,11 +379,9 @@ class OpaqueData:
         byte_index = 0
 
         opaque_field_to_function_map = {
-            "OPAQUE_FIELD_ID_MSRSCNT"             : self.parse_measurement_count,
-            "OPAQUE_FIELD_ID_SWITCH_PDI"          : self.parse_switch_pdis,
-            "OPAQUE_FIELD_ID_FEATURE_FLAG"        : self.parse_feature_flag,
-            "OPAQUE_FIELD_ID_CHIP_INFO"           : self.parse_chip_info,
-            "OPAQUE_FIELD_ID_OPAQUE_DATA_VERSION" : self.parse_opaque_data_version
+            "OPAQUE_FIELD_ID_MSRSCNT": self.parse_measurement_count,
+            "OPAQUE_FIELD_ID_SWITCH_PDI": self.parse_switch_pdis,
+            "OPAQUE_FIELD_ID_CHIP_INFO": self.parse_chip_info
         }
 
 
