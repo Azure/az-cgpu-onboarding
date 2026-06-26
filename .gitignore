@@ -5,3 +5,4 @@ src/logs/
 
 # VS Code settings
 .vscode/
+.continue/
