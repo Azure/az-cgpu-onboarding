@@ -22,7 +22,7 @@ This page is using platform managed keys. More information about platform manage
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
   - Note: minimum version 2.42.0 is required, run `az --version` to check your version and run `az upgrade` to install the latest version if your version is older
 - [Quota for the NCC H100 v5 VM SKU](../Frequently-Asked-Questions.md#q-how-can-i-get-quota-for-creating-an-ncc-cgpu-vm)
-- Download [cgpu-h100-auto-onboarding-linux.tar.gz](https://github.com/Azure/az-cgpu-onboarding/releases/download/V4.3.3/cgpu-h100-auto-onboarding-linux.tar.gz) from [az-cgpu-onboarding-V4.3.3](https://github.com/Azure/az-cgpu-onboarding/releases/tag/V4.3.3)
+- Download [cgpu-h100-auto-onboarding-linux.tar.gz](https://github.com/Azure/az-cgpu-onboarding/releases/download/V4.4.1/cgpu-h100-auto-onboarding-linux.tar.gz) from [az-cgpu-onboarding-V4.4.1](https://github.com/Azure/az-cgpu-onboarding/releases/tag/V4.4.1)
 
 ----------------------------------------------------
 
@@ -42,7 +42,7 @@ E:\cgpu\.ssh>ssh-keygen -t rsa -b 4096 -C <your email here>
 2. Create VM using a bash script
 - This will create a Standard_NCC40ads_H100_v5 Confidential VM with a Platform Managed Key (PMK) with secure boot enabled in your specified resource group. If the resource group doesn't exist, it will create it with the specified name under the target subscription.
 
-- Decompress downloaded [cgpu-h100-auto-onboarding-linux.tar.gz](https://github.com/Azure/az-cgpu-onboarding/releases/download/V4.3.3/cgpu-h100-auto-onboarding-linux.tar.gz) and enter the folder through your bash window.
+- Decompress downloaded [cgpu-h100-auto-onboarding-linux.tar.gz](https://github.com/Azure/az-cgpu-onboarding/releases/download/V4.4.1/cgpu-h100-auto-onboarding-linux.tar.gz) and enter the folder through your bash window.
 ```
 cd cgpu-h100-auto-onboarding-linux
 ```
@@ -65,7 +65,7 @@ cd cgpu-h100-auto-onboarding-linux
 # -l <location>: the region your resources will be created in. Currently supported regions are eastus2, westeurope, and centralus.
 #                If left blank, they will default to centralus region
 # -o <OS disk size>: the size of your OS disk. The current maximum supported size is 4095 GB
-#                If left blank, it will default to 100 GB
+#                If left blank, it will default to 128 GB
 # --os-distribution [Ubuntu22.04, Ubuntu24.04]: the OS distribution for your VM 
                  If left blank, the default is Ubuntu22.04
 # --skip-az-login: skip az login
@@ -83,7 +83,7 @@ bash cgpu-h100-auto-onboarding.sh  \
 -i "/home/username/.ssh/id_rsa"  \
 -c "./cgpu-onboarding-package.tar.gz" \
 -v "cgpu-test"  \
--o 100 \
+-o 128 \
 -n 1
 ```
 
@@ -116,7 +116,7 @@ Please run this command every time after rebooting your machine.
 ```
 # In your VM, run GPU and CPU attestation.
 # For GPU attestation, you should see: GPU Attestation is Successful.
-# For CPU attestation, you should see: Attested Platform Successfully!!
+# For CPU attestation, you should see: Attested Guest Successfully
 
 sudo gpu-attestation
 sudo cpu-attestation

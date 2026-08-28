@@ -35,10 +35,3 @@ dependencies = [
 [tool.setuptools.package-data]
 verifier = ["samples/*.swidtag", "rim/*.xsd", "samples/*.txt","certs/*.pem", "Tests/*/*.txt"]
 
-[tool.uv]
-# Force uv to use a managed CPython 3.12 build. Do NOT fall back to
-# the system interpreter (Ubuntu 26.04 ships Python 3.14 by default,
-# which lacks prebuilt wheels for lxml 4.9.x and cannot source-build
-# it against libxml2 2.15).
-python-preference = "only-managed"
-

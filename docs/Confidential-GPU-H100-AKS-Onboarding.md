@@ -12,7 +12,7 @@ Welcome! This onboarding document walks through the process of creating an Azure
 7. [Enable Confidential GPU Mode](#enable-confidential-gpu-mode)
 8. [Sample workload](#sample-workload)
 9. [GPU Attestation](#gpu-attestation)
-10. [Troubleshooting] (#troubleshooting)
+10. [Troubleshooting](#troubleshooting)
 11. [Further Information](#further-information)
 
 ## Prerequisites

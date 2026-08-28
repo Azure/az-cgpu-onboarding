@@ -9,11 +9,46 @@ If you have created your VM using the CGPU VMI or the CGPU onboarding package, t
 sudo cpu-attestation
 ```
 
-This attestation method uses the [Azure CVM Attestation Tools](https://github.com/Azure/cvm-attestation-tools/tree/main/cvm-attestation) under the hood. The tool is installed to `/usr/local/lib/cvm-attestation` by default.
+This attestation method uses the [Azure Guest Attestation SDK CLI](https://github.com/Azure/azure-guest-attestation-sdk) (`azure-guest-attest guest-attest --provider maa --decode`) under the hood. The tool is installed to `/usr/local/lib/azure-guest-attest` by default.
+
+The command prints the raw MAA token, then its decoded JWT header and payload, and ends with `Attested Guest Successfully`:
+
+```
+Auto-selected MAA endpoint: https://sharedcus.cus.attest.azure.net
+Token (raw/envelope b64url): eyJhbGciOiJSUzI1NiIsImprdSI6...
+Token (decoded):
+JWT Header:
+{
+  "alg": "RS256",
+  "jku": "https://sharedcus.cus.attest.azure.net/certs",
+  "kid": "pyofFkEGDd2OItqoP4brV4cx9TH9yy7Zllj7VMUvbAI=",
+  "typ": "JWT"
+}
+JWT Payload:
+{
+  "iss": "https://sharedcus.cus.attest.azure.net",
+  "secureboot": true,
+  "x-ms-attestation-type": "azurevm",
+  "x-ms-azurevm-attested-pcr-values": { ... },
+  "x-ms-isolation-tee": {
+    "x-ms-attestation-type": "sevsnpvm",
+    "x-ms-compliance-status": "azure-compliant-cvm",
+    "x-ms-sevsnpvm-chip-family": "Genoa",
+    "x-ms-sevsnpvm-is-debuggable": false,
+    "x-ms-sevsnpvm-launchmeasurement": "aa7c9da55c1386e5b1653b125978beda...",
+    ...
+  },
+  ...
+}
+Attested Guest Successfully
+```
+
+The key claims to check are `x-ms-isolation-tee.x-ms-attestation-type` (`sevsnpvm`) and `x-ms-isolation-tee.x-ms-compliance-status` (`azure-compliant-cvm`).
 
 ## Alternative methods
 
 Here are some documentation links that contain more information on how to do so using different tools and services:
+- [Azure CVM Attestation Tools](https://github.com/Azure/cvm-attestation-tools/tree/main/cvm-attestation) (used by `cpu-attestation` prior to the Azure Guest Attestation SDK CLI)
 - [Guest Attestation with AMD Sev Tool](https://github.com/Azure/confidential-computing-cvm-guest-attestation/blob/main/cvm-guest-attestation.md#linux)
 - [Guest Attestation with MAA](https://github.com/Azure/confidential-computing-cvm-guest-attestation/tree/main/cvm-attestation-sample-app)
 

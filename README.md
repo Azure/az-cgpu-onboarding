@@ -71,7 +71,13 @@ If you prefer to go through the steps manually, you can follow these instruction
 
 This onboarding document walks through the process of creating an Azure Kubernetes Service (AKS) cluster configured for confidential single GPU capable workloads using bash
 
-Please note that since these features are in preview there is currently no SLA provided. If you have comments, feedback, or questions please feel free to leave them in the github issues here: [az-cgpu-onboarding/Issues](https://github.com/Azure/az-cgpu-onboarding/issues/new?q=is%3Aissue).
+2. [LLM Inference on Confidential GPU (NCC)](docs/Confidential-GPU-H100-vLLM-Quickstart.md)
+
+Run large language models entirely within your CGPU VM’s hardware Trusted Execution Environment (TEE). After completing the core onboarding steps, you can use the optional quickstart script and reference configurations to install and serve an LLM through an OpenAI-compatible API at `localhost:8000`
+
+The guide uses Microsoft Phi-4, Llama 3.3 70B, Qwen 2.5 72B, and DeepSeek R1 Distill Llama 70B as examples. These are reference implementations intended to provide guidance rather than an exhaustive list of supported models.
+
+This guidance is currently in preview and does not include an SLA. For comments, feedback, or questions, please open a [az-cgpu-onboarding/Issues](https://github.com/Azure/az-cgpu-onboarding/issues/new?q=is%3Aissue).
 
 
 ## Availability
