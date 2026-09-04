@@ -19,13 +19,13 @@
 #	publickeypath: your public key path
 #	privatekeypath: your private key path
 #   desid: disk encryption set id. (only need if trying to use CMK, otherwith vm will be create through PMK)
-#	cgppackagepath: your cgpu-onboarding-pakcage.tar.gz path
+#	cgppackagepath: your cgpu-onboarding-package.tar.gz path
 #	vmnameprefix: the prefix of your vm. It will create from prefix1, prefix2, prefix3 till the number of retry specified;
 #	totalvmnumber: the number of retry we want to perform.
 #
 # Optional parameters:
 #    location: the location of your resources (if not specified, the default is centralus)
-#    osdisksize: the size of your OS disk (if not specified, the default is 100 GB)
+#    osdisksize: the size of your OS disk (if not specified, the default is 128 GB)
 #    encryptiontype: the type of CVM encryption for the OS disk (if not specified, the default is DiskWithVMGuestState)
 #	 osdistribution [Ubuntu22.04, Ubuntu24.04]: the OS distribution of the VM (if not specified, the default is Ubuntu22.04)
 #	 skipazlogin: skip az login if you have already logged in
@@ -45,7 +45,7 @@
 # -cgpupackagepath "E:\cgpu\cgpu-onboarding-package.tar.gz" `
 # -adminusername "adminusername" `
 # -vmnameprefix "cgpu-test" `
-# -osdisksize 100 `
+# -osdisksize 128 `
 # -totalvmnumber 2
 
 function CGPU-H100-Onboarding{
@@ -67,11 +67,11 @@ function CGPU-H100-Onboarding{
 		[string]$osdistribution="Ubuntu22.04",
 		[bool]$skipazlogin=$false,
 		[switch]$enablegpuverifierservice,
-		[string]$enablesnapshot = "20260615T120000Z",
+		[string]$enablesnapshot = "20260824T120000Z",
 		[switch]$enableproposed
 		)
 
-		$ONBOARDING_PACKAGE_VERSION="V4.3.3"
+		$ONBOARDING_PACKAGE_VERSION="V4.4.1"
 		Write-Host "Confidential GPU H100 Onboarding Package Version: $ONBOARDING_PACKAGE_VERSION"
 
 		$logpath=$(Get-Date -Format "MM-dd-yyyy_HH-mm-ss")
@@ -167,8 +167,8 @@ function Auto-Onboard-CGPU-Multi-VM {
 
 	# Makes sure the OS disk size is set to an allowed value
 	if (-not $osdisksize) {
-		$osdisksize = "100"
-		Write-Host "No OS disk size specified, setting to default of 100 GB."
+		$osdisksize = "128"
+		Write-Host "No OS disk size specified, setting to default of 128 GB."
 	}
 	elseif ($osdisksize -ge "30" -and $osdisksize -le "4095") {
 		Write-Host "Allowed OS disk size set."
@@ -402,7 +402,7 @@ function VM-Creation {
 		$osdisksize,
 		$osdistribution,
 		$enableproposed = $false,
-		[string]$enablesnapshot = "20260615T120000Z")
+		[string]$enablesnapshot = "20260824T120000Z")
 
 	$global:issuccess = "failed"
 
@@ -414,7 +414,7 @@ function VM-Creation {
 			if ($enableproposed.IsPresent -or $enablesnapshot -eq "0") {
 				$imageversion = "latest"
 			} else {
-				$imageversion = "22.04.202606120"
+				$imageversion = "22.04.202608210"
 			}
 		}
 		"Ubuntu24.04" { 
@@ -422,7 +422,7 @@ function VM-Creation {
 			if ($enableproposed.IsPresent -or $enablesnapshot -eq "0") {
 				$imageversion = "latest"
 			} else {
-				$imageversion = "24.04.202606070"
+				$imageversion = "24.04.202607310"
 			}
 		}
 		default { Write-Host "Unsupported OS Distribution"; return }

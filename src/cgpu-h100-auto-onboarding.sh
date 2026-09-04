@@ -17,7 +17,7 @@
 #
 # Optional Arguments:
 #    -l <region>: the location of your resources (if not specified, the default is centralus)
-#    -o <OS disk size>: the size of your OS disk (if not specified, the default is 100 GB)
+#    -o <OS disk size>: the size of your OS disk (if not specified, the default is 128 GB)
 #    -e <encryption type>: the type of CVM encryption for your OS disk (if not specified, the default is DiskWithVMGuestState)
 #    --os-distribution [Ubuntu22.04, Ubuntu24.04]: the OS distribution for your VM (if not specified, the default is Ubuntu22.04)
 #    --skip-az-login: skip az login
@@ -37,7 +37,7 @@
 # -c "/home/username/cgpu-onboarding-package.tar.gz" \
 # -a "azuretestuser" \
 # -v "confidential-test-vm"  \
-# -o 100 \
+# -o 128 \
 # -n 1
 
 # Auto Create and Onboard Multiple CGPU VM with Nvidia Driver pre-installed image. 
@@ -72,7 +72,7 @@ cgpu_h100_onboarding() {
 	    esac
 	done
 	
-	ONBOARDING_PACKAGE_VERSION="V4.3.3"
+	ONBOARDING_PACKAGE_VERSION="V4.4.1"
 	echo "Confidential GPU H100 Onboarding Package Version: $ONBOARDING_PACKAGE_VERSION"
 
 	if [ "$(az --version | grep azure-cli)" == "" ]; then
@@ -150,8 +150,8 @@ cgpu_h100_onboarding() {
 
 	# Makes sure the OS disk size is set to an allowed value
 	if [[ -z "${os_disk_size}" ]]; then
-		echo "OS disk size was not specified, setting to 100 GB."
-		os_disk_size=100
+		echo "OS disk size was not specified, setting to 128 GB."
+		os_disk_size=128
 	elif test "${os_disk_size}" -ge 30 && test "${os_disk_size}" -le 4095; then
 		echo "Allowed OS disk size set."
 	else
@@ -171,7 +171,7 @@ cgpu_h100_onboarding() {
 
 	# Default: snapshot enabled with default timestamp
 	# Checks that only 1 option is enabled at a time
-    additional_params="--enable-snapshot 20260615T120000Z"
+    additional_params="--enable-snapshot 20260824T120000Z"
 	if [[ -n "${enable_proposed}" && -n "${enable_snapshot}" ]]; then
 		echo "Error: You can only enable one feature at a time: either --enable-proposed or --enable-snapshot, not both."
 		exit 1
@@ -446,7 +446,7 @@ create_vm() {
 			if [[ -n "${enable_proposed}" || ( -n "${enable_snapshot}" && "${snapshot_timestamp}" == "0" ) ]]; then
 				image_version="latest"
 			else
-				image_version="22.04.202606120"
+				image_version="22.04.202608210"
 			fi
 			;;
 		"Ubuntu24.04")
@@ -454,7 +454,7 @@ create_vm() {
 			if [[ -n "${enable_proposed}" || ( -n "${enable_snapshot}" && "${snapshot_timestamp}" == "0" ) ]]; then
 				image_version="latest"
 			else
-				image_version="24.04.202606070"
+				image_version="24.04.202607310"
 			fi
 			;;
 		*)

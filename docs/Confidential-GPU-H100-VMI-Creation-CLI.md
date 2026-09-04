@@ -54,7 +54,7 @@ Required Parameters:
 - $encryptiontype = can be set to `VMGuestStateOnly` or `DiskWithVMGuestState`
 
 Additional optional parameters:
-- $osdisksize = the size of your OS disk. The default is set to 100GB
+- $osdisksize = the size of your OS disk. The default is set to 128GB
 - $diskencryptionsetid = if you are using a customer managed key, the disk encryption set ID in the following format: `/subscriptions/{subscription-id}/resourceGroups/{resource-group-name}/providers/Microsoft.Compute/diskEncryptionSets/{disk-encryption-set-name}`
   - Refer to the [CMK-Instructions](./Confidential-GPU-H100-Onboarding-(CMK-with-Powershell).md#Prepare-Customer-Managed-Key) if you would like to use a customer managed key
 
@@ -79,7 +79,7 @@ az vm create `
 --enable-secure-boot $true `
 --enable-vtpm $true `
 --size Standard_NCC40ads_H100_v5 `
---os-disk-size-gb 100 `
+--os-disk-size-gb 128 `
 --accept-term `
 --verbose
 ```
@@ -108,7 +108,7 @@ az vm create \
   --enable-secure-boot true \
   --enable-vtpm true \
   --size Standard_NCC40ads_H100_v5 \
-  --os-disk-size-gb 100 \
+  --os-disk-size-gb 128 \
   --accept-term \
   --verbose
 ```
@@ -125,7 +125,7 @@ sudo cpu-attestation
 sudo gpu-attestation
 ```
 
-For the cpu-attestation, you should see a message ending in: "print_snp_platform_claims - INFO - Attested Platform Successfully!!" 
+For the cpu-attestation, you should see the MAA attestation token followed by its decoded JWT header and payload, ending in: "Attested Guest Successfully"
 
 For the gpu-attestation, you should see a message ending in: "GPU Attestation is Successful." with a token.
 

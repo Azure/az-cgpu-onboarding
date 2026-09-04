@@ -46,7 +46,7 @@ sudo cpu-attestation
 sudo gpu-attestation
 ```
 
-For the cpu-attestation, you should see a message ending in: "2026-04-16 21:30:43,507 - print_snp_platform_claims - INFO - Attested Platform Successfully!!" 
+For the cpu-attestation, you should see the MAA attestation token followed by its decoded JWT header and payload, ending in: "Attested Guest Successfully"
 
 For the gpu-attestation, you should see a message ending in: "GPU Attestation is Successful."
 

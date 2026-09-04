@@ -18,7 +18,11 @@ CREATE_GPU_ATTESTATION_ALIAS=1
 GPU_ATTESTATION_CMD="/usr/local/bin/gpu-attestation"
 CPU_ATTESTATION_CMD="/usr/local/bin/cpu-attestation"
 NVIDIA_PERSISTENCED_WAIT_TIMEOUT=60
-CVM_ATTESTATION_RELEASE_URL="https://github.com/Azure/cvm-attestation-tools/releases/download/v1.0.26/attest-lin.zip"
+AZURE_GUEST_ATTEST_RELEASE_URL="https://github.com/Azure/azure-guest-attestation-sdk/releases/download/azure-guest-attest-v0.1.0/azure-guest-attest-x86_64-unknown-linux-musl"
+CONDA_INSTALL_DIR="/opt/miniconda3"
+CONDA_INSTALLER_URL="https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh"
+CONDA_EXECUTABLE=""
+CONDA_PYTHON_VERSION="3.12"
 
 # Common apt-get options: lock timeout, retry limit, and network timeouts
 APT_OPTS="-o DPkg::Lock::Timeout=300 -o Acquire::Retries=3 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30"
@@ -75,20 +79,60 @@ gpu_preflight_checks() {
     echo "GPU persistence mode is enabled on all GPUs."
 }
 
+install_conda() {
+    local conda_candidate
+    conda_candidate=$(type -P conda || true)
+
+    # Prefer a functional Conda already available on PATH.
+    if [ -n "$conda_candidate" ] && "$conda_candidate" --version >/dev/null 2>&1; then
+        CONDA_EXECUTABLE="$conda_candidate"
+        echo "Using existing Conda installation: $CONDA_EXECUTABLE"
+        return 0
+    fi
+    # Reuse the managed installation from a previous run when it is not on PATH.
+    if [ -x "$CONDA_INSTALL_DIR/bin/conda" ] && "$CONDA_INSTALL_DIR/bin/conda" --version >/dev/null 2>&1; then
+        CONDA_EXECUTABLE="$CONDA_INSTALL_DIR/bin/conda"
+        echo "Using existing Conda installation: $CONDA_EXECUTABLE"
+        return 0
+    fi
+
+    # Install Miniconda only when neither reusable option is available.
+    sudo apt-get $APT_OPTS update || return 1
+    sudo apt-get $APT_OPTS install -y curl ca-certificates || return 1
+    echo "Installing the latest Miniconda in $CONDA_INSTALL_DIR ..."
+
+    local conda_installer
+    conda_installer=$(mktemp /tmp/miniconda.XXXXXX.sh)
+    if ! curl -fsSL "$CONDA_INSTALLER_URL" -o "$conda_installer"; then
+        rm -f "$conda_installer"
+        echo "ERROR: Failed to download Miniconda."
+        return 1
+    fi
+
+    if [ -e "$CONDA_INSTALL_DIR" ]; then
+        # A partial or broken installation blocks Miniconda from using this prefix.
+        echo "Removing unusable Conda installation from $CONDA_INSTALL_DIR ..."
+        sudo rm -rf "$CONDA_INSTALL_DIR"
+    fi
+    if ! sudo bash "$conda_installer" -b -p "$CONDA_INSTALL_DIR"; then
+        rm -f "$conda_installer"
+        echo "ERROR: Failed to install Miniconda."
+        return 1
+    fi
+    rm -f "$conda_installer"
+    CONDA_EXECUTABLE="$CONDA_INSTALL_DIR/bin/conda"
+    if ! "$CONDA_EXECUTABLE" --version >/dev/null 2>&1; then
+        echo "ERROR: Miniconda installation is not functional."
+        return 1
+    fi
+}
+
 gpu_attestation() {
     echo "============================================================"
     echo "  GPU Attestation"
     echo "============================================================"
 
-    # Ensure curl + ca-certificates are available for uv installer
-    sudo apt-get $APT_OPTS update
-    sudo apt-get $APT_OPTS install -y curl ca-certificates
-
-    # Check & install uv
-    if ! command -v uv >/dev/null 2>&1; then
-        echo "Installing uv ..."
-        curl -LsSf https://astral.sh/uv/install.sh | sudo env UV_INSTALL_DIR=/usr/local/bin sh
-    fi
+    install_conda || return 1
 
     if [ "$INSTALL_TO_USR_LOCAL" = "1" ]; then
         echo "Installing local_gpu_verifier in /usr/local/lib"
@@ -109,9 +153,18 @@ gpu_attestation() {
     pushd "$install_dir" >/dev/null
 
     echo "Open verifier folder successfully!"
+    # Restrict runtime packages to conda-forge; pip installs verifier dependencies from PyPI.
     sudo rm -rf ./.venv
-    sudo uv venv ./.venv
-    sudo uv pip install --python ./.venv/bin/python .
+    if ! sudo "$CONDA_EXECUTABLE" create --yes --override-channels --channel conda-forge --prefix ./.venv "python=$CONDA_PYTHON_VERSION"; then
+        echo "ERROR: Failed to create the Python $CONDA_PYTHON_VERSION Conda environment."
+        popd >/dev/null
+        return 1
+    fi
+    if ! sudo ./.venv/bin/python -m pip install .; then
+        echo "ERROR: Failed to install local_gpu_verifier."
+        popd >/dev/null
+        return 1
+    fi
 
     # Create gpu-attestation command alias for easier usage
     if [ "$INSTALL_TO_USR_LOCAL" = "1" ] && [ "$CREATE_GPU_ATTESTATION_ALIAS" = "1" ]; then
@@ -153,32 +206,39 @@ cpu_attestation() {
     echo "============================================================"
 
     if [ "$INSTALL_TO_USR_LOCAL" = "1" ]; then
-        local install_dir="/usr/local/lib/cvm-attestation"
+        local install_dir="/usr/local/lib/azure-guest-attest"
     else
-        local install_dir="$SCRIPT_DIR/cvm-attestation"
+        local install_dir="$SCRIPT_DIR/azure-guest-attest"
+    fi
+    local attest_bin="$install_dir/azure-guest-attest"
+
+    # Download the azure-guest-attest CLI (single static binary) and verify its checksum
+    echo "Downloading azure-guest-attest from $AZURE_GUEST_ATTEST_RELEASE_URL ..."
+    local tmpbin
+    tmpbin=$(mktemp /tmp/azure-guest-attest.XXXXXX)
+    curl -fsSL -o "$tmpbin" "$AZURE_GUEST_ATTEST_RELEASE_URL"
+    curl -fsSL -o "$tmpbin.sha256" "$AZURE_GUEST_ATTEST_RELEASE_URL.sha256"
+
+    local expected_sha actual_sha
+    expected_sha=$(awk '{print $1}' "$tmpbin.sha256")
+    actual_sha=$(sha256sum "$tmpbin" | awk '{print $1}')
+    if [ -z "$expected_sha" ] || [ "$expected_sha" != "$actual_sha" ]; then
+        echo "ERROR: azure-guest-attest checksum mismatch (expected '$expected_sha', got '$actual_sha')."
+        rm -f "$tmpbin" "$tmpbin.sha256"
+        return 1
     fi
 
-    # Download and extract cvm-attestation-tools release
-    echo "Downloading cvm-attestation-tools from $CVM_ATTESTATION_RELEASE_URL ..."
-    local tmpzip
-    tmpzip=$(mktemp /tmp/attest-lin.XXXXXX.zip)
-    curl -fsSL -o "$tmpzip" "$CVM_ATTESTATION_RELEASE_URL"
-
     sudo mkdir -p "$install_dir"
-    sudo apt-get $APT_OPTS install -y unzip
-    sudo unzip -o "$tmpzip" -d "$install_dir"
-    rm -f "$tmpzip"
+    sudo install -m 0755 "$tmpbin" "$attest_bin"
+    rm -f "$tmpbin" "$tmpbin.sha256"
 
-    sudo chmod +x "$install_dir/attest" "$install_dir/read_report" 2>/dev/null || true
-
-    echo "CVM attestation tools installed to $install_dir"
+    echo "azure-guest-attest installed to $attest_bin"
 
     # Create cpu-attestation command alias
     if [ "$INSTALL_TO_USR_LOCAL" = "1" ] && [ "$CREATE_CPU_ATTESTATION_ALIAS" = "1" ]; then
         echo "Creating $CPU_ATTESTATION_CMD command ..."
         (echo '#!/usr/bin/env bash'
-         echo "cd $install_dir"
-         echo "./attest --c ./config_snp.json \"\$@\""
+         echo "$attest_bin guest-attest --provider maa --decode \"\$@\""
         ) | sudo tee $CPU_ATTESTATION_CMD >/dev/null
         sudo chmod +x $CPU_ATTESTATION_CMD
         echo "cpu-attestation command installed. Run 'sudo cpu-attestation' from anywhere."
@@ -188,7 +248,7 @@ cpu_attestation() {
     if [ -x $CPU_ATTESTATION_CMD ]; then
         sudo $CPU_ATTESTATION_CMD
     else
-        sudo "$install_dir/attest" --c "$install_dir/config_snp.json"
+        sudo "$attest_bin" guest-attest --provider maa --decode
     fi
 }
 

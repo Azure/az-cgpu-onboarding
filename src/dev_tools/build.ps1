@@ -80,6 +80,8 @@ function Make-Cgpu-Onboarding-Package {
 		"$PSScriptRoot\..\step-1-install-gpu-driver.sh", 
 		"$PSScriptRoot\..\step-2-attestation.sh", 
 		"$PSScriptRoot\..\step-3-install-gpu-tools.sh", 
+		"$PSScriptRoot\..\step-4-install-vllm-preview.sh", 
+		"$PSScriptRoot\..\utilities-launch-vllm.sh",
 		"$PSScriptRoot\..\utilities-update-kernel.sh",
 		"$PSScriptRoot\..\utilities-uninstall-r535-driver.sh",
 		"$PSScriptRoot\..\utilities-install-openssl.sh",

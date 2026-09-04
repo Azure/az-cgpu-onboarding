@@ -29,7 +29,7 @@ Please make sure you have these requirements before performing the following ste
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
   - Note: minimum version 2.46.0 is required, run `az --version` to check your version and run `az upgrade` to install the latest version if your version is older
 - [Quota for the NCC H100 v5 VM SKU](../Frequently-Asked-Questions.md#q-how-can-i-get-quota-for-creating-an-ncc-cgpu-vm)
-- Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure/az-cgpu-onboarding/releases/download/V4.3.3/cgpu-onboarding-package.tar.gz) from [az-cgpu-onboarding-V4.3.3](https://github.com/Azure/az-cgpu-onboarding/releases/tag/V4.3.3)
+- Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure/az-cgpu-onboarding/releases/download/V4.4.1/cgpu-onboarding-package.tar.gz) from [az-cgpu-onboarding-V4.4.1](https://github.com/Azure/az-cgpu-onboarding/releases/tag/V4.4.1)
 
 -------------------------------------------
 
@@ -66,7 +66,7 @@ Required Parameters:
 
 Additional optional parameters:
 - $location = the region you would like to deploy to. Currently we support eastus2, westeurope, and centralus
-- $osdisksize = the size of your OS disk. The maximum size is 4095 GB and for default, set to 100 GB
+- $osdisksize = the size of your OS disk. The maximum size is 4095 GB and for default, set to 128 GB
 - $osdistribution = the OS distribution for your VM. Currently we support Ubuntu22.04 and Ubuntu24.04
 - $skipazlogin = skip az login
 - $enablegpuverifierservice = enable the GPU verifier HTTP service
