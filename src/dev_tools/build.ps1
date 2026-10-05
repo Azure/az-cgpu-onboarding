@@ -86,6 +86,7 @@ function Make-Cgpu-Onboarding-Package {
 		"$PSScriptRoot\..\utilities-uninstall-r535-driver.sh",
 		"$PSScriptRoot\..\utilities-install-openssl.sh",
 		"$PSScriptRoot\..\utilities-install-local-gpu-verfier-service.sh",
+		"$PSScriptRoot\..\utilities-nv-attest-verifier.sh",
 		"$PSScriptRoot\..\utilities-enable-snapshot.sh",
 		"$PSScriptRoot\..\nvidia-persistenced.override.conf",
 		"$PSScriptRoot\..\nvidia-persistenced-dependency.conf",
@@ -101,6 +102,8 @@ function Make-Cgpu-Onboarding-Package {
 		}
 		Copy-Item $file -Destination $packageDestination -Force
 	}
+	Copy-Item "$PSScriptRoot\..\nv_attest_gpu_verifier" `
+		-Destination $packageDestination -Recurse -Force
 
 	# Creates main .tar.gz
 	Write-Output "Generating cgpu-onboarding-package.tar.gz"

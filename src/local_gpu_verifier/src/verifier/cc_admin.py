@@ -181,6 +181,12 @@ def main():
     result, jwt_token = attest(arguments_as_dictionary, nonce, evidence_list)
     info_log.info("\nEntity Attestation Token:")
     info_log.info(json.dumps(jwt_token, indent=2))
+    info_log.warning(
+        "DEPRECATION NOTICE: This Python-based local GPU verifier is being deprecated soon. "
+        "If you have workflows currently dependent on this verifier, you will need to begin "
+        "migrating to NVIDIA's new nvattest verifier soon. "
+        "To test the preview, run: sudo bash utilities-nv-attest-verifier.sh"
+    )
 
     if not result:
         sys.exit(1)
