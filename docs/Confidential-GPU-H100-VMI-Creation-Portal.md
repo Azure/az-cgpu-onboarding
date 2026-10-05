@@ -35,7 +35,9 @@ The image can be found by clicking the `See all images` button under the dropdow
 
 You may see multiple images that match your desired region and OS. The image listed at the top is the most recently published version.
 
-Disk settings, including disk encryption and disk size, can be configured under the `Disks` tab: ![Disk Configuration Tab](../images/disk_configuration.png)
+Disk settings, including disk encryption and disk size, can be configured under the `Disks` tab. Set the OS disk size to **128 GiB** so that it has sufficient space for onboarding and workloads.
+
+![Disk Configuration Tab showing a 128 GiB OS disk](../images/disk_configuration.png)
 
 More details about disk options can be found here: [Confidential computing disk configuration](https://learn.microsoft.com/en-us/azure/confidential-computing/quick-create-confidential-vm-portal#:~:text=On%20the%20tab%20Disks%2C%20configure%20the%20following%20settings%3A)
 

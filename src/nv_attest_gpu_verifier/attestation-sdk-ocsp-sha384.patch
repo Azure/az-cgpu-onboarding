@@ -1,0 +1,22 @@
+diff --git a/nv-attestation-sdk-cpp/src/nv_ocsp.cpp b/nv-attestation-sdk-cpp/src/nv_ocsp.cpp
+index 8054971..27467b5 100644
+--- a/nv-attestation-sdk-cpp/src/nv_ocsp.cpp
++++ b/nv-attestation-sdk-cpp/src/nv_ocsp.cpp
+@@ -96,7 +96,7 @@ Error NvHttpOcspClient::get_ocsp_response(
+         return Error::InternalError;
+     }
+     // Create the original Cert ID
+-    nv_unique_ptr<OCSP_CERTID> id_orig (OCSP_cert_to_id(EVP_sha1(), subject_cert.get(), issuer_cert.get()));
++    nv_unique_ptr<OCSP_CERTID> id_orig (OCSP_cert_to_id(EVP_sha384(), subject_cert.get(), issuer_cert.get()));
+     if (!id_orig) {
+             LOG_ERROR("Unable to create OCSP_CERTID: " << get_openssl_error());
+             return Error::InternalError;
+@@ -421,7 +421,7 @@ Error NvHttpOcspCacheClient::get_cache_key(
+     const nv_unique_ptr<X509>& issuer_cert,
+     std::string& out_cache_key
+ ) {
+-    nv_unique_ptr<OCSP_CERTID> id(OCSP_cert_to_id(EVP_sha1(), subject_cert.get(), issuer_cert.get()));
++    nv_unique_ptr<OCSP_CERTID> id(OCSP_cert_to_id(EVP_sha384(), subject_cert.get(), issuer_cert.get()));
+     if (!id) {
+         LOG_ERROR("Unable to create OCSP_CERTID: " << get_openssl_error());
+         return Error::InternalError;
