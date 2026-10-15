@@ -18,12 +18,13 @@ For installation instructions, see the [vLLM Quickstart](Confidential-GPU-H100-v
 
 ## Model Specifications
 
-| Key | Model | Hugging Face ID | Weights | Params | vLLM serve args |
+| Model Family | Model | Hugging Face ID | Weights | Params | vLLM serve args |
 |-----|-------|-----------------|---------|--------|-----------------|
-| `phi4` | Microsoft Phi-4 | `microsoft/phi-4` | ~30 GB | 14B | `--max-model-len 16384 --trust-remote-code` |
+| `phi` | Microsoft Phi-4 | `microsoft/phi-4` | ~30 GB | 14B | `--max-model-len 16384 --trust-remote-code` |
 | `deepseek` | DeepSeek R1 Distill Llama 70B | `RedHatAI/DeepSeek-R1-Distill-Llama-70B-FP8-dynamic` | ~70 GB | 70B | `--gpu-memory-utilization 0.85 --kv-cache-dtype fp8 --max-num-seqs 256` |
 | `llama` | Llama 3.3 70B Instruct | `RedHatAI/Llama-3.3-70B-Instruct-FP8-dynamic` | ~70 GB | 70B | `--gpu-memory-utilization 0.85 --kv-cache-dtype fp8 --max-num-seqs 256` |
 | `qwen` | Qwen 2.5 72B Instruct | `RedHatAI/Qwen2.5-72B-Instruct-FP8-dynamic` | ~70 GB | 72B | `--gpu-memory-utilization 0.85 --kv-cache-dtype fp8 --max-num-seqs 256` |
+| `qwen` | Qwen 3.8 27B | `Qwen/Qwen3.8-27B` | ~52 GB | 27B | `--gpu-memory-utilization 0.85 --kv-cache-dtype fp8 --max-num-seqs 256` |
 
 All 70B models use pre-quantized FP8 weights from RedHatAI, so no runtime quantization is required. FP8 weights are approximately 50% smaller than the FP16 equivalents.
 

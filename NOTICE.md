@@ -548,3 +548,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------------
 
+NVIDIA attestation-sdk
+https://github.com/NVIDIA/attestation-sdk
+
+Copyright 2025 NVIDIA Corporation
+
+Licensed under the Apache License, Version 2.0.
+
+This repository includes a relying-party policy derived from NVIDIA's
+allow_trust_outpost_ocsp.rego and a Microsoft-authored patch applied to NVIDIA
+attestation-sdk source code. The policy and patch contain notices describing
+the modifications. The full text of the Apache License, Version 2.0, is
+reproduced in this file.
+

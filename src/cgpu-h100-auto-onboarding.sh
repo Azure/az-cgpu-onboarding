@@ -72,7 +72,7 @@ cgpu_h100_onboarding() {
 	    esac
 	done
 	
-	ONBOARDING_PACKAGE_VERSION="V4.4.1"
+	ONBOARDING_PACKAGE_VERSION="V4.5.1"
 	echo "Confidential GPU H100 Onboarding Package Version: $ONBOARDING_PACKAGE_VERSION"
 
 	if [ "$(az --version | grep azure-cli)" == "" ]; then
@@ -171,7 +171,7 @@ cgpu_h100_onboarding() {
 
 	# Default: snapshot enabled with default timestamp
 	# Checks that only 1 option is enabled at a time
-    additional_params="--enable-snapshot 20260824T120000Z"
+    additional_params="--enable-snapshot 20261013T120000Z"
 	if [[ -n "${enable_proposed}" && -n "${enable_snapshot}" ]]; then
 		echo "Error: You can only enable one feature at a time: either --enable-proposed or --enable-snapshot, not both."
 		exit 1
@@ -446,7 +446,7 @@ create_vm() {
 			if [[ -n "${enable_proposed}" || ( -n "${enable_snapshot}" && "${snapshot_timestamp}" == "0" ) ]]; then
 				image_version="latest"
 			else
-				image_version="22.04.202608210"
+				image_version="22.04.202610030"
 			fi
 			;;
 		"Ubuntu24.04")
@@ -454,7 +454,7 @@ create_vm() {
 			if [[ -n "${enable_proposed}" || ( -n "${enable_snapshot}" && "${snapshot_timestamp}" == "0" ) ]]; then
 				image_version="latest"
 			else
-				image_version="24.04.202607310"
+				image_version="24.04.202609040"
 			fi
 			;;
 		*)

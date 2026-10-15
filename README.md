@@ -77,6 +77,14 @@ Run large language models entirely within your CGPU VM’s hardware Trusted Exec
 
 The guide uses Microsoft Phi-4, Llama 3.3 70B, Qwen 2.5 72B, and DeepSeek R1 Distill Llama 70B as examples. These are reference implementations intended to provide guidance rather than an exhaustive list of supported models.
 
+3. **Upcoming New NVIDIA GPU Attestation Verifier**
+
+Local GPU attestation is soon going to be migrated to NVIDIA's new `nvattest` verifier. The onboarding package includes an optional preview utility script that builds the verifier in a disposable container and then runs GPU attestation.
+
+To test this preview feature, after completing the core onboarding steps, try `sudo bash utilities-nv-attest-verifier.sh`.
+For more information about the verifier build files and policy, see [src/nv_attest_gpu_verifier/README.md](src/nv_attest_gpu_verifier/README.md).
+
+
 This guidance is currently in preview and does not include an SLA. For comments, feedback, or questions, please open a [az-cgpu-onboarding/Issues](https://github.com/Azure/az-cgpu-onboarding/issues/new?q=is%3Aissue).
 
 

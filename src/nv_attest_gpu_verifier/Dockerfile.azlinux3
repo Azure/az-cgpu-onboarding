@@ -1,0 +1,40 @@
+# Ubuntu 24.04 build environment; fixed image, no custom image argument.
+FROM mcr.microsoft.com/azurelinux/base/rust:1.96.1-2-azl3.0.20261005@sha256:fd8ed38c601d25b97d305116698844e845523994d80b68a921fa5261dbb0fe05 AS builder
+USER root
+
+ARG VERIFIER_REPO_URL=https://github.com/NVIDIA/attestation-sdk
+ARG VERIFIER_REPO_BRANCH=release/2026.10.02
+ARG NVAT_BUILD_JOBS=2
+
+RUN tdnf install -y \
+        cmake gcc gcc-c++ make pkgconf-pkg-config git curl ca-certificates perl patch \
+        autoconf automake libtool zlib-devel openssl-devel \
+        curl-devel libxml2-devel xmlsec1-devel \
+    && tdnf clean all \
+    && rustc --version && cargo --version
+
+ENV CC=gcc \
+    CXX=g++ \
+    LDFLAGS="-L/tmp/nvattest-build/openssl-install/lib"
+
+WORKDIR /src
+RUN git clone --quiet --depth 1 --branch "${VERIFIER_REPO_BRANCH}" \
+    "${VERIFIER_REPO_URL}" attestation-sdk
+
+# Retain the SDK logger callback before linking the static zcbor dependency.
+RUN cmake \
+        -S /src/attestation-sdk/nv-attestation-cli \
+        -B /tmp/nvattest-build \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_BUILD_PARALLEL_LEVEL="${NVAT_BUILD_JOBS}" \
+        -DBUILD_TESTING=OFF \
+        -DUSE_SYSTEM_NVAT=OFF \
+        -DUSE_SYSTEM_DEPS=OFF \
+        -DBUILD_SHARED_LIBS=OFF \
+        -DCMAKE_CXX_FLAGS="-Wno-error=stringop-overflow -Wno-error=pedantic" \
+        -DCMAKE_EXE_LINKER_FLAGS="-L/tmp/nvattest-build/openssl-install/lib -Wl,--undefined=nvat_zcbor_log" \
+        -DCMAKE_SKIP_RPATH=ON \
+        -DCMAKE_SKIP_INSTALL_RULES=ON \
+    && cmake --build /tmp/nvattest-build \
+        --target nvattest --parallel "${NVAT_BUILD_JOBS}" \
+    && install -D -m 0755 /tmp/nvattest-build/nvattest /nvattest
