@@ -1,0 +1,54 @@
+# Ubuntu 22.04 build environment
+FROM mcr.microsoft.com/devcontainers/rust:2.0.16-bullseye@sha256:d64fece3bffc4ab259123792427da4c6d4a2ca0577e0dd30e19577d5cad0b21d AS builder
+USER root
+
+ARG VERIFIER_REPO_URL=https://github.com/NVIDIA/attestation-sdk
+ARG VERIFIER_REPO_BRANCH=release/2026.10.02
+ARG NVAT_BUILD_JOBS=2
+
+# Install build dependencies
+RUN sed -i 's#http://deb.debian.org/debian-security#https://archive.debian.org/debian-security#g' /etc/apt/sources.list \
+    && apt-get -o APT::Update::Error-Mode=any update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        build-essential cmake pkg-config git curl ca-certificates perl patch \
+        autoconf automake libtool zlib1g-dev libssl-dev \
+        libcurl4-openssl-dev libxml2-dev libxmlsec1-dev \
+    && rm -rf /var/lib/apt/lists/* \
+    && rustc --version && cargo --version
+
+# SDK's Rust integration requires at least CMake version 3.22, so we install a newer version CMake 3.28.6 (compared to Bullseye's 3.18)
+RUN test "$(uname -m)" = x86_64 \
+    && curl --fail --location --retry 3 --proto '=https' --proto-redir '=https' \
+        https://github.com/Kitware/CMake/releases/download/v3.28.6/cmake-3.28.6-linux-x86_64.tar.gz \
+        --output /tmp/cmake.tar.gz \
+    && echo '931e3c0d546ee03ca72bb147ccd9b49e3b6252f765f66bf21b9d165519940458  /tmp/cmake.tar.gz' | sha256sum --check - \
+    && tar --extract --gzip --file=/tmp/cmake.tar.gz --directory=/usr/local --strip-components=1 \
+    && rm /tmp/cmake.tar.gz \
+    && cmake --version
+
+ENV CC=gcc \
+    CXX=g++ \
+    LDFLAGS="-L/tmp/nvattest-build/openssl-install/lib"
+
+# Pull the attestation-sdk source code from given release branch
+WORKDIR /src
+RUN git clone --quiet --depth 1 --branch "${VERIFIER_REPO_BRANCH}" \
+    "${VERIFIER_REPO_URL}" attestation-sdk
+
+# Retain the SDK logger callback before linking the static zcbor dependency.
+RUN cmake \
+        -S /src/attestation-sdk/nv-attestation-cli \
+        -B /tmp/nvattest-build \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_BUILD_PARALLEL_LEVEL="${NVAT_BUILD_JOBS}" \
+        -DBUILD_TESTING=OFF \
+        -DUSE_SYSTEM_NVAT=OFF \
+        -DUSE_SYSTEM_DEPS=OFF \
+        -DBUILD_SHARED_LIBS=OFF \
+        -DCMAKE_CXX_FLAGS="-Wno-error=stringop-overflow -Wno-error=pedantic" \
+        -DCMAKE_EXE_LINKER_FLAGS="-L/tmp/nvattest-build/openssl-install/lib -Wl,--undefined=nvat_zcbor_log" \
+        -DCMAKE_SKIP_RPATH=ON \
+        -DCMAKE_SKIP_INSTALL_RULES=ON \
+    && cmake --build /tmp/nvattest-build \
+        --target nvattest --parallel "${NVAT_BUILD_JOBS}" \
+    && install -D -m 0755 /tmp/nvattest-build/nvattest /nvattest
