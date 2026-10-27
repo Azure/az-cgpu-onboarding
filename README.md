@@ -4,7 +4,7 @@ Welcome! This onboarding document walks through the process of creating an Azure
 
 Through this onboarding process, you can:
 1. Deploy a secure boot enabled Azure confidential virtual machine. 
-2. Attach One (1) NVIDIA H100 PCIe Tensor Core GPU in Confidential Computing mode.
+2. Attach One (1) NVIDIA H100 NVL (PCIe) Tensor Core GPU in Confidential Computing mode.
 3. Perform in-guest platform attestation to retrieve raw hardware evidence.
 4. Perform local GPU attestation.
 5. Run AI Workload in HW based Trusted Execution Environments (TEE).
@@ -13,8 +13,9 @@ Through this onboarding process, you can:
 
 ## Virtual Machine Features 
 
-- Next-generation CPUs: AMD 4th Gen EPYC processors with SEV-SNP technology to meet CPU performance for AI training/inference.
-- AI state-of-the-art GPUs: NVIDIA H100 Tensor Core GPUs with 94GB of High Bandwidth Memory 3 (HBM3).
+- VM size: `Standard_NCC40ads_H100_v5` (NCCads H100 v5 series) with 40 vCPUs, 320 GiB of memory, and one GPU.
+- CPU: AMD 4th Gen EPYC (Genoa) processors with SEV-SNP technology to meet CPU performance for AI inference, fine-tuning, and small-to-medium model training.
+- GPU: One NVIDIA H100 NVL Tensor Core GPU (Hopper architecture) per VM, with 94 GiB of High Bandwidth Memory 3 (HBM3).
 - Trusted Execution Environment (TEE) that spans confidential VM on the CPU and attached GPU, enabling secure offload of data, models, and computation to the GPU.
 - VM memory encryption using hardware-generated encryption keys.
 - Encrypted communication over PCIe between confidential VM and GPU.
