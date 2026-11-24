@@ -72,7 +72,7 @@ cgpu_h100_onboarding() {
 	    esac
 	done
 	
-	ONBOARDING_PACKAGE_VERSION="V4.5.1"
+	ONBOARDING_PACKAGE_VERSION="V4.5.2"
 	echo "Confidential GPU H100 Onboarding Package Version: $ONBOARDING_PACKAGE_VERSION"
 
 	if [ "$(az --version | grep azure-cli)" == "" ]; then
@@ -217,7 +217,9 @@ cgpu_h100_onboarding() {
     		fi
 
 		echo "Vm Name: ${vmname}";
-		auto_onboard_cgpu_single_vm $vmname
+		if ! auto_onboard_cgpu_single_vm "$vmname"; then
+			is_success="failed"
+		fi
 		if [[ $is_success != "failed" ]]
 		then
 			validation
@@ -246,6 +248,10 @@ cgpu_h100_onboarding() {
 
 	if [[ -z "${skip_az_login}" ]]; then
 		az account clear
+	fi
+	if [ "$successCount" -ne "$total_vm_number" ]; then
+		echo "ERROR: Onboarding failed for $((total_vm_number - successCount)) VM(s). See $log_dir for details." >&2
+		return 1
 	fi
 }
 
@@ -301,7 +307,7 @@ auto_onboard_cgpu_single_vm() {
 	create_vm $vmname
 	if [[ $is_success == "failed" ]]; then
 		echo "VM creation failed"
-		return
+		return 1
 	fi
 	ip=$(az vm show -d -g $rg -n $vmname --query publicIps -o tsv)
 
@@ -313,23 +319,26 @@ auto_onboard_cgpu_single_vm() {
 	echo $vm_ssh_info
 
 	# Upload customer onboarding package.
-	upload_package
+	upload_package || return $?
 	
 	# Update kernel
-	update_kernel
+	update_kernel || return $?
 
 	# Install Nvidia gpu driver
-	install_gpu_driver
+	install_gpu_driver || return $?
 
 	# Attestation.
-	attestation
+	attestation || return $?
 
 	# Install docker gpu tools
-	install_gpu_tool
+	install_gpu_tool || return $?
 
 	# Enable gpu verifier service
 	if [[ -n "${enable_gpu_verifier_service}" ]]; then
-		enable_gpu_verifier_service
+		if ! enable_gpu_verifier_service; then
+			echo "Failed to enable GPU verifier HTTP service. Continuing..." >&2
+			is_success="Succeeded"
+		fi
 	fi
 
 	vm_ssh_info_arr[$current_vm_count]=$vm_ssh_info
@@ -337,64 +346,71 @@ auto_onboard_cgpu_single_vm() {
 
 # Upload package to VM.
 upload_package() {
-	try_connect
+	try_connect || return $?
 
 	echo "Start uploading package..."
-	scp -i $private_key_path $cgpu_package_path $vm_ssh_info:/home/$adminuser_name
+	scp -i $private_key_path $cgpu_package_path $vm_ssh_info:/home/$adminuser_name || {
+		local status=$?
+		echo "ERROR: Package upload failed with exit code $status." >&2
+		is_success="failed"
+		return "$status"
+	}
 	echo "Finished uploading package."
 
 	echo "Start extracting package..."
 	run_ssh_command "$private_key_path" "$vm_ssh_info" \
-		"tar -zxvf cgpu-onboarding-package.tar.gz 2>&1;"
+		"tar -zxvf cgpu-onboarding-package.tar.gz 2>&1;" || return $?
 	echo "Finished extracting package."
 }
 
 # Upload package to VM.
 update_kernel() {
-    try_connect
+    try_connect || return $?
     echo "Start update kernel."
     run_ssh_command "$private_key_path" "$vm_ssh_info" \
-        "cd cgpu-onboarding-package; sudo bash step-0-prepare-kernel.sh $additional_params 2>&1;"
+        "cd cgpu-onboarding-package && sudo bash step-0-prepare-kernel.sh $additional_params --no-reboot 2>&1;" || return $?
     echo "Finished update kernel."
-    echo "Rebooting..."
+    run_ssh_command "$private_key_path" "$vm_ssh_info" \
+        "sudo shutdown -r +1 2>&1;" || return $?
+    echo "Reboot scheduled in one minute..."
     sleep 120
 }
 
 install_gpu_driver() {
-	try_connect
+	try_connect || return $?
 	sleep 15
 	echo "Start install gpu driver"
 	run_ssh_command "$private_key_path" "$vm_ssh_info" \
-		"cd cgpu-onboarding-package; sudo bash step-1-install-gpu-driver.sh 2>&1;"
+		"cd cgpu-onboarding-package && sudo bash step-1-install-gpu-driver.sh 2>&1;" || return $?
 	echo "Finished install gpu driver"
 }
 
 # Do attestation in the created VMs.
 attestation() {
-	try_connect
+	try_connect || return $?
 
 	echo "Start installing attestation package - this may take up to 5 minutes."
 	> "$log_dir/attestation-output.log"
 	run_ssh_command "$private_key_path" "$vm_ssh_info" \
-		"cd cgpu-onboarding-package; sudo bash step-2-attestation.sh 2>&1;" \
-		"$log_dir/attestation-output.log"
+		"cd cgpu-onboarding-package && sudo bash step-2-attestation.sh 2>&1;" \
+		"$log_dir/attestation-output.log" || return $?
 	echo "Finished attestation."
 }
 
 install_gpu_tool() {
-	try_connect
+	try_connect || return $?
 	echo "Start install gpu tool."
 	run_ssh_command "$private_key_path" "$vm_ssh_info" \
-		"cd cgpu-onboarding-package; sudo bash step-3-install-gpu-tools.sh 2>&1;"
+		"cd cgpu-onboarding-package && sudo bash step-3-install-gpu-tools.sh 2>&1;" || return $?
 	echo "Finished install gpu tool."
 }
 
 enable_gpu_verifier_service() {
-	try_connect
+	try_connect || return $?
 	echo "Start enable gpu verifier service."
 	run_ssh_command "$private_key_path" "$vm_ssh_info" \
-		"cd cgpu-onboarding-package; sudo bash utilities-install-local-gpu-verfier-service.sh 2>&1;" \
-		"$log_dir/attestation-output.log"
+		"cd cgpu-onboarding-package && sudo bash utilities-install-local-gpu-verfier-service.sh 2>&1;" \
+		"$log_dir/attestation-output.log" || return $?
 	echo "Finished enable gpu verifier service."
 }
 
@@ -405,12 +421,23 @@ run_ssh_command() {
 	local ssh_info="$2"
 	local cmd="$3"
 	local log_file="${4:-/dev/null}"
+	local status
 
-	ssh -i "$key_path" \
-		-o "ServerAliveInterval 60" \
-		-o "ServerAliveCountMax 10" \
-		"$ssh_info" \
-		"$cmd" 2>&1 | tee -a "$log_file"
+	if (
+		set -o pipefail
+		ssh -i "$key_path" \
+			-o "ServerAliveInterval 60" \
+			-o "ServerAliveCountMax 10" \
+			"$ssh_info" \
+			"$cmd" 2>&1 | tee -a "$log_file"
+	); then
+		return 0
+	else
+		status=$?
+		echo "ERROR: SSH command or logging on $ssh_info failed with exit code $status." >&2
+		is_success="failed"
+		return "$status"
+	fi
 }
 
 # Try to connect to VM with 50 maximum retry.
@@ -421,15 +448,25 @@ try_connect() {
    connectionoutput=""
    while [[ "$connectionoutput" != "connected" ]] && [[ $retries -lt $MAX_RETRY ]];
    do
-	   connectionoutput=$(ssh -n -i "${private_key_path}" \
+	   if connectionoutput=$(ssh -n -i "${private_key_path}" \
 		   -o "StrictHostKeyChecking=no" \
 		   -o "BatchMode=yes" \
 		   -o "ConnectTimeout=10" \
-		   "${vm_ssh_info}" "bash -c \"echo 'connected'\"")        
+		   "${vm_ssh_info}" "bash -c \"echo 'connected'\""); then
+		   if [[ "$connectionoutput" == "connected" ]]; then
+			   echo "$connectionoutput"
+			   return 0
+		   fi
+	   else
+		   connectionoutput="notconnected"
+	   fi
 	   echo $connectionoutput
 	   sleep 1
        retries=$((retries+1))
    done
+   echo "ERROR: VM connection failed after $MAX_RETRY retries." >&2
+   is_success="failed"
+   return 1
 }
 
 # Create a single VM.
@@ -520,9 +557,9 @@ create_vm() {
 
 validation() {
 	echo "Validate Confidential GPU capability."
-	try_connect
+	try_connect || return $?
 	
-	secure_boot_state=$(run_ssh_command "$private_key_path" "$vm_ssh_info" "mokutil --sb-state;")
+	secure_boot_state=$(run_ssh_command "$private_key_path" "$vm_ssh_info" "mokutil --sb-state;") || { is_success="failed"; return 1; }
 	if [ "$secure_boot_state" != "SecureBoot enabled" ];
 	then
 		is_success="failed"
@@ -531,7 +568,7 @@ validation() {
 		echo "Passed: secure boot state validation. Current secure boot state: ${secure_boot_state}"
 	fi
 
-	cc_retrieve=$(run_ssh_command "$private_key_path" "$vm_ssh_info" "nvidia-smi conf-compute -f;")
+	cc_retrieve=$(run_ssh_command "$private_key_path" "$vm_ssh_info" "nvidia-smi conf-compute -f;") || { is_success="failed"; return 1; }
 	if [ "$cc_retrieve" != "CC status: ON" ];
 	then
 		is_success="failed"
@@ -540,7 +577,7 @@ validation() {
 		echo "Passed: Confidential Compute mode validation passed. Current Confidential Compute retrieve state: ${cc_retrieve}"
 	fi
 
-	cc_environment=$(run_ssh_command "$private_key_path" "$vm_ssh_info" "nvidia-smi conf-compute -e;")
+	cc_environment=$(run_ssh_command "$private_key_path" "$vm_ssh_info" "nvidia-smi conf-compute -e;") || { is_success="failed"; return 1; }
 	if [ "$cc_environment" != "CC Environment: PRODUCTION" ];
 	then
 		is_success="failed"
@@ -556,6 +593,7 @@ validation() {
 	then
 		echo "Passed: Attestation validation passed."
 	else 
+		is_success="failed"
 		echo "Failed: Attestation validation failed."
 	fi
 }
@@ -570,8 +608,6 @@ if [[ "${#BASH_SOURCE[@]}" -eq 1 ]]; then
 	log_dir="logs/$log_time"
 	mkdir -p "$log_dir"
 
-	cgpu_h100_onboarding "$@" 2>&1 > "$log_dir/current-operation.log" &
-	last_pid=$!
-	tail -f "$log_dir/current-operation.log" &
-	wait $last_pid && kill $!
+	set -o pipefail
+	cgpu_h100_onboarding "$@" 2>&1 | tee "$log_dir/current-operation.log"
 fi

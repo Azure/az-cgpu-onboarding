@@ -15,19 +15,59 @@ A: There are separate instructions for creating and sharing virtual machine imag
 2. [External VMI Creation And Sharing Instructions](docs/External-VMI-Creation-And-Sharing-Instructions.md): used between different subscriptions
 
 
+## Q: Which GPU verifier is being used?
+
+A: By default, updated NCC H100 onboarding packages for Ubuntu 22.04 and 24.04 use NVIDIA's C++ `nvattest`. However, existing gallery images and older packages are not automatically migrated and may still use Python. For now, the legacy Python verifier is located here: [legacy Python verifier](./src/legacy_local_gpu_verifier/README.md), however we highly recommend migrating dependent workflows over to the new `nvattest` verifier.
+
+To explicitly select Python GPU attestation, run this from the extracted updated onboarding package in the VM:
+
+```bash
+sudo bash utilities-legacy-local-gpu-verifier.sh
+```
+
+This runs Python GPU attestation locally and does not replace `gpu-attestation`. To install or refresh the default `nvattest` command, run the root step 2 from that package:
+
+```bash
+sudo bash step-2-attestation.sh --gpu-only
+```
+
+
+## Q: How can I uninstall the GPU driver?
+
+A: Obtain the [latest onboarding package](https://github.com/Azure/az-cgpu-onboarding/releases/latest) that contains `utilities-uninstall-gpu-stack.sh`. Save work, stop all GPU workloads and containers, and prevent them from restarting during maintenance.
+
+Inside the VM, enter the extracted package and preview the cleanup:
+
+```bash
+cd ~/cgpu-onboarding-package
+sudo bash utilities-uninstall-gpu-stack.sh --dry-run
+```
+
+Review the selected packages and commands. Cleanup is noninteractive and removes the onboarding driver, attestation tools, Docker/containerd, and GPU tools, not just the driver. OS kernels and step-0 holds, container/model data, package-local logs, and shared Conda are preserved by default.
+
+Run the cleanup:
+
+```bash
+sudo bash utilities-uninstall-gpu-stack.sh
+```
+
+The utility itself does not reboot. After cleanup succeeds, reboot the guest separately, then reconnect over SSH after it finishes booting. If cleanup fails, keep workloads stopped and retain the logs. Review custom Docker settings before resuming containers after reinstallation.
+
+
 ## Q: How can I check my driver version and update it?
 
-A: First please make sure all your currently running workloads are saved and termated, then run the following commands to check your driver version and then update it:
-```
-# check the version
+A: Check the installed driver version:
+```bash
 nvidia-smi
-
-# run the updates
-sudo apt update
-sudo apt upgrade
 ```
 
-After running this, the VM has to be rebooted before running attestation or launching any workloads. Alternatively, please refer to the [Driver Failure Mitigation](docs/Driver-Failure-Mitigation.md) page that has detailed instructions on how to fully uninstall and reinstall the driver.
+For **either a GPU-driver or Linux-kernel update**, [uninstall the current GPU stack first](#q-how-can-i-uninstall-the-gpu-driver), including the guest reboot above. Do not substitute an in-place `apt upgrade`.
+
+Obtain the [latest onboarding package](https://github.com/Azure/az-cgpu-onboarding/releases/latest), then follow its supported steps 0-3 in order, stopping on errors:
+
+1. Prepare the kernel with `sudo bash step-0-prepare-kernel.sh`. Without a snapshot argument, it clears the previous onboarding snapshot selection and uses current repositories. Step 0 reboots automatically; wait for boot and reconnect over SSH.
+2. Re-enter the package directory and run `sudo bash step-1-install-gpu-driver.sh`, then `sudo bash step-2-attestation.sh`, then `sudo bash step-3-install-gpu-tools.sh`, one at a time.
+3. Before resuming workloads, confirm the driver, H100 visibility, Secure Boot, CC ON/PRODUCTION, successful `sudo cpu-attestation` and `sudo gpu-attestation`, and step 3's container/DCGM checks.
 
 
 ## Q: My CGPU driver stopped working after an unattended update, how can I fix it?
@@ -38,15 +78,17 @@ A: There is an NVIDIA driver/library version mismatch which can cause a failure 
 
 `NVIDIA-SMI has failed because it couldn't communicate with the NVIDIA driver. Make sure that the latest NVIDIA driver is installed and running.`
 
-If this is the case for you, please refer to the following page for more detailed mitigation instructions: [Driver Failure Mitigation](docs/Driver-Failure-Mitigation.md)
+Follow the [uninstall procedure](#q-how-can-i-uninstall-the-gpu-driver) to remove the current onboarding stack and reboot the guest after successful cleanup, then follow the [driver/kernel update steps](#q-how-can-i-check-my-driver-version-and-update-it) to reinstall and validate before resuming workloads.
 
 
 ## Q: How can I re-enable Unattended-Upgrades?
 
-A: By default, Unattended-Upgrades is disabled through our onboarding script. Unattended-Upgrades is a package for Ubuntu that allows the automatic installation of security updates. This means that critical updates are installed without user intervention, but these installations can cause potential runtime service interruptions to currently running workloads and attestation.
+A: By default, Unattended-Upgrades and periodic package-list refreshes are disabled through our onboarding script. Unattended-Upgrades is a package for Ubuntu that allows the automatic installation of security updates. This means that critical updates are installed without user intervention, but these installations can cause potential runtime service interruptions to currently running workloads and attestation.
 
 If you would like to re-enable unattended upgrades on your VM, please run:
-```
+```bash
+sudo rm -f /etc/apt/apt.conf.d/99-cgpu-disable-list-refresh
+sudo apt-get update
 sudo apt install unattended-upgrades
 ```
 

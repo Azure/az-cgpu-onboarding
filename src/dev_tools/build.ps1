@@ -10,9 +10,11 @@
 # 2: cgpu-h100-auto-onboarding-windows.zip containing windows onboarding script with onboarding package
 # 3: cgpu-h100-auto-onboarding-linux.tar.gz containing linux onboarding script with onboarding package
 
+param(
+	[string]$DropFolder = "$PSScriptRoot\..\..\drops"
+)
+
 # Set all locations and paths
-$DropFolder = "$PSScriptRoot\..\..\drops"
-$PackageFolder = "$PSScriptRoot\..\..\packages"
 $CgpuOnboardingPackageFolder = "cgpu-onboarding-package"
 $cgpuOnboardingPackage = "cgpu-onboarding-package.tar.gz"
 $H100Package = "cgpu-h100-auto-onboarding-linux"
@@ -52,7 +54,7 @@ function Build-Packages {
 
 function Make-Cgpu-Onboarding-Package {
 	# Lists out all folders to be included as .tar in cgpu onboarding package
-	[String[]]$foldersToTar = "$PSScriptRoot\..\local_gpu_verifier", 
+	[String[]]$foldersToTar = "$PSScriptRoot\..\legacy_local_gpu_verifier",
 		"$PSScriptRoot\..\local_gpu_verifier_http_service"
 
 	# Ensures shell scripts under the folders will be in correct UNIX format
@@ -84,9 +86,11 @@ function Make-Cgpu-Onboarding-Package {
 		"$PSScriptRoot\..\utilities-launch-vllm.sh",
 		"$PSScriptRoot\..\utilities-update-kernel.sh",
 		"$PSScriptRoot\..\utilities-uninstall-r535-driver.sh",
+		"$PSScriptRoot\..\utilities-uninstall-gpu-stack.sh",
 		"$PSScriptRoot\..\utilities-install-openssl.sh",
 		"$PSScriptRoot\..\utilities-install-local-gpu-verfier-service.sh",
-		"$PSScriptRoot\..\utilities-nv-attest-verifier.sh",
+		"$PSScriptRoot\..\utilities-build-nvattest-verifier.sh",
+		"$PSScriptRoot\..\utilities-legacy-local-gpu-verifier.sh",
 		"$PSScriptRoot\..\utilities-enable-snapshot.sh",
 		"$PSScriptRoot\..\nvidia-persistenced.override.conf",
 		"$PSScriptRoot\..\nvidia-persistenced-dependency.conf",

@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 
-## This module helps install Docker and NVIDIA Container Toolkit for executing GPU workloads.
+## This module helps install NVIDIA Container Toolkit and DCGM for executing GPU workloads.
 ##
 ## Requirements:
-##      Minimum Nvidia driver:       v570.86.15
+##      Minimum Nvidia driver:       v615.x (r615)
+##      Minimum kernel version:      6.8.0-1068-azure-fde (Ubuntu 22.04)
+##                                   7.0.0-1016-azure-fde (Ubuntu 24.04)
 ##
 ## Example:
 ##      sudo bash step-3-install-gpu-tools.sh
@@ -16,27 +18,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Common apt-get options: lock timeout, retry limit, and network timeouts
 APT_OPTS="-o DPkg::Lock::Timeout=300 -o Acquire::Retries=3 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30"
 
-INSTALL_DOCKER=1
 INSTALL_NVIDIA_CONTAINER_TOOLKIT=1
 INSTALL_NVIDIA_DCGM=1
-
-## Install Docker Engine.
-install_docker() {
-    echo "Start docker installation."
-    sudo apt-get $APT_OPTS update
-    sudo apt-get $APT_OPTS install -y ca-certificates curl gnupg lsb-release
-
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --yes --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-
-    echo \
-        "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
-          $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list >/dev/null
-
-    sudo apt-get $APT_OPTS update
-    sudo apt-get $APT_OPTS install -y docker-ce docker-ce-cli containerd.io
-
-    sudo docker run hello-world
-}
 
 ## Install NVIDIA Container Toolkit and configure Docker runtime.
 install_nvidia_container_toolkit() {
@@ -77,7 +60,17 @@ install_nvidia_dcgm() {
     echo "Start NVIDIA DCGM installation."
 
     # Detect the major CUDA version from the installed driver
-    CUDA_VERSION=$(nvidia-smi | grep -oP 'CUDA Version: \K[0-9]+')
+    local smi_output
+    if ! smi_output=$(nvidia-smi); then
+        echo "ERROR: nvidia-smi failed while detecting the CUDA version."
+        return 1
+    fi
+    if [[ "$smi_output" =~ CUDA\ (UMD\ )?Version:[[:space:]]*([0-9]+)\.[0-9]+([[:space:]]|\||$) ]]; then
+        CUDA_VERSION="${BASH_REMATCH[2]}"
+    else
+        echo "ERROR: Unable to detect the CUDA version from nvidia-smi output."
+        return 1
+    fi
     echo "Detected CUDA major version: $CUDA_VERSION"
 
     sudo apt-get $APT_OPTS update
@@ -103,9 +96,6 @@ install_nvidia_dcgm() {
 
 ## Install Nvidia GPU tools
 install_gpu_tools() {
-    if [ "$INSTALL_DOCKER" = "1" ]; then
-        install_docker
-    fi
     if [ "$INSTALL_NVIDIA_CONTAINER_TOOLKIT" = "1" ]; then
         install_nvidia_container_toolkit
     fi

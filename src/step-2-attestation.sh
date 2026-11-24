@@ -1,32 +1,30 @@
-## This module helps install associate dependency and do attestation against CGPU driver.
+## CPU attestation and NVIDIA nvattest GPU attestation (the default verifier).
 ##
 ## Requirements:
-##      Minimum Nvidia driver:      v570.86.15
-##      Minimum kernel version:     6.5.0-1017-azure
+##      Minimum Nvidia driver:       v615.x (r615)
+##      Minimum kernel version:      6.8.0-1068-azure-fde (Ubuntu 22.04)
+##                                   7.0.0-1016-azure-fde (Ubuntu 24.04)
 ##
 ## Example:
 ##      sudo bash step-2-attestation.sh                      # Run both CPU and GPU attestation
 ##      sudo bash step-2-attestation.sh --cpu-only           # Run CPU attestation only
 ##      sudo bash step-2-attestation.sh --gpu-only           # Run GPU attestation only
+##      sudo bash step-2-attestation.sh --gpu-only --rebuild-nvattest   # Rebuild nvattest, then run GPU attestation
 ##
+
+set -euo pipefail
 
 INSTALL_TO_USR_LOCAL=1
 RUN_CPU=1
 RUN_GPU=1
+REBUILD_NVATTEST=0
 CREATE_CPU_ATTESTATION_ALIAS=1
 CREATE_GPU_ATTESTATION_ALIAS=1
 GPU_ATTESTATION_CMD="/usr/local/bin/gpu-attestation"
 CPU_ATTESTATION_CMD="/usr/local/bin/cpu-attestation"
-NVIDIA_PERSISTENCED_WAIT_TIMEOUT=60
 AZURE_GUEST_ATTEST_RELEASE_URL="https://github.com/Azure/azure-guest-attestation-sdk/releases/download/azure-guest-attest-v0.1.0/azure-guest-attest-x86_64-unknown-linux-musl"
-CONDA_INSTALL_DIR="/opt/miniconda3"
-CONDA_INSTALLER_URL="https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh"
-CONDA_EXECUTABLE=""
-CONDA_PYTHON_VERSION="3.12"
-
-# Common apt-get options: lock timeout, retry limit, and network timeouts
-APT_OPTS="-o DPkg::Lock::Timeout=300 -o Acquire::Retries=3 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+APT_OPTS="-o DPkg::Lock::Timeout=300 -o Acquire::Retries=3 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30"
 
 # Parse command-line arguments
 for arg in "$@"; do
@@ -42,15 +40,39 @@ for arg in "$@"; do
             RUN_CPU=0
             RUN_GPU=1
             ;;
+        --rebuild-nvattest)
+            REBUILD_NVATTEST=1
+            ;;
         *)
             echo "Invalid argument: $arg"
-            echo "Usage: $0 [--cpu-only | --gpu-only] [--install-to-usr-local]"
+            echo "Usage: $0 [--cpu-only | --gpu-only] [--install-to-usr-local] [--rebuild-nvattest]"
             exit 1
             ;;
     esac
 done
 
+## Install Docker Engine for verifier builds.
+install_docker() {
+    if command -v docker >/dev/null 2>&1 && sudo docker info >/dev/null 2>&1; then
+        echo "Docker client is installed and daemon is reachable; skipping Docker installation."
+        return 0
+    fi
+    echo "Start docker installation."
+    sudo apt-get $APT_OPTS update || return 1
+    sudo apt-get $APT_OPTS install -y ca-certificates curl gnupg lsb-release || return 1
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --yes --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg || return 1
+
+    echo \
+        "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+          $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list >/dev/null || return 1
+
+    sudo apt-get $APT_OPTS update || return 1
+    sudo apt-get $APT_OPTS install -y docker-ce docker-ce-cli containerd.io || return 1
+    sudo docker run hello-world
+}
+
 gpu_preflight_checks() {
+    local NVIDIA_PERSISTENCED_WAIT_TIMEOUT=60
     # Wait for nvidia-persistenced to be ready (started by step-1)
     echo "Waiting for nvidia-persistenced to be ready ..."
     for i in $(seq 1 $NVIDIA_PERSISTENCED_WAIT_TIMEOUT); do
@@ -79,125 +101,117 @@ gpu_preflight_checks() {
     echo "GPU persistence mode is enabled on all GPUs."
 }
 
-install_conda() {
-    local conda_candidate
-    conda_candidate=$(type -P conda || true)
-
-    # Prefer a functional Conda already available on PATH.
-    if [ -n "$conda_candidate" ] && "$conda_candidate" --version >/dev/null 2>&1; then
-        CONDA_EXECUTABLE="$conda_candidate"
-        echo "Using existing Conda installation: $CONDA_EXECUTABLE"
-        return 0
-    fi
-    # Reuse the managed installation from a previous run when it is not on PATH.
-    if [ -x "$CONDA_INSTALL_DIR/bin/conda" ] && "$CONDA_INSTALL_DIR/bin/conda" --version >/dev/null 2>&1; then
-        CONDA_EXECUTABLE="$CONDA_INSTALL_DIR/bin/conda"
-        echo "Using existing Conda installation: $CONDA_EXECUTABLE"
-        return 0
-    fi
-
-    # Install Miniconda only when neither reusable option is available.
-    sudo apt-get $APT_OPTS update || return 1
-    sudo apt-get $APT_OPTS install -y curl ca-certificates || return 1
-    echo "Installing the latest Miniconda in $CONDA_INSTALL_DIR ..."
-
-    local conda_installer
-    conda_installer=$(mktemp /tmp/miniconda.XXXXXX.sh)
-    if ! curl -fsSL "$CONDA_INSTALLER_URL" -o "$conda_installer"; then
-        rm -f "$conda_installer"
-        echo "ERROR: Failed to download Miniconda."
-        return 1
-    fi
-
-    if [ -e "$CONDA_INSTALL_DIR" ]; then
-        # A partial or broken installation blocks Miniconda from using this prefix.
-        echo "Removing unusable Conda installation from $CONDA_INSTALL_DIR ..."
-        sudo rm -rf "$CONDA_INSTALL_DIR"
-    fi
-    if ! sudo bash "$conda_installer" -b -p "$CONDA_INSTALL_DIR"; then
-        rm -f "$conda_installer"
-        echo "ERROR: Failed to install Miniconda."
-        return 1
-    fi
-    rm -f "$conda_installer"
-    CONDA_EXECUTABLE="$CONDA_INSTALL_DIR/bin/conda"
-    if ! "$CONDA_EXECUTABLE" --version >/dev/null 2>&1; then
-        echo "ERROR: Miniconda installation is not functional."
-        return 1
-    fi
+thim_base_for_region() {
+    case "$(echo "$1" | tr '[:upper:]' '[:lower:]')" in
+        eastus2)       echo "https://useast2.thim.azure.net" ;;
+        centraluseuap) echo "https://uscentraleuap.thim.azure.net" ;;
+        westeurope)    echo "https://europewest.thim.azure.net" ;;
+        centralus)     echo "https://uscentral.thim.azure.net" ;;
+        *)             echo "" ;;
+    esac
 }
 
-gpu_attestation() {
+detect_azure_region() {
+    curl -s -H "Metadata: true" --max-time 5 \
+        "http://169.254.169.254/metadata/instance?api-version=2021-02-01" 2>/dev/null \
+        | grep -o '"location":"[^"]*"' | head -1 | cut -d'"' -f4
+}
+
+run_gpu_attestation() {
+    local WORK_DIR="${NVATTEST_DIR:-/usr/local/lib/new_local_gpu_verifier}"
+    local OUT_BIN="$WORK_DIR/nvattest"
+    local RP_POLICY="$WORK_DIR/nv_attest_gpu_verifier/azure_cgpu_h100_default_policy.rego"
+    local ATTESTATION_LOG="$WORK_DIR/attestation.log"
+    local NVIDIA_RIM_URL="https://rim.attestation.nvidia.com"
+    local NVIDIA_OCSP_URL="https://ocsp.ndis.nvidia.com"
+    local region thim_base rim_url="$NVIDIA_RIM_URL" ocsp_url rc=0
+    local policy_args=()
+
+    if [ "$#" -ne 0 ]; then
+        echo "Usage: sudo gpu-attestation" >&2
+        return 1
+    fi
+    gpu_preflight_checks || return 1
+    if [ ! -f "$RP_POLICY" ]; then
+        echo "ERROR: Required relying-party policy not found: $RP_POLICY" >&2
+        return 1
+    fi
+    echo "Reusing the existing nvattest binary at $OUT_BIN."
+    region="$(detect_azure_region)" || region=""
+    thim_base="$(thim_base_for_region "$region")"
+    if [ -z "$thim_base" ]; then
+        ocsp_url="$NVIDIA_OCSP_URL"
+        echo "Using NVIDIA RIM and OCSP for region '${region:-unknown}'."
+    else
+        rim_url="${thim_base}/nvidia"
+        ocsp_url="${thim_base}/nvidia/ocsp/"
+        policy_args=(--relying-party-policy "$RP_POLICY")
+    fi
+
     echo "============================================================"
     echo "  GPU Attestation"
     echo "============================================================"
+    echo "RIM: $rim_url"
+    echo "OCSP: $ocsp_url"
 
-    install_conda || return 1
+    sudo "$OUT_BIN" attest --device gpu --verifier local \
+        --rim-url "$rim_url" --ocsp-url "$ocsp_url" \
+        --ocsp-cert-id-hash sha-384 \
+        "${policy_args[@]}" \
+        >"$ATTESTATION_LOG" 2>&1 || rc=$?
 
-    if [ "$INSTALL_TO_USR_LOCAL" = "1" ]; then
-        echo "Installing local_gpu_verifier in /usr/local/lib"
-        local install_dir="/usr/local/lib/local_gpu_verifier"
+    if [ "$rc" -ne 0 ] && [ -n "$thim_base" ]; then
+        echo "THIM attestation failed; retrying with NVIDIA RIM and OCSP." >&2
+        {
+            echo
+            echo "THIM attestation failed; retrying with NVIDIA RIM and OCSP."
+        } >>"$ATTESTATION_LOG"
+        rc=0
+        sudo "$OUT_BIN" attest --device gpu --verifier local \
+            --rim-url "$NVIDIA_RIM_URL" --ocsp-url "$NVIDIA_OCSP_URL" \
+            --ocsp-cert-id-hash sha-384 \
+            "${policy_args[@]}" \
+            >>"$ATTESTATION_LOG" 2>&1 || rc=$?
+    fi
+
+    if [ "$rc" -eq 0 ]; then
+        sed '/^[[:space:]]*GPU attestation was successful[.!]*[[:space:]]*$/Id' \
+            "$ATTESTATION_LOG"
+        echo "GPU Attestation is Successful."
     else
-        echo "Installing local_gpu_verifier in script directory $SCRIPT_DIR"
-        local install_dir="$SCRIPT_DIR/local_gpu_verifier"
+        echo "GPU Attestation failed. Details: $ATTESTATION_LOG" >&2
+    fi
+    return "$rc"
+}
+
+gpu_attestation() {
+    if [ "$INSTALL_TO_USR_LOCAL" = "1" ]; then
+        local install_dir="/usr/local/lib/new_local_gpu_verifier"
+    else
+        local install_dir="$SCRIPT_DIR/new_local_gpu_verifier"
     fi
 
-    # Remove existing folder if present
-    if [ -d "$install_dir" ]; then
-        echo "Removing existing $install_dir"
-        sudo rm -rf "$install_dir"
+    # The first nvattest build needs Docker before the remaining step-3 tools.
+    if { [ "$REBUILD_NVATTEST" = "1" ] || [ ! -x "$install_dir/nvattest" ]; } && ! command -v docker >/dev/null 2>&1; then
+        install_docker || return 1
     fi
-
-    sudo mkdir -p "$install_dir"
-    sudo tar -xvf "$SCRIPT_DIR/local_gpu_verifier.tar" -C "$install_dir"
-    pushd "$install_dir" >/dev/null
-
-    echo "Open verifier folder successfully!"
-    # Restrict runtime packages to conda-forge; pip installs verifier dependencies from PyPI.
-    sudo rm -rf ./.venv
-    if ! sudo "$CONDA_EXECUTABLE" create --yes --override-channels --channel conda-forge --prefix ./.venv "python=$CONDA_PYTHON_VERSION"; then
-        echo "ERROR: Failed to create the Python $CONDA_PYTHON_VERSION Conda environment."
-        popd >/dev/null
-        return 1
-    fi
-    if ! sudo ./.venv/bin/python -m pip install .; then
-        echo "ERROR: Failed to install local_gpu_verifier."
-        popd >/dev/null
-        return 1
-    fi
+    sudo mkdir -p "$install_dir" || return 1
+    sudo cp "$SCRIPT_DIR/utilities-build-nvattest-verifier.sh" "$install_dir/" || return 1
+    sudo cp -r "$SCRIPT_DIR/nv_attest_gpu_verifier" "$install_dir/" || return 1
 
     # Create gpu-attestation command alias for easier usage
     if [ "$INSTALL_TO_USR_LOCAL" = "1" ] && [ "$CREATE_GPU_ATTESTATION_ALIAS" = "1" ]; then
         echo "Creating $GPU_ATTESTATION_CMD command ..."
         (echo '#!/usr/bin/env bash'
-         echo "NVIDIA_PERSISTENCED_WAIT_TIMEOUT=$NVIDIA_PERSISTENCED_WAIT_TIMEOUT"
-         declare -f gpu_preflight_checks
-         echo 'gpu_preflight_checks || exit 1'
-         echo "cd $install_dir"
-         echo "./.venv/bin/python -m verifier.cc_admin \"\$@\""
-        ) | sudo tee $GPU_ATTESTATION_CMD >/dev/null
-        sudo chmod +x $GPU_ATTESTATION_CMD
+         echo 'set -o pipefail'
+         declare -f gpu_preflight_checks thim_base_for_region detect_azure_region run_gpu_attestation
+         echo 'run_gpu_attestation "$@"'
+        ) | sudo tee "$GPU_ATTESTATION_CMD" >/dev/null || return 1
+        sudo chmod +x "$GPU_ATTESTATION_CMD" || return 1
         echo "gpu-attestation command installed. Run 'sudo gpu-attestation' from anywhere."
     fi
-    popd >/dev/null
-
-    # Run GPU attestation
-    if [ -x $GPU_ATTESTATION_CMD ]; then
-        sudo $GPU_ATTESTATION_CMD
-    else
-        gpu_preflight_checks || return 1
-        pushd "$install_dir" >/dev/null
-        sudo ./.venv/bin/python -m verifier.cc_admin
-        popd >/dev/null
-    fi
-
-    # Copy verifier.log back to script directory when installed to /usr/local
-    if [ "$INSTALL_TO_USR_LOCAL" = "1" ] && [ -f "$install_dir/verifier.log" ]; then
-        local log_dest="$SCRIPT_DIR/local_gpu_verifier"
-        sudo mkdir -p "$log_dest"
-        sudo cp "$install_dir/verifier.log" "$log_dest/verifier.log"
-        echo "Copied verifier.log to $log_dest/verifier.log"
-    fi
+    { [ "$REBUILD_NVATTEST" = "0" ] && [ -x "$install_dir/nvattest" ]; } || sudo bash "$install_dir/utilities-build-nvattest-verifier.sh" "$install_dir" || return 1
+    NVATTEST_DIR="$install_dir" run_gpu_attestation
 }
 
 cpu_attestation() {
@@ -259,6 +273,9 @@ if [[ "${#BASH_SOURCE[@]}" -eq 1 ]]; then
     echo -e "\n===== [step-2-attestation.sh] $(date) =====" | tee logs/current-operation.log | tee -a logs/all-operation.log
     if [ "$RUN_CPU" = "1" ]; then
         cpu_attestation "$@" 2>&1 | tee -a logs/current-operation.log | tee -a logs/all-operation.log
+        if [ "${PIPESTATUS[0]}" -ne 0 ]; then
+            exit 1
+        fi
     fi
     if [ "$RUN_GPU" = "1" ]; then
         gpu_attestation "$@" 2>&1 | tee -a logs/current-operation.log | tee -a logs/all-operation.log

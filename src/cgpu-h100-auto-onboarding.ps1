@@ -71,7 +71,7 @@ function CGPU-H100-Onboarding{
 		[switch]$enableproposed
 		)
 
-		$ONBOARDING_PACKAGE_VERSION="V4.5.1"
+		$ONBOARDING_PACKAGE_VERSION="V4.5.2"
 		Write-Host "Confidential GPU H100 Onboarding Package Version: $ONBOARDING_PACKAGE_VERSION"
 
 		$logpath=$(Get-Date -Format "MM-dd-yyyy_HH-mm-ss")
@@ -100,9 +100,11 @@ function CGPU-H100-Onboarding{
 		}
 
 		Start-Transcript -Path .\logs\$logpath\current-operation.log -Append
-		Auto-Onboard-CGPU-Multi-VM
-		trap {Stop-Transcript; break}
-		Stop-Transcript
+		try {
+			Auto-Onboard-CGPU-Multi-VM
+		} finally {
+			Stop-Transcript
+		}
 }
 
 
@@ -253,6 +255,10 @@ function Auto-Onboard-CGPU-Multi-VM {
 	
 	if (-not $skipazlogin) {
 		az account clear
+	}
+	if ($successcount -ne $totalvmnumber) {
+		$global:issuccess = "failed"
+		throw "Onboarding failed for $($totalvmnumber - $successcount) VM(s). See .\logs\$logpath for details."
 	}
 }
 
@@ -509,11 +515,17 @@ function Package-Upload {
 
 	Write-Host "Starting Package-Upload."
 	scp -i $privatekeypath $cgpupackagepath ${vmsshinfo}:/home/${adminusername}
+	if ($LASTEXITCODE -ne 0) {
+		Write-Host "ERROR: Package upload failed with exit code $LASTEXITCODE."
+		$global:issuccess = "failed"
+		return
+	}
 	Write-Host "Finished Package-Upload."
 	Write-Host "Starting extracting package."
 	Run-SSH-Command -privatekeypath $privatekeypath `
 		-vmsshinfo $vmsshinfo `
 		-command "tar -zxvf cgpu-onboarding-package.tar.gz 2>&1;" | Out-Host
+	if ($global:issuccess -eq "failed") { return }
 	Write-Host "Finished extracting package."
 	$global:issuccess = "succeeded"
 }
@@ -532,9 +544,14 @@ function Update-Kernel {
     Write-Host "Start update kernel"
     Run-SSH-Command -privatekeypath $privatekeypath `
         -vmsshinfo $vmsshinfo `
-        -command "cd cgpu-onboarding-package; sudo bash step-0-prepare-kernel.sh $additionalParams 2>&1;" | Out-Host
+        -command "cd cgpu-onboarding-package && sudo bash step-0-prepare-kernel.sh $additionalParams --no-reboot 2>&1;" | Out-Host
+    if ($global:issuccess -eq "failed") { return }
     Write-Host "Finished update kernel."
-    Write-Host "Rebooting..."
+    Run-SSH-Command -privatekeypath $privatekeypath `
+        -vmsshinfo $vmsshinfo `
+        -command "sudo shutdown -r +1 2>&1;" | Out-Host
+    if ($global:issuccess -eq "failed") { return }
+    Write-Host "Reboot scheduled in one minute..."
     Start-Sleep -Seconds 120
 
     $global:issuccess = "succeeded"
@@ -561,7 +578,8 @@ function Install-GPU-Driver {
 	Write-Host "Start GPU Driver install."
 	Run-SSH-Command -privatekeypath $privatekeypath `
 		-vmsshinfo $vmsshinfo `
-		-command "cd cgpu-onboarding-package; sudo bash step-1-install-gpu-driver.sh 2>&1;" | Out-Host
+		-command "cd cgpu-onboarding-package && sudo bash step-1-install-gpu-driver.sh 2>&1;" | Out-Host
+	if ($global:issuccess -eq "failed") { return }
 	Write-Host "Finished install driver."
 	$global:issuccess = "succeeded"
 }
@@ -583,11 +601,12 @@ function Attestation {
 	Write-Host "VM connection success."
 
 	Write-Host "Start installing attestation package - this may take up to 5 minutes."
-	"" | Set-Content -Path ".\logs\$logpath\attestation.log"
+	"" | Out-File -FilePath ".\logs\$logpath\attestation.log"
 	Run-SSH-Command -privatekeypath $privatekeypath `
 		-vmsshinfo $vmsshinfo `
-		-command "cd cgpu-onboarding-package; sudo bash step-2-attestation.sh 2>&1;" `
+		-command "cd cgpu-onboarding-package && sudo bash step-2-attestation.sh 2>&1;" `
 		-logfile ".\logs\$logpath\attestation.log" | Out-Host
+	if ($global:issuccess -eq "failed") { return }
 
 	Write-Host "Finished attestation."
 	$global:issuccess = "succeeded"
@@ -612,7 +631,8 @@ function Install-GPU-Tools {
 	Write-Host "Start install gpu tools."
 	Run-SSH-Command -privatekeypath $privatekeypath `
 		-vmsshinfo $vmsshinfo `
-		-command "cd cgpu-onboarding-package; sudo bash step-3-install-gpu-tools.sh 2>&1;" | Out-Host
+		-command "cd cgpu-onboarding-package && sudo bash step-3-install-gpu-tools.sh 2>&1;" | Out-Host
+	if ($global:issuccess -eq "failed") { return }
 	Write-Host "Finish install gpu tools."
 	$global:issuccess = "succeeded"
 }
@@ -636,8 +656,9 @@ function Enable-GPU-Verifier-Service {
 	Write-Host "Start enabling local GPU attestation verifier HTTP service."
 	Run-SSH-Command -privatekeypath $privatekeypath `
 		-vmsshinfo $vmsshinfo `
-		-command "cd cgpu-onboarding-package; sudo bash utilities-install-local-gpu-verfier-service.sh 2>&1;" `
+		-command "cd cgpu-onboarding-package && sudo bash utilities-install-local-gpu-verfier-service.sh 2>&1;" `
 		-logfile ".\logs\$logpath\attestation.log" | Out-Host
+	if ($global:issuccess -eq "failed") { return }
 	Write-Host "Finished enabling local GPU attestation verifier HTTP service."
 	$global:issuccess = "succeeded"
 }
@@ -656,13 +677,18 @@ function Run-SSH-Command {
 			-o "ServerAliveInterval 60" `
 			-o "ServerAliveCountMax 10" `
 			$vmsshinfo `
-			$command 2>&1 | Tee-Object -FilePath $logfile -Append
+			$command 2>&1 | Tee-Object -FilePath $logfile -Append -ErrorAction Stop
 	} else {
 		ssh -i $privatekeypath `
 			-o "ServerAliveInterval 60" `
 			-o "ServerAliveCountMax 10" `
 			$vmsshinfo `
 			$command 2>&1
+	}
+	$sshExitCode = $LASTEXITCODE
+	if ($sshExitCode -ne 0) {
+		$global:issuccess = "failed"
+		Write-Host "ERROR: SSH command on ${vmsshinfo} failed with exit code $sshExitCode."
 	}
 }
 
@@ -688,15 +714,15 @@ function Try-Connect {
 			-o "ConnectTimeout 10" `
 			${vmsshinfo} "bash -c 'echo connected'"		
 		Write-Host $connectionoutput
-		if ($connectionoutput -eq "connected") {
+		if ($LASTEXITCODE -eq 0 -and $connectionoutput -eq "connected") {
 			$global:issuccess = "succeeded"
-			return
+			return $true
 		}
 		Start-sleep -Seconds 1
 		$currentRetry++
 	}
 	$global:issuccess = "failed"
-	return
+	return $false
 }
 
 function Validation {
@@ -751,6 +777,7 @@ function Validation {
 	}
 	else
 	{
+		$global:issuccess = "failed"
 		Write-Host "Failed: Attestation validation failed."
 	}
 

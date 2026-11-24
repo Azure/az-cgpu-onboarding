@@ -50,7 +50,7 @@ spec:
             tar -xzf cgpu-onboarding-package.tar.gz
             rm -rf "$work/lgv"
             mkdir -p "$work/lgv"
-            tar -xf cgpu-onboarding-package/local_gpu_verifier.tar -C "$work/lgv"
+            tar -xf cgpu-onboarding-package/legacy_local_gpu_verifier.tar -C "$work/lgv"
 
             echo "== Create venv & install package =="
             cd "$work/lgv"

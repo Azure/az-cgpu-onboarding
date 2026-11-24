@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 
-## This module helps install gpu driver to the lastest r595 Nvidia driver version.
+## This module helps install gpu driver to the lastest r615 Nvidia driver version.
 ##
 ## Requirements:
-##      Minimum Nvidia driver:       v570.86.15
-##      Minimum kernel version:      6.8.0-1025-azure
+##      Minimum Nvidia driver:       v615.x (r615)
+##      Minimum kernel version:      6.8.0-1068-azure-fde (Ubuntu 22.04)
+##                                   7.0.0-1016-azure-fde (Ubuntu 24.04)
 ##
 ## Example:
 ##      sudo bash step-1-install-gpu-driver.sh
@@ -14,19 +15,30 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-MINIMUM_KERNEL_VERSION="6.8.0-1025-azure"
-
 # Common apt-get options: lock timeout, retry limit, and network timeouts
 APT_OPTS="-o DPkg::Lock::Timeout=300 -o Acquire::Retries=3 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30"
 
 # Install gpu driver required dependency and driver itself.
 install_gpu_driver() {
+    local ubuntu_version MINIMUM_KERNEL_VERSION
+    if ! ubuntu_version=$(lsb_release -rs) || [ -z "$ubuntu_version" ]; then
+        echo "ERROR: Unable to determine the Ubuntu release."
+        return 1
+    fi
+    case "$ubuntu_version" in
+        22.04) MINIMUM_KERNEL_VERSION="6.8.0-1068-azure-fde" ;;
+        24.04) MINIMUM_KERNEL_VERSION="7.0.0-1016-azure-fde" ;;
+        *)
+            echo "ERROR: Unsupported Ubuntu release: $ubuntu_version. Supported releases: 22.04 and 24.04."
+            return 1
+            ;;
+    esac
+
     # Verify current kernel version meets minimum requirement
     local current_kernel
     current_kernel=$(uname -r)
     echo "Current kernel version: $current_kernel"
-    echo -e "$MINIMUM_KERNEL_VERSION\n$current_kernel" | sort --check=quiet --version-sort
-    if [ "$?" -ne "0" ]; then
+    if ! echo -e "$MINIMUM_KERNEL_VERSION\n$current_kernel" | sort --check=quiet --version-sort; then
         echo "ERROR: Current kernel version: ($current_kernel), expected: (>= $MINIMUM_KERNEL_VERSION)."
         return 1
     fi
@@ -39,7 +51,7 @@ install_gpu_driver() {
     echo "Start gpu driver log."
 
     # Add NVIDIA CUDA repository keyring
-    curl -fsSL https://developer.download.nvidia.com/compute/cuda/repos/ubuntu$(lsb_release -rs | tr -d '.')/x86_64/cuda-keyring_1.1-1_all.deb -o /tmp/cuda-keyring.deb
+    curl -fsSL "https://developer.download.nvidia.com/compute/cuda/repos/ubuntu${ubuntu_version//./}/x86_64/cuda-keyring_1.1-1_all.deb" -o /tmp/cuda-keyring.deb
     while sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1 || \
         sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do
         echo "Waiting for dpkg lock to be released..."
@@ -49,11 +61,11 @@ install_gpu_driver() {
     rm -f /tmp/cuda-keyring.deb
 
     # Pin CUDA-repo branch-versioned packages (nvidia-modprobe, nvidia-settings,
-    # libxnvctrl0) to the 595 branch so `apt upgrade` never bumps them to 600+.
+    # libxnvctrl0) to the 615 branch so `apt upgrade` never bumps them to a newer branch.
     # Priority 1001 also blocks auto-upgrades pulled in as dependencies.
-    # 595.x patch updates are still allowed.
-    printf 'Package: nvidia-modprobe nvidia-settings libxnvctrl0\nPin: version 595.*\nPin-Priority: 1001\n' \
-        | sudo tee /etc/apt/preferences.d/nvidia-pin-595.pref >/dev/null
+    # 615.x patch updates are still allowed.
+    printf 'Package: nvidia-modprobe nvidia-settings libxnvctrl0\nPin: version 615.*\nPin-Priority: 1001\n' \
+        | sudo tee /etc/apt/preferences.d/nvidia-pin-615.pref >/dev/null
 
     # Install dependencies
     sudo apt-get $APT_OPTS update
@@ -62,6 +74,9 @@ install_gpu_driver() {
     # Apply change to modprobe.d and run update-initramfs
     echo 'install nvidia /sbin/modprobe ecdsa_generic ecdh; /sbin/modprobe --ignore-install nvidia' \
         | sudo tee /etc/modprobe.d/nvidia-lkca.conf >/dev/null
+    # NCC is headless: keep DRM from initializing displays before UVM persistence.
+    echo 'options nvidia_drm modeset=0 fbdev=0' \
+        | sudo tee /etc/modprobe.d/nvidia-ncc-headless.conf >/dev/null
     sudo update-initramfs -u -k $current_kernel
 
     # Config Nvidia persistence daemon
@@ -72,11 +87,11 @@ install_gpu_driver() {
     sudo install -m 0644 "$SCRIPT_DIR/nvidia-persistenced.override.conf" /etc/systemd/system/nvidia-persistenced.service.d/override.conf
     sudo systemctl daemon-reload
 
-    # Install r595 nvidia driver
+    # Install r615 nvidia driver
     sudo apt-get -o APT::Get::Always-Include-Phased-Updates=true $APT_OPTS install -y \
-        'nvidia-modprobe=595.*' \
-        nvidia-driver-595-server-open \
-        linux-modules-nvidia-595-server-open-azure-fde
+        'nvidia-modprobe=615.*' \
+        nvidia-driver-615-server-open \
+        linux-modules-nvidia-615-server-open-azure-fde
 
     # Add check user nvidia-persistenced, fail if not exist
     id nvidia-persistenced
@@ -107,12 +122,10 @@ load_nvidia_modules() {
     # Load Nvidia kernel modules
     sudo modprobe nvidia
     sudo modprobe nvidia_uvm
-    sudo modprobe nvidia_modeset
 
     # Create Nvidia device nodes
     sudo nvidia-modprobe -c 0          # /dev/nvidia0
     sudo nvidia-modprobe -c 255        # /dev/nvidiactl
-    sudo nvidia-modprobe -m            # /dev/nvidia-modeset
     sudo nvidia-modprobe -u -c 0 -c 1  # /dev/nvidia-uvm + /dev/nvidia-uvm-tools
 
     # Post-check for /dev/nvidia0 and /dev/nvidiactl
@@ -121,9 +134,6 @@ load_nvidia_modules() {
         exit 1
     fi
 }
-
-# Due to inconsistency upgrade from VM just booting up, adding 5 second delay.
-sleep 5
 
 if [[ "${#BASH_SOURCE[@]}" -eq 1 ]]; then
     if [ ! -d "logs" ]; then
