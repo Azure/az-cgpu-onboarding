@@ -7,9 +7,7 @@
 
 The following scripts were created to help automate the process of creating and testing drop packages:
 
-`init.ps1` -> makes sure your environment is set up with the az module installed and logs into your Azure account
-
-`build.ps1` -> will generate the 3 packages into a 'drops' folder: cgpu-onboarding-package.tar.gz, 
+`build.ps1` -> will generate the 3 packages into a `drops` folder (or the folder supplied with `-DropFolder`): cgpu-onboarding-package.tar.gz,
 cgpu-h100-auto-onboarding-windows.zip, and cgpu-h100-auto-onboarding-linux.tar.gz
 
 `utility_update_version.ps1` -> replaces all ocurrences of the old version number with the updated one from `src\version.txt`. Versions should have the following format: V2.1.0 - uppercase V followed by 3 sets of integers. If this condition is not met in either the new or the old version, an error message will be printed.

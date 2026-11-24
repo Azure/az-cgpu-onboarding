@@ -1,33 +1,56 @@
-# NVIDIA GPU Attestation Verifier Preview
+# NVIDIA GPU Attestation Verifier
 
-This folder contains the build-time dependencies and policy for the `nvattest` verifier. The utility script builds NVIDIA's new local GPU attestation verifier and then runs it directly on the VM. For upstream information, see [NVIDIA/attestation-sdk](https://github.com/NVIDIA/attestation-sdk/).
+This folder contains the build support files and policy for NVIDIA's C++ `nvattest` verifier, the default GPU verifier used by [step-2-attestation.sh](../step-2-attestation.sh) in updated NCC H100 onboarding packages for Ubuntu 22.04 and 24.04. The verifier runs directly on the VM after a disposable Docker build. For upstream information, see [NVIDIA/attestation-sdk](https://github.com/NVIDIA/attestation-sdk/).
 
-## Why migrate to nvattest?
-
-Local GPU attestation is moving from the existing Python-based `local_gpu_verifier` to NVIDIA's `nvattest` CLI. The existing Python-based verifier is being deprecated soon. If your workflows currently depend on it, begin testing the new verifier and planning migration now. This utility is just an optional preview for now - running it does not affect the existing `gpu-attestation` command.
 
 ## Prerequisites
 
-- Complete core onboarding on an H100 CGPU VM, with the NVIDIA GPU driver installed and confidential computing enabled
-- Install Docker using [../step-3-install-gpu-tools.sh](../step-3-install-gpu-tools.sh), if it is not already available
+- Complete step 1 on an NCC H100 VM running Ubuntu 22.04 or 24.04, with the NVIDIA driver installed and confidential computing enabled.
+- Docker is required to build `nvattest` (first run or `--rebuild-nvattest`), not for binary reuse.
 
 ## Usage
 
-To test the new nv-attest verifier, from the `src` folder, run:
+From the extracted updated onboarding package in the VM (or the repository's `src` directory), run:
 
 ```bash
-sudo bash utilities-nv-attest-verifier.sh
+sudo bash step-2-attestation.sh
 ```
 
-The script automatically detects Ubuntu 22.04 or 24.04 and selects the corresponding build image. The first run builds `nvattest` from NVIDIA's release branch and creates a local binary. Later runs reuse that installed binary and run attestation again without pulling or building Docker images.
+Step 2 runs both CPU and GPU attestation by default; it also accepts `--cpu-only`, `--gpu-only`, `--install-to-usr-local`, and `--rebuild-nvattest`. 
 
-To build a fresh verifier, use `--rebuild`:
+For later GPU attestation, run `sudo gpu-attestation`. To build the verifier without running attestation, run:
 
 ```bash
-sudo bash utilities-nv-attest-verifier.sh --rebuild
+sudo bash utilities-build-nvattest-verifier.sh [output_dir]
 ```
 
-Please note that a fresh build can take up to 5 minutes.
+The utility always builds `nvattest` from NVIDIA's release branch into `output_dir` (default: the script's folder). Step 2 builds it into `/usr/local/lib/new_local_gpu_verifier` only when the binary is missing or `--rebuild-nvattest` is passed. Step 2 and `gpu-attestation` own region detection, THIM selection, and attestation; the installed command runs without Docker or the build utility.
+
+To build a fresh verifier and attest, run:
+
+```bash
+sudo bash step-2-attestation.sh --gpu-only --rebuild-nvattest
+```
+
+Please note that a fresh build can take several minutes, or longer if transient downloads need retries.
+
+## Switching to or from the previous Python verifier
+
+There is no automatic Python fallback if `nvattest` fails. The new `gpu-attestation` command does not provide the previous Python-specific arguments or token format.
+
+From the extracted updated package in the VM, explicitly select the previous Python GPU verifier with:
+
+```bash
+sudo bash utilities-legacy-local-gpu-verifier.sh
+```
+
+This runs Python GPU attestation locally without changing `gpu-attestation`. To install or refresh the default `nvattest` command, run the root step 2:
+
+```bash
+sudo bash step-2-attestation.sh --gpu-only
+```
+
+See [legacy usage](../legacy_local_gpu_verifier/README.md). The nvattest utility only builds/rebuilds; use step 2 to install or refresh the command alias and attest.
 
 ## Expected success and troubleshooting
 
@@ -59,15 +82,15 @@ Both container image projects are open source. Customers can review their public
 
 The utility exports only the `nvattest` binary from the disposable builder image to the VM. After the build/export, and before running attestation, the script will remove:
 
-- The temporary export container
-- The generated build image
-- The pulled selected Rust base image
-- The temporary build-context directory
+- The temporary export container.
+- The generated build image.
+- The pulled Microsoft Ubuntu base image.
+- The temporary build-context directory.
 
 The binary and logs remain available for later runs while no verifier container is kept running.
 
 ## Support files and policy
 
 - [Dockerfile.bullseye](Dockerfile.bullseye) and [Dockerfile.azlinux3](Dockerfile.azlinux3) provide the OS-specific disposable build environments.
-- The utility selects SHA-384 OCSP request and response-matching certificate identifiers through NVIDIA's native `--ocsp-cert-id-hash sha-384` option for both THIM and NVIDIA OCSP.
+- Step 2 selects SHA-384 OCSP request and response-matching certificate identifiers through NVIDIA's native `--ocsp-cert-id-hash sha-384` option for both THIM and NVIDIA OCSP.
 - [azure_cgpu_h100_default_policy.rego](azure_cgpu_h100_default_policy.rego) is the Azure CGPU relying-party policy, derived from NVIDIA's [`allow_trust_outpost_ocsp.rego`](https://github.com/NVIDIA/attestation-sdk/blob/main/relying_party_policy_examples/allow_trust_outpost_ocsp.rego). This policy intentionally removes the OCSP nonce-match requirement for cached responses, which is a security-relevant behavior and differs from NVIDIA's default policy.

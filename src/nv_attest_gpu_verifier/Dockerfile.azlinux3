@@ -6,10 +6,17 @@ ARG VERIFIER_REPO_URL=https://github.com/NVIDIA/attestation-sdk
 ARG VERIFIER_REPO_BRANCH=release/2026.10.02
 ARG NVAT_BUILD_JOBS=2
 
-RUN tdnf install -y \
-        cmake gcc gcc-c++ make pkgconf-pkg-config git curl ca-certificates perl patch \
-        autoconf automake libtool zlib-devel openssl-devel \
-        curl-devel libxml2-devel xmlsec1-devel \
+# Fail on unavailable base metadata instead of silently skipping required packages.
+RUN sed -i 's/^skip_if_unavailable=.*/skip_if_unavailable=False/' \
+        /etc/yum.repos.d/azurelinux-official-base.repo \
+    && for attempt in 1 2 3; do \
+        tdnf clean all && tdnf --refresh install -y \
+            cmake gcc gcc-c++ make pkgconf-pkg-config git curl ca-certificates perl patch \
+            autoconf automake libtool zlib-devel openssl-devel \
+            curl-devel libxml2-devel xmlsec1-devel && break; \
+        [ "$attempt" -lt 3 ] || exit 1; \
+        sleep 10; \
+    done \
     && tdnf clean all \
     && rustc --version && cargo --version
 
@@ -35,6 +42,9 @@ RUN cmake \
         -DCMAKE_EXE_LINKER_FLAGS="-L/tmp/nvattest-build/openssl-install/lib -Wl,--undefined=nvat_zcbor_log" \
         -DCMAKE_SKIP_RPATH=ON \
         -DCMAKE_SKIP_INSTALL_RULES=ON \
-    && cmake --build /tmp/nvattest-build \
-        --target nvattest --parallel "${NVAT_BUILD_JOBS}" \
+    && for attempt in 1 2 3; do \
+        cmake --build /tmp/nvattest-build --target nvattest --parallel "${NVAT_BUILD_JOBS}" && break; \
+        [ "$attempt" -lt 3 ] || exit 1; \
+        sleep 10; \
+    done \
     && install -D -m 0755 /tmp/nvattest-build/nvattest /nvattest

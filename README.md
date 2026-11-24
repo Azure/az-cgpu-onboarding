@@ -65,6 +65,7 @@ If you prefer to go through the steps manually, you can follow these instruction
 
 - [Manual GPU Environment Setup](docs/Confidential-GPU-H100-Manual-Installation-(PMK-with-Powershell).md#upload-package)
 
+
 **Preview Features**:
 
 1. [Confidential GPU AKS Onboarding](docs/Confidential-GPU-H100-AKS-Onboarding.md)
@@ -76,14 +77,6 @@ This onboarding document walks through the process of creating an Azure Kubernet
 Run large language models entirely within your CGPU VM’s hardware Trusted Execution Environment (TEE). After completing the core onboarding steps, you can use the optional quickstart script and reference configurations to install and serve an LLM through an OpenAI-compatible API at `localhost:8000`
 
 The guide uses Microsoft Phi-4, Llama 3.3 70B, Qwen 2.5 72B, and DeepSeek R1 Distill Llama 70B as examples. These are reference implementations intended to provide guidance rather than an exhaustive list of supported models.
-
-3. **Upcoming New NVIDIA GPU Attestation Verifier**
-
-Local GPU attestation is soon going to be migrated to NVIDIA's new `nvattest` verifier. The onboarding package includes an optional preview utility script that builds the verifier in a disposable container and then runs GPU attestation.
-
-To test this preview feature, after completing the core onboarding steps, try `sudo bash utilities-nv-attest-verifier.sh`.
-For more information about the verifier build files and policy, see [src/nv_attest_gpu_verifier/README.md](src/nv_attest_gpu_verifier/README.md).
-
 
 This guidance is currently in preview and does not include an SLA. For comments, feedback, or questions, please open a [az-cgpu-onboarding/Issues](https://github.com/Azure/az-cgpu-onboarding/issues/new?q=is%3Aissue).
 

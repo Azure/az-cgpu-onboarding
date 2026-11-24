@@ -29,7 +29,7 @@ Please make sure you have these requirements before performing the following ste
 - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
   - Note: minimum version 2.46.0 is required, run `az --version` to check your version and run `az upgrade` to install the latest version if your version is older
 - [Quota for the NCC H100 v5 VM SKU](../Frequently-Asked-Questions.md#q-how-can-i-get-quota-for-creating-an-ncc-cgpu-vm)
-- Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure/az-cgpu-onboarding/releases/download/V4.5.1/cgpu-onboarding-package.tar.gz) from [az-cgpu-onboarding-V4.5.1](https://github.com/Azure/az-cgpu-onboarding/releases/tag/V4.5.1)
+- Download [cgpu-onboarding-package.tar.gz](https://github.com/Azure/az-cgpu-onboarding/releases/download/V4.5.2/cgpu-onboarding-package.tar.gz) from [az-cgpu-onboarding-V4.5.2](https://github.com/Azure/az-cgpu-onboarding/releases/tag/V4.5.2)
 
 -------------------------------------------
 
@@ -132,7 +132,7 @@ tar -zxvf cgpu-onboarding-package.tar.gz
 cd cgpu-onboarding-package
 sudo bash step-0-prepare-kernel.sh
 ```
-Note: this step requires a reboot, so once your VM status is back to 'running' please re-connect and re-enter the onboarding package to continue:
+Note: successful preparation reboots the VM automatically. Once your VM status is back to 'running', please re-connect and re-enter the onboarding package to continue:
 ```
 ssh -i ${privatekeypath} $adminusername@$vmip
 cd cgpu-onboarding-package
